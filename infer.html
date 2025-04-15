@@ -1,70 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Morning Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Apps and Inference Services</title>
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-        }
-        .section {
-            margin-bottom: 20px;
-            border: 1px solid #ddd;
-            padding: 15px;
-            border-radius: 5px;
-        }
-        .section h2 {
-            margin-top: 0;
-        }
-        .link-list {
-            list-style: none;
-            padding: 0;
-        }
-        .link-list li {
-            margin-bottom: 5px;
-        }
-        .link-list a {
-            text-decoration: none;
-        }
-        .home-link {
-            margin-bottom: 20px;
-        }
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1, h2, h3 { color: #333; }
+        ul { list-style-type: none; padding-left: 20px; }
+        li { margin: 10px 0; }
+        a { text-decoration: none; color: #0066cc; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <h1>Dies qui omnia innovat!</h1>
-    <div class="home-link">
-        <a href="index.html">Home</a>
-    </div>
-    <div class="section">
-        <h2>Chatbots and Models</h2>
-        <ul class="link-list">
-            <li><a href="https://chat.openai.com/">OpenAI - ChatGPT (GPT-4)</a></li>
-            <li><a href="https://gemini.google.com/">Google - Gemini (formerly Bard)</a></li>
-            <li><a href="https://aistudio.google.com/prompts/new_chat">AI Studio</a></li>
-            <li><a href="https://claude.ai/">Anthropic - Claude</a></li>
-            <li><a href="https://copilot.microsoft.com/">Microsoft - Copilot</a></li>
-            <li><a href="https://grok.x.ai/">xAI - Grok</a></li>
-            <li><a href="https://x.com/home?lang=en">xAI - Grok via x</a></li>
-            <li><a href="https://dashboard.cohere.com/playground/chat">Cohere - Command</a></li>
-            <li><a href="https://chat.mistral.ai/">Mistral AI - Mistral Large (via Le Chat)</a></li>
-            <li><a href="https://www.perplexity.ai/">Perplexity AI</a></li>
-            <li><a href="https://aistudio.google.com/prompts/new_chat">AI Studio</a></li>
-            <li><a href="https://meta.ai/">Meta AI (Meta Llama)</a></li>
-            <li><a href="https://groq.com/">Groq</a></li>
-            <li><a href="https://chat.deepseek.com/">DeepSeek Chat</a></li>
-            <li><a href="https://manus.im/app/">Manus AI</a></li>
-            <li><a href="https://www.yeschat.ai/">Yeschat AI</a></li>
-            <li><a href="https://you.com/search?tbm=youchat">YouChat</a></li>
-            <li><a href="https://poe.com/">Poe</a></li>
-            <li><a href="https://github.com/marketplace?type=models">Github Model Catalog</a></li>
-            <hr/>
-            <li><a href="https://huggingface.co/chat">Hugging Face Chat</a></li>
-            <li><a href="https://beta.character.ai/">Character.AI</a></li>
-            <li><a href="https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat">Llama 2 Chat (via various platforms, e.g., Hugging Face Spaces)</a></li>
-            <li><a href="https://huggingface.co/spaces/tiiuae/falcon-7b-instruct">Falcon Chat (via various platforms, e.g., Hugging Face Spaces)</a></li>
-        </ul>
-    </div>
-    
+    <h1>Chat Apps and Inference Services</h1>
+    <p>This page lists popular chat apps and inference services, categorized by free tiers, intelligence, speed, and context window sizes. Updated as of April 15, 2025.</p>
+
+    <!-- Chat Apps Section -->
+    <h2>Chat Apps</h2>
+
+    <h3>All Chat Apps</h3>
+    <ul>
+        <li><a href="https://chat.openai.com/">OpenAI - ChatGPT (GPT-4)</a>: Industry-leading chatbot with a 200,000-token context window and robust free tier.</li>
+        <li><a href="https://gemini.google.com/">Google - Gemini (formerly Bard)</a>: Versatile chatbot with a 1,000,000-token context window and free access.</li>
+        <li><a href="https://aistudio.google.com/prompts/new_chat">AI Studio</a>: Google's AI development platform for prompts and models.</li>
+        <li><a href="https://claude.ai/">Anthropic - Claude</a>: Safe, helpful AI with a 200,000-token context window.</li>
+        <li><a href="https://copilot.microsoft.com/">Microsoft - Copilot</a>: AI assistant integrated with Microsoft services.</li>
+        <li><a href="https://grok.x.ai/">xAI - Grok</a>: Insightful AI for reasoning and truth-seeking. Also accessible via <a href="https://x.com/home?lang=en">xAI - Grok via x</a>.</li>
+        <li><a href="https://dashboard.cohere.com/playground/chat">Cohere - Command</a>: Enterprise-grade chatbot with NLP focus.</li>
+        <li><a href="https://chat.mistral.ai/">Mistral AI - Mistral Large (via Le Chat)</a>: High-performance chatbot with a 128,000-token context window.</li>
+        <li><a href="https://www.perplexity.ai/">Perplexity AI</a>: Research-focused chatbot with real-time web access.</li>
+        <li><a href="https://meta.ai/">Meta AI (Meta Llama)</a>: General-purpose chatbot integrated with Meta platforms.</li>
+        <li><a href="https://groq.com/">Groq</a>: High-speed inference platform with chatbot capabilities.</li>
+        <li><a href="https://chat.deepseek.com/">DeepSeek Chat</a>: High-intelligence open-source chatbot.</li>
+        <li><a href="https://manus.im/app/">Manus AI</a>: AI assistant for productivity and task management.</li>
+        <li><a href="https://www.yeschat.ai/">Yeschat AI</a>: Conversational AI for customer engagement.</li>
+        <li><a href="https://you.com/search?tbm=youchat">YouChat</a>: Search-integrated chatbot for quick answers.</li>
+        <li><a href="https://poe.com/">Poe</a>: Platform for accessing multiple AI models in one interface.</li>
+        <li><a href="https://huggingface.co/chat">Hugging Face Chat</a>: Open-source chatbot platform.</li>
+        <li><a href="https://beta.character.ai/">Character.AI</a>: Customizable character-based chatbot.</li>
+        <li><a href="https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat">Llama 2 Chat (via various platforms, e.g., Hugging Face Spaces)</a>: Open-source chatbot using Llama 2.</li>
+        <li><a href="https://huggingface.co/spaces/tiiuae/falcon-7b-instruct">Falcon Chat (via various platforms, e.g., Hugging Face Spaces)</a>: Instruction-based chatbot using Falcon model.</li>
+    </ul>
+
+    <h3>Chat Apps with Best Free Tiers</h3>
+    <ul>
+        <li><a href="https://chat.openai.com/">OpenAI - ChatGPT (GPT-4)</a>: Free tier with access to advanced models.</li>
+        <li><a href="https://gemini.google.com/">Google - Gemini (formerly Bard)</a>: Fully free with no usage caps.</li>
+    </ul>
+
+    <h3>Smartest Chat Apps</h3>
+    <ul>
+        <li><a href="https://chat.openai.com/">OpenAI - ChatGPT (GPT-4)</a>: Top-ranked for reasoning and knowledge.</li>
+        <li><a href="https://chat.deepseek.com/">DeepSeek Chat</a>: Excels in coding and complex queries.</li>
+        <li><a href="https://gemini.google.com/">Google - Gemini (formerly Bard)</a>: High intelligence with vast data access.</li>
+        <li><a href="https://claude.ai/">Anthropic - Claude</a>: Strong reasoning and safety features.</li>
+    </ul>
+
+    <h3>Chat Apps with Largest Context Windows</h3>
+    <ul>
+        <li><a href="https://gemini.google.com/">Google - Gemini (formerly Bard)</a>: 1,000,000 tokens for extensive text processing.</li>
+        <li><a href="https://claude.ai/">Anthropic - Claude</a>: 200,000 tokens, ideal for long conversations.</li>
+        <li><a href="https://chat.openai.com/">OpenAI - ChatGPT (GPT-4)</a>: 200,000 tokens with advanced models.</li>
+    </ul>
+
+    <!-- Model Marketplaces Section -->
+    <h2>Model Marketplaces</h2>
+    <ul>
+        <li><a href="https://github.com/marketplace?type=models">Github Model Catalog</a>: Marketplace for discovering and sharing AI models.</li>
+    </ul>
+
+    <!-- Inference Services Section -->
+    <h3>Chat Apps with  Free Tiers - other</h3>
+    <ul>
+        <li><a href="https://replika.ai/">Replika</a>: Free emotional companion with optional upgrades.</li>
+        <li><a href="https://www.tidio.com/">Tidio</a>: Free plan for small businesses.</li>
+    </ul>
+
 </body>
 </html>

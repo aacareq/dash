@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AI-Powered Tools for Software Design, Development, Testing, and Delivery</title>
+    <title>AI-Powered Tools for Modern Software Development</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -36,8 +36,14 @@
             background-color: #007bff;
             color: white;
         }
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
+        .free-tier {
+            background-color: #e6ffe6; /* Light green for free/generous free tiers */
+        }
+        .open-source {
+            background-color: #e6f3ff; /* Light blue for open-source */
+        }
+        .notable {
+            background-color: #fffde7; /* Light yellow for other notable tools */
         }
         tr:hover {
             background-color: #e0f7fa;
@@ -73,75 +79,89 @@
                     <th>Free Tier Details</th>
                     <th>Link</th>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>GitHub Copilot</td>
                     <td>Coding Agent</td>
-                    <td>AI-powered code completion tool integrated into IDEs like VS Code, offering context-aware suggestions and debugging for multiple languages.</td>
-                    <td>Free for students, educators, and open-source maintainers via GitHub Student Developer Pack; full access equivalent to $10/month plan; 30-day trial for others.</td>
+                    <td>AI-powered code completion tool using LLMs for context-aware suggestions, debugging, and code generation in IDEs like VS Code.</td>
+                    <td>Free for students, educators, and open-source maintainers via GitHub Student Developer Pack; 30-day trial for others.</td>
                     <td><a href="https://github.com/features/copilot">GitHub Copilot</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>Sourcegraph Cody</td>
                     <td>Coding Agent</td>
-                    <td>AI assistant for code search, navigation, and generation, with vulnerability detection and integrations like Notion for large codebases.</td>
-                    <td>Free for individuals with unlimited code search and basic AI features; no time limit, suitable for personal projects.</td>
+                    <td>AI assistant for code search, navigation, and generation, with ML-driven vulnerability detection and Notion integration.</td>
+                    <td>Free for individuals with unlimited code search and basic AI features; no time limit.</td>
                     <td><a href="https://sourcegraph.com/cody">Sourcegraph Cody</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>Grok Studio</td>
                     <td>Coding Agent</td>
-                    <td>Collaborative workspace in xAI’s Grok 3 for generating/editing code (Python, JavaScript, etc.), documents, and browser games with live previews and Google Drive integration.</td>
-                    <td>Free for a limited time (as of Feb 19, 2025); standard free tier offers limited code/document generation; full access requires X Premium+ or SuperGrok.</td>
+                    <td>xAI’s collaborative workspace for generating/editing code (Python, JavaScript), documents, and browser games with live previews and Google Drive integration.</td>
+                    <td>Free for a limited time (as of Feb 19, 2025); standard free tier offers limited code generation.</td>
                     <td><a href="https://grok.x.ai">Grok Studio</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>Tabnine</td>
                     <td>Coding Agent</td>
                     <td>AI code completion tool supporting 25+ languages, with personalized suggestions and privacy-focused on-premises options.</td>
-                    <td>Free plan includes basic code completion for individuals; no usage caps, supports all major languages.</td>
+                    <td>Free plan includes basic code completion; no usage caps.</td>
                     <td><a href="https://www.tabnine.com">Tabnine</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
+                    <td>Qodo Merge</td>
+                    <td>Coding Agent</td>
+                    <td>AI agent for GitHub PR workflows, analyzing code quality, security, and test coverage with context-aware PR-Chat.</td>
+                    <td>Free plan includes basic PR analysis; unlimited public repos.</td>
+                    <td><a href="https://qodo.ai/merge">Qodo Merge</a></td>
+                </tr>
+                <tr class="free-tier">
                     <td>TestCraft</td>
                     <td>Testing Framework</td>
-                    <td>AI-powered browser extension for generating test ideas, creating scripts for Cypress/Playwright, and identifying accessibility issues.</td>
-                    <td>Free browser extension with full AI-driven test generation and accessibility checks; no usage limits.</td>
+                    <td>AI-powered browser extension for generating test ideas, Cypress/Playwright scripts, and accessibility checks.</td>
+                    <td>Free extension with full AI-driven test generation; no usage limits.</td>
                     <td><a href="https://www.testcraft.io">TestCraft</a></td>
                 </tr>
-                <tr>
-                    <td>Jenkins</td>
-                    <td>CI/CD</td>
-                    <td>Open-source CI/CD tool for automating build, test, and deployment pipelines, with extensive plugin support.</td>
-                    <td>Free under MIT license; no usage limits; requires compute resources for hosting.</td>
-                    <td><a href="https://www.jenkins.io">Jenkins</a></td>
+                <tr class="free-tier">
+                    <td>GitHub Actions</td>
+                    <td>CI/CD and Delivery</td>
+                    <td>AI-optimized CI/CD platform for automating workflows, with parallel testing and build failure prediction.</td>
+                    <td>Free tier includes 2,000 minutes/month for public repos, 500 MB storage; generous for small teams.</td>
+                    <td><a href="https://github.com/features/actions">GitHub Actions</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>GitLab CI/CD</td>
-                    <td>CI/CD</td>
-                    <td>Integrated CI/CD platform within GitLab for automating testing and deployment, with robust free tier.</td>
-                    <td>Free tier includes 400 CI/CD minutes/month for public/private projects; sufficient for small teams.</td>
+                    <td>CI/CD and Delivery</td>
+                    <td>Integrated CI/CD platform with AI-driven pipeline optimization and parallel testing.</td>
+                    <td>Free tier includes 400 CI/CD minutes/month for public/private projects.</td>
                     <td><a href="https://about.gitlab.com">GitLab CI/CD</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>PostgreSQL</td>
                     <td>Database</td>
-                    <td>Open-source relational database with AI-driven query optimization and extensions like pgvector for ML.</td>
-                    <td>Free under PostgreSQL License; no usage limits; requires compute resources.</td>
+                    <td>Open-source relational database with AI-driven query optimization and pgvector for ML embeddings.</td>
+                    <td>Free under PostgreSQL License; requires compute resources.</td>
                     <td><a href="https://www.postgresql.org">PostgreSQL</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>Apache Superset</td>
-                    <td>Data Tool</td>
-                    <td>Open-source data visualization and exploration platform with AI-driven insights for analytics.</td>
-                    <td>Free under Apache 2.0 license; requires compute resources for hosting.</td>
+                    <td>Data Tool/Data Science</td>
+                    <td>Open-source data visualization platform with AI-driven insights and query generation.</td>
+                    <td>Free under Apache 2.0 license; requires compute resources.</td>
                     <td><a href="https://superset.apache.org">Apache Superset</a></td>
                 </tr>
-                <tr>
+                <tr class="free-tier">
                     <td>Beautiful Soup</td>
                     <td>Screen Scraping</td>
-                    <td>Open-source Python library for web scraping, parsing HTML/XML, and extracting data.</td>
-                    <td>Free under MIT license; no usage limits; requires Python environment.</td>
+                    <td>Open-source Python library for web scraping, parsing HTML/XML, and data extraction.</td>
+                    <td>Free under MIT license; requires Python environment.</td>
                     <td><a href="https://www.crummy.com/software/BeautifulSoup">Beautiful Soup</a></td>
+                </tr>
+                <tr class="free-tier">
+                    <td>Colab</td>
+                    <td>Data Science</td>
+                    <td>Google’s cloud-based Jupyter notebook environment for AI model development with free GPU access.</td>
+                    <td>Free tier includes GPU/TPU access; limited compute units.</td>
+                    <td><a href="https://colab.research.google.com">Google Colab</a></td>
                 </tr>
             </table>
         </div>
@@ -157,82 +177,152 @@
                     <th>Free Tier Details</th>
                     <th>Link</th>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Plandex</td>
                     <td>Coding Agent</td>
-                    <td>AI coding agent for complex, multi-file tasks, using persistent agents to automate workflows.</td>
-                    <td>Free under MIT license; costs for external LLMs or compute resources.</td>
+                    <td>AI coding agent for multi-file tasks, using persistent agents to automate workflows.</td>
+                    <td>Free under MIT license; costs for LLMs or compute.</td>
                     <td><a href="https://github.com/plandex-ai/plandex">Plandex</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Devika</td>
                     <td>Coding Agent</td>
-                    <td>AI software engineer for high-level coding tasks, autonomously researches, codes, and deploys applications.</td>
-                    <td>Free under MIT license; costs for compute or external LLMs.</td>
+                    <td>AI software engineer for autonomous coding, research, and application deployment.</td>
+                    <td>Free under MIT license; costs for compute or LLMs.</td>
                     <td><a href="https://github.com/stitionai/devika">Devika</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>CodeLlama</td>
                     <td>Coding Agent</td>
-                    <td>Meta AI’s code generation model for Python, Java, C++, etc., supporting completion and debugging.</td>
-                    <td>Free under Llama license (non-commercial restrictions); requires compute resources.</td>
+                    <td>Meta AI’s code generation model for Python, Java, etc., supporting completion and debugging.</td>
+                    <td>Free under Llama license (non-commercial); requires compute.</td>
                     <td><a href="https://github.com/facebookresearch/codellama">CodeLlama</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>StarCoder</td>
                     <td>Coding Agent</td>
-                    <td>Code generation model supporting 80+ languages, trained on permissively licensed code.</td>
-                    <td>Free under Apache 2.0 license; requires compute resources.</td>
+                    <td>Code generation model for 80+ languages, trained on permissively licensed code.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
                     <td><a href="https://github.com/bigcode-project/starcoder">StarCoder</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>SWE-Agent</td>
                     <td>Coding Agent</td>
-                    <td>AI agent for autonomously writing and debugging code, competitive with paid tools.</td>
-                    <td>Free under MIT license; costs for compute or external LLMs.</td>
+                    <td>AI agent for autonomous code writing and debugging, competitive with paid tools.</td>
+                    <td>Free under MIT license; costs for compute or LLMs.</td>
                     <td><a href="https://github.com/princeton-nlp/SWE-agent">SWE-Agent</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Selenium IDE</td>
                     <td>Testing Framework</td>
-                    <td>Open-source tool for web testing, with AI-driven test script generation and WebDriver integration.</td>
-                    <td>Free under Apache 2.0 license; no usage limits; requires compute resources.</td>
+                    <td>Tool for web testing with AI-driven test script generation and WebDriver integration.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
                     <td><a href="https://www.selenium.dev/selenium-ide">Selenium IDE</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Appium</td>
                     <td>Testing Framework</td>
-                    <td>Open-source tool for automating mobile apps across iOS and Android using WebDriver protocols.</td>
-                    <td>Free under Apache 2.0 license; requires compute resources.</td>
+                    <td>Tool for automating mobile apps across iOS/Android using WebDriver protocols.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
                     <td><a href="https://appium.io">Appium</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Robot Framework</td>
                     <td>Testing Framework</td>
-                    <td>Open-source framework for acceptance testing and RPA, extensible with Python/Java libraries.</td>
-                    <td>Free under Apache 2.0 license; requires compute resources.</td>
+                    <td>Framework for acceptance testing and RPA, extensible with Python/Java libraries.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
                     <td><a href="https://robotframework.org">Robot Framework</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
+                    <td>Jenkins</td>
+                    <td>CI/CD and Delivery</td>
+                    <td>CI/CD tool for automating build, test, and deployment with plugin support.</td>
+                    <td>Free under MIT license; requires compute.</td>
+                    <td><a href="https://www.jenkins.io">Jenkins</a></td>
+                </tr>
+                <tr class="open-source">
                     <td>MongoDB</td>
                     <td>Database</td>
-                    <td>Open-source NoSQL database with AI-driven query optimization and scalability for big data.</td>
-                    <td>Free under SSPL license; requires compute resources; free tier via MongoDB Atlas.</td>
+                    <td>NoSQL database with AI-driven query optimization and scalability.</td>
+                    <td>Free under SSPL; free tier via MongoDB Atlas.</td>
                     <td><a href="https://www.mongodb.com">MongoDB</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
+                    <td>MySQL</td>
+                    <td>Database</td>
+                    <td>Relational database with AI-driven query optimization and cloud integration.</td>
+                    <td>Free under GPL; free tier via AWS RDS.</td>
+                    <td><a href="https://www.mysql.com">MySQL</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Metabase</td>
+                    <td>Data Tool/Data Science</td>
+                    <td>BI tool for data visualization and AI-driven query generation.</td>
+                    <td>Free under AGPL; requires compute.</td>
+                    <td><a href="https://www.metabase.com">Metabase</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>MLflow</td>
+                    <td>Data Science/MLOps</td>
+                    <td>Platform for managing ML lifecycle, including training, tracking, and deployment.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://mlflow.org">MLflow</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Kubeflow</td>
+                    <td>Data Science/MLOps</td>
+                    <td>Platform for deploying and managing ML workflows on Kubernetes.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://www.kubeflow.org">Kubeflow</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Gretel</td>
+                    <td>Data Science</td>
+                    <td>Tool for generating synthetic data for ML training and testing.</td>
+                    <td>Free under Apache 2.0; limited features; cloud plans start at $295/month.</td>
+                    <td><a href="https://gretel.ai">Gretel</a></td>
+                </tr>
+                <tr class="open-source">
                     <td>Scrapy</td>
                     <td>Screen Scraping</td>
-                    <td>Open-source Python framework for large-scale web scraping and crawling.</td>
-                    <td>Free under BSD license; requires Python environment.</td>
+                    <td>Python framework for large-scale web scraping and crawling.</td>
+                    <td>Free under BSD license; requires Python.</td>
                     <td><a href="https://scrapy.org">Scrapy</a></td>
                 </tr>
-                <tr>
+                <tr class="open-source">
                     <td>Kubernetes</td>
                     <td>Cloud Infrastructure</td>
-                    <td>Open-source platform for container orchestration, with AI-driven resource optimization.</td>
-                    <td>Free under Apache 2.0 license; requires compute resources for hosting.</td>
+                    <td>Platform for container orchestration with AI-driven resource optimization.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
                     <td><a href="https://kubernetes.io">Kubernetes</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Terraform</td>
+                    <td>Cloud Infrastructure</td>
+                    <td>IaC tool for provisioning cloud infrastructure with AI-driven optimization.</td>
+                    <td>Free under MPL 2.0; requires compute.</td>
+                    <td><a href="https://www.terraform.io">Terraform</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Docker</td>
+                    <td>Containerization</td>
+                    <td>Platform for containerizing applications, with AI-driven image optimization.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://www.docker.com">Docker</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>Prometheus</td>
+                    <td>Monitoring</td>
+                    <td>Monitoring and alerting toolkit with AI-driven anomaly detection.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://prometheus.io">Prometheus</a></td>
+                </tr>
+                <tr class="open-source">
+                    <td>n8n</td>
+                    <td>Automation</td>
+                    <td>Workflow automation platform with AI-driven task orchestration.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://n8n.io">n8n</a></td>
                 </tr>
             </table>
         </div>
@@ -248,138 +338,173 @@
                     <th>Free Tier Details</th>
                     <th>Link</th>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Replit Ghostwriter</td>
                     <td>Coding Agent</td>
-                    <td>AI coding assistant in Replit’s cloud-based IDE, offering suggestions and collaborative coding.</td>
-                    <td>Limited free tier with Replit’s free plan; basic AI suggestions, lower usage quotas.</td>
+                    <td>AI coding assistant in Replit’s cloud IDE, offering suggestions and collaboration.</td>
+                    <td>Limited free tier with Replit’s free plan; lower usage quotas.</td>
                     <td><a href="https://replit.com/ghostwriter">Replit Ghostwriter</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Cursor</td>
                     <td>Coding Agent</td>
-                    <td>AI-native IDE forked from VS Code, with autocompletion and multi-file editing.</td>
-                    <td>Free for individuals with basic AI features; limited quotas for advanced AI.</td>
+                    <td>AI-native IDE with autocompletion and multi-file editing for complex projects.</td>
+                    <td>Free for individuals with basic AI; limited quotas for advanced AI.</td>
                     <td><a href="https://cursor.sh">Cursor</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Zencoder</td>
                     <td>Coding Agent</td>
-                    <td>AI coding agent for IDEs, offering Repo Grokking™, agentic chat, and task automation.</td>
-                    <td>Limited free tier for basic features; full access requires enterprise pricing.</td>
+                    <td>AI coding agent for IDEs with Repo Grokking™ and task automation.</td>
+                    <td>Limited free tier; enterprise pricing for full access.</td>
                     <td><a href="https://zencoder.ai">Zencoder</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Windsurf</td>
                     <td>Coding Agent</td>
-                    <td>AI IDE with Cascade agent for bug fixing, optimization, and large codebase management.</td>
-                    <td>Limited free tier for individuals; team features require paid plans.</td>
+                    <td>AI IDE with Cascade agent for bug fixing and large codebase management.</td>
+                    <td>Limited free tier; paid plans for teams.</td>
                     <td><a href="https://windsurf.ai">Windsurf</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>ChatDev</td>
                     <td>Coding Agent</td>
-                    <td>AI agent simulating a software company for collaborative coding tasks.</td>
-                    <td>Free tier for basic collaborative coding; paid for scale and advanced features.</td>
+                    <td>AI agent simulating a software company for collaborative coding.</td>
+                    <td>Free tier for basic coding; paid for scale.</td>
                     <td><a href="https://github.com/OpenBMB/ChatDev">ChatDev</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Testim</td>
                     <td>Testing Framework</td>
-                    <td>AI-powered test automation platform for web/mobile apps, with self-healing tests.</td>
-                    <td>Free tier for basic test automation; limited test runs; paid plans start at $450/year.</td>
+                    <td>AI-powered test automation for web/mobile apps with self-healing tests.</td>
+                    <td>Free tier for basic testing; paid plans start at $450/year.</td>
                     <td><a href="https://www.testim.io">Testim</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Mabl</td>
                     <td>Testing Framework</td>
-                    <td>AI-driven test automation for web, mobile, and API testing, with auto-healing and CI/CD integration.</td>
-                    <td>Limited free tier for basic testing; pricing not public, custom plans available.</td>
+                    <td>AI-driven test automation for web, mobile, and API testing with CI/CD integration.</td>
+                    <td>Limited free tier; custom pricing.</td>
                     <td><a href="https://www.mabl.com">Mabl</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
                     <td>Applitools</td>
                     <td>Testing Framework</td>
-                    <td>AI-powered visual testing platform for UI validation across browsers/devices.</td>
+                    <td>AI-powered visual testing for UI validation across browsers/devices.</td>
                     <td>Free tier for basic visual testing; paid plans start at $450/year.</td>
                     <td><a href="https://applitools.com">Applitools</a></td>
                 </tr>
-                <tr>
-                    <td>CircleCI</td>
-                    <td>CI/CD</td>
-                    <td>Cloud-based CI/CD platform with AI-driven pipeline optimization and parallel testing.</td>
-                    <td>Free tier includes 6,000 build minutes/month for open-source projects; limited for private repos.</td>
-                    <td><a href="https://circleci.com">CircleCI</a></td>
+                <tr class="notable">
+                    <td>TestRigor</td>
+                    <td>Testing Framework</td>
+                    <td>Generative AI-driven test automation for end-to-end testing.</td>
+                    <td>Limited free tier; custom pricing.</td>
+                    <td><a href="https://testrigor.com">TestRigor</a></td>
                 </tr>
-                <tr>
-                    <td>BrowserStack</td>
-                    <td>Testing Framework/Cloud Infrastructure</td>
-                    <td>Cloud-based testing platform for web/mobile apps, with AI-driven test analytics.</td>
-                    <td>Free trial with 100 minutes of usage; paid plans start at $149/month.</td>
-                    <td><a href="https://www.browserstack.com">BrowserStack</a></td>
-                </tr>
-                <tr>
-                    <td>Sauce Labs</td>
-                    <td>Testing Framework/Cloud Infrastructure</td>
-                    <td>Cloud-based testing platform for cross-browser and mobile testing with AI analytics.</td>
-                    <td>Free trial available; paid plans start at $149/month.</td>
-                    <td><a href="https://saucelabs.com">Sauce Labs</a></td>
-                </tr>
-                <tr>
-                    <td>LambdaTest</td>
-                    <td>Testing Framework/Cloud Infrastructure</td>
-                    <td>AI-powered platform for cross-browser testing with visual regression testing.</td>
-                    <td>Free trial available; paid plans start at $15/month.</td>
-                    <td><a href="https://www.lambdatest.com">LambdaTest</a></td>
-                </tr>
-                <tr>
+                <tr class="notable">
                     <td>Functionize</td>
                     <td>Testing Framework</td>
                     <td>AI-powered no-code test automation for web, mobile, and API testing.</td>
-                    <td>Limited free tier; custom pricing for full access.</td>
+                    <td>Limited free tier; custom pricing.</td>
                     <td><a href="https://www.functionize.com">Functionize</a></td>
                 </tr>
-                <tr>
-                    <td>TestRigor</td>
-                    <td>Testing Framework</td>
-                    <td>Generative AI-driven test automation for end-to-end testing from a user perspective.</td>
-                    <td>Limited free tier; pricing not public, custom plans available.</td>
-                    <td><a href="https://testrigor.com">TestRigor</a></td>
-                </tr>
-                <tr>
+                <tr class="notable">
                     <td>Eggplant Test</td>
                     <td>Testing Framework</td>
-                    <td>AI-driven test automation for functional, performance, and usability testing.</td>
-                    <td>Free trial available; pricing not public, custom plans.</td>
+                    <td>AI-driven test automation for functional and performance testing.</td>
+                    <td>Free trial; custom pricing.</td>
                     <td><a href="https://www.keysight.com/us/en/products/software/eggplant.html">Eggplant Test</a></td>
                 </tr>
-                <tr>
-                    <td>MySQL</td>
-                    <td>Database</td>
-                    <td>Open-source relational database with AI-driven query optimization and cloud integration.</td>
-                    <td>Free under GPL; free tier via cloud providers like AWS RDS; requires compute resources.</td>
-                    <td><a href="https://www.mysql.com">MySQL</a></td>
+                <tr class="notable">
+                    <td>BrowserStack</td>
+                    <td>Testing Framework/Cloud Infrastructure</td>
+                    <td>Cloud-based testing platform with AI-driven test analytics.</td>
+                    <td>Free trial with 100 minutes; paid plans start at $149/month.</td>
+                    <td><a href="https://www.browserstack.com">BrowserStack</a></td>
                 </tr>
-                <tr>
-                    <td>Metabase</td>
-                    <td>Data Tool</td>
-                    <td>Open-source BI tool for data visualization and AI-driven query generation.</td>
-                    <td>Free under AGPL; requires compute resources; cloud plans start at $85/month.</td>
-                    <td><a href="https://www.metabase.com">Metabase</a></td>
+                <tr class="notable">
+                    <td>Sauce Labs</td>
+                    <td>Testing Framework/Cloud Infrastructure</td>
+                    <td>Cloud-based testing platform with AI analytics for cross-browser testing.</td>
+                    <td>Free trial; paid plans start at $149/month.</td>
+                    <td><a href="https://saucelabs.com">Sauce Labs</a></td>
                 </tr>
-                <tr>
+                <tr class="notable">
+                    <td>LambdaTest</td>
+                    <td>Testing Framework/Cloud Infrastructure</td>
+                    <td>AI-powered platform for cross-browser and visual regression testing.</td>
+                    <td>Free trial; paid plans start at $15/month.</td>
+                    <td><a href="https://www.lambdatest.com">LambdaTest</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>CircleCI</td>
+                    <td>CI/CD and Delivery</td>
+                    <td>Cloud-based CI/CD platform with AI-driven pipeline optimization.</td>
+                    <td>Free tier includes 6,000 build minutes/month for open-source; limited for private repos.</td>
+                    <td><a href="https://circleci.com">CircleCI</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>Travis CI</td>
+                    <td>CI/CD and Delivery</td>
+                    <td>CI/CD platform with AI-optimized build processes for open-source projects.</td>
+                    <td>Free tier for open-source; paid plans start at $69/month.</td>
+                    <td><a href="https://www.travis-ci.com">Travis CI</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>Synthea</td>
+                    <td>Data Science</td>
+                    <td>Tool for generating synthetic patient data for ML and testing.</td>
+                    <td>Free under Apache 2.0; requires compute.</td>
+                    <td><a href="https://synthetichealth.github.io/synthea">Synthea</a></td>
+                </tr>
+                <tr class="notable">
                     <td>ParseHub</td>
                     <td>Screen Scraping</td>
                     <td>AI-powered web scraping tool with visual interface for data extraction.</td>
                     <td>Free tier includes 200 pages/project; paid plans start at $189/month.</td>
                     <td><a href="https://www.parsehub.com">ParseHub</a></td>
                 </tr>
-                <tr>
-                    <td>Terraform</td>
-                    <td>Cloud Infrastructure</td>
-                    <td>Open-source IaC tool for provisioning cloud infrastructure with AI-driven optimization.</td>
-                    <td>Free under MPL 2.0; requires compute resources; cloud plans start at $20/month.</td>
-                    <td><a href="https://www.terraform.io">Terraform</a></td>
+                <tr class="notable">
+                    <td>Grafana</td>
+                    <td>Monitoring</td>
+                    <td>Monitoring and observability platform with AI-driven anomaly detection.</td>
+                    <td>Free tier for basic monitoring; paid plans start at $29/month.</td>
+                    <td><a href="https://grafana.com">Grafana</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>Sentry</td>
+                    <td>Monitoring</td>
+                    <td>Error tracking and performance monitoring with AI-driven issue prioritization.</td>
+                    <td>Free tier for 5,000 errors/month; paid plans start at $26/month.</td>
+                    <td><a href="https://sentry.io">Sentry</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>Notion AI</td>
+                    <td>Collaboration</td>
+                    <td>AI-powered workspace for documentation, task prioritization, and insights.</td>
+                    <td>Limited free tier with Notion’s free plan; paid plans start at $8/month.</td>
+                    <td><a href="https://www.notion.so/product/ai">Notion AI</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>ClickUp</td>
+                    <td>Collaboration</td>
+                    <td>Project management platform with AI-driven task automation and insights.</td>
+                    <td>Free tier for basic features; paid plans start at $7/month.</td>
+                    <td><a href="https://clickup.com">ClickUp</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>LangChain</td>
+                    <td>Automation</td>
+                    <td>Framework for building context-aware AI applications with LLMs.</td>
+                    <td>Free under MIT license; requires compute.</td>
+                    <td><a href="https://www.langchain.com">LangChain</a></td>
+                </tr>
+                <tr class="notable">
+                    <td>Zapier</td>
+                    <td>Automation</td>
+                    <td>No-code automation platform with AI-driven workflow orchestration.</td>
+                    <td>Free tier for 100 tasks/month; paid plans start at $19/month.</td>
+                    <td><a href="https://zapier.com">Zapier</a></td>
                 </tr>
             </table>
         </div>

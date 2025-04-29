@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to AI Chatbots & LLM Services (2025)</title>
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Container for layout */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header Styling */
+        header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* Navigation (Table of Contents) */
+        nav {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+
+        nav h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 1.3em;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            margin-bottom: 8px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: #003d80;
+            text-decoration: underline;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 40px;
+        }
+
+        section h2 {
+            color: #343a40;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Table Styling */
+        .tool-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tool-table th, .tool-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top; /* Align content to top */
+        }
+
+        .tool-table thead th {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .tool-table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .tool-table a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+            transition: text-decoration 0.3s ease;
+        }
+
+        .tool-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Color Coding Classes for Table Rows (<tr>) */
+        .free-tier {
+            background-color: #e6ffed; /* Light Green */
+        }
+        .free-tier:nth-child(even) { /* Keep alternating color subtle */
+             background-color: #d9f7e3;
+        }
+
+        .paid {
+            background-color: #e6f7ff; /* Light Blue */
+        }
+         .paid:nth-child(even) {
+             background-color: #d9f0fa;
+        }
+
+        .open-source {
+            background-color: #fff0e6; /* Light Orange */
+        }
+        .open-source:nth-child(even) {
+            background-color: #ffe8d9;
+        }
+
+        /* Responsive Table Handling */
+        .table-container {
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+        }
+
+        /* Footer (Optional) */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Guide to AI Chatbots & Conversation Generators</h1>
+            <p>A curated list of accessible and capable AI tools (as of late 2024 / early 2025 based on provided data).</p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav>
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#general-purpose">General-Purpose Conversational AI Chatbots</a></li>
+                <li><a href="#llm-inference">LLM Inference Services (Developer Focused)</a></li>
+                <li><a href="#open-source">Open-Source Models & Platforms</a></li>
+                <li><a href="#niche-specialized">Niche & Specialized Tools</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- General-Purpose Chatbots Section -->
+            <section id="general-purpose">
+                <h2>General-Purpose Conversational AI Chatbots</h2>
+                <p>User-friendly chatbots designed for a wide range of tasks like answering questions, writing, coding help, and general conversation.</p>
+                <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Capabilities</th>
+                                <th>Pricing Model</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data based on provided lists and notes -->
+                            <tr class="free-tier">
+                                <td>Microsoft Copilot (Microsoft)</td>
+                                <td>General conversation, web search integration (Bing), coding help, image generation, integrated into Windows/Edge/Office 365. Often uses latest OpenAI models (e.g., GPT-4).</td>
+                                <td>Generous Free Tier (often no sign-in for basic use), Paid versions via Microsoft 365.</td>
+                                <td><a href="https://copilot.microsoft.com/" target="_blank">copilot.microsoft.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Google Gemini (Google)</td>
+                                <td>Conversational AI, real-time web search integration, coding assistance, multimodal capabilities (text, image), integration with Google Workspace. Uses Gemini models (e.g., 1.5 Pro/Flash).</td>
+                                <td>Generous Free Tier (Gemini Pro/Flash), Paid (Gemini Advanced). Requires Google Account.</td>
+                                <td><a href="https://gemini.google.com/" target="_blank">gemini.google.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>ChatGPT (OpenAI)</td>
+                                <td>Industry standard, strong reasoning, writing, coding, math. Multimodal input/output (text, images, data analysis). Custom GPTs. Uses GPT-3.5, GPT-4o models.</td>
+                                <td>Robust Free Tier (GPT-3.5 / limited GPT-4o), Paid (Plus/Team plans for advanced models & features). Requires sign-up.</td>
+                                <td><a href="https://chat.openai.com/" target="_blank">chat.openai.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Claude (Anthropic)</td>
+                                <td>Focus on safety, helpfulness, and detailed reasoning. Large context window for analyzing long documents. Strong coding & writing. Uses Claude 3 models (Haiku, Sonnet, Opus).</td>
+                                <td>Generous Free Tier (Sonnet/Haiku), Paid (Pro plan for Opus & higher limits). Requires sign-up.</td>
+                                <td><a href="https://claude.ai/" target="_blank">claude.ai</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Perplexity AI (Perplexity AI)</td>
+                                <td>Conversational search engine focused on providing answers with real-time web citations. Good for research and fact-checking. Can use various models (incl. GPT-4, Claude).</td>
+                                <td>Good Free Tier (can often use without sign-up), Paid (Pro plan for more advanced model access & features).</td>
+                                <td><a href="https://www.perplexity.ai/" target="_blank">perplexity.ai</a></td>
+                            </tr>
+                             <tr class="paid"> <!-- Grok access tied to X Premium -->
+                                <td>Grok (xAI)</td>
+                                <td>Real-time access to X (Twitter) data, witty tone, reasoning capabilities. DeepSearch mode. Uses Grok models.</td>
+                                <td>Paid (Requires X Premium+ subscription for full access), Limited free queries may be available.</td>
+                                <td><a href="https://grok.x.ai/" target="_blank">grok.x.ai</a> (or via X platform)</td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Meta AI (Meta)</td>
+                                <td>General-purpose chatbot integrated into Meta platforms (WhatsApp, Instagram, Facebook). Uses Llama models (e.g., Llama 3). Image generation.</td>
+                                <td>Free (integrated into existing Meta services).</td>
+                                <td><a href="https://meta.ai/" target="_blank">meta.ai</a></td>
+                            </tr>
+                            <tr class="open-source"> <!-- Mistral offers both free chat and open models -->
+                                <td>Le Chat (Mistral AI)</td>
+                                <td>High-performance chatbot from Mistral AI, known for strong reasoning and multilingual capabilities. Uses Mistral Large/Small models.</td>
+                                <td>Free Chat Interface, Paid API access. Underlying models have open-weight options.</td>
+                                <td><a href="https://chat.mistral.ai/" target="_blank">chat.mistral.ai</a></td>
+                            </tr>
+                             <tr class="open-source"> <!-- Hugging Face Chat uses various open models -->
+                                <td>Hugging Face Chat (Hugging Face)</td>
+                                <td>Platform allowing interaction with various open-source models (like Llama, Mistral variants). Customizable.</td>
+                                <td>Free (uses open-source models, usage limits may apply).</td>
+                                <td><a href="https://huggingface.co/chat/" target="_blank">huggingface.co/chat</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Poe (Quora)</td>
+                                <td>Platform aggregating access to multiple AI models (ChatGPT, Claude, Gemini, Llama, etc.) in one interface. Allows creation of custom bots.</td>
+                                <td>Free Tier (limited access to various models), Paid subscription for higher limits and premium models.</td>
+                                <td><a href="https://poe.com/" target="_blank">poe.com</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>YouChat (You.com)</td>
+                                <td>Search-integrated chatbot providing quick answers with citations, similar to Perplexity.</td>
+                                <td>Free Tier available.</td>
+                                <td><a href="https://you.com/chat" target="_blank">you.com/chat</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- LLM Inference Services Section -->
+            <section id="llm-inference">
+                <h2>LLM Inference Services (Developer Focused)</h2>
+                <p>Platforms providing API access to large language models for developers to build custom applications.</p>
+                 <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Capabilities</th>
+                                <th>Pricing Model</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             <tr class="paid"> <!-- Primarily pay-as-you-go -->
+                                <td>OpenAI API (OpenAI)</td>
+                                <td>API access to powerful models like GPT-4o, GPT-4, embeddings, image generation (DALL·E), speech-to-text (Whisper). Fine-tuning options.</td>
+                                <td>Paid (Pay-as-you-go), Free trial credits often available for new users.</td>
+                                <td><a href="https://platform.openai.com/" target="_blank">platform.openai.com</a></td>
+                            </tr>
+                            <tr class="paid"> <!-- Primarily pay-as-you-go -->
+                                <td>Anthropic API (Anthropic)</td>
+                                <td>API access to Claude models (Haiku, Sonnet, Opus) known for safety, reasoning, and large context windows.</td>
+                                <td>Paid (Pay-as-you-go), Limited free tier/trial credits may be available upon request.</td>
+                                <td><a href="https://www.anthropic.com/api" target="_blank">www.anthropic.com/api</a></td>
+                            </tr>
+                             <tr class="paid"> <!-- Primarily pay-as-you-go -->
+                                <td>Google Cloud Vertex AI (Google)</td>
+                                <td>API access to Google's models (Gemini series, PaLM, Gemma). Integration with Google Cloud services. Multimodal capabilities. Fine-tuning.</td>
+                                <td>Paid (Pay-as-you-go), Free trial credits ($300) often available for new Google Cloud users.</td>
+                                <td><a href="https://cloud.google.com/vertex-ai" target="_blank">cloud.google.com/vertex-ai</a></td>
+                            </tr>
+                             <tr class="open-source"> <!-- Focus on open models, paid API -->
+                                <td>Hugging Face Inference API (Hugging Face)</td>
+                                <td>API access to thousands of models hosted on Hugging Face Hub, including many open-source options (Llama, Mistral, etc.). Text, image, audio models.</td>
+                                <td>Free Tier (limited usage), Paid plans for higher throughput/dedicated infrastructure. Facilitates open-source model access.</td>
+                                <td><a href="https://huggingface.co/inference-api" target="_blank">huggingface.co/inference-api</a></td>
+                            </tr>
+                             <tr class="open-source"> <!-- Open weights available, paid API -->
+                                <td>Mistral AI API (Mistral AI)</td>
+                                <td>API access to Mistral's high-performance models (Mistral Large, Small, 7B, Mixtral). Known for efficiency and open-weight options.</td>
+                                <td>Paid (Pay-as-you-go for API), Open-weight models available for self-hosting.</td>
+                                <td><a href="https://mistral.ai/product/" target="_blank">mistral.ai/product/</a></td>
+                            </tr>
+                            <tr class="paid"> <!-- Primarily pay-as-you-go -->
+                                <td>Cohere API (Cohere)</td>
+                                <td>API access focused on enterprise NLP tasks like text generation, classification, embeddings. Strong multilingual support.</td>
+                                <td>Paid (Pay-as-you-go), Free tier for developers/experimentation.</td>
+                                <td><a href="https://cohere.com/models" target="_blank">cohere.com/models</a></td>
+                            </tr>
+                             <tr class="open-source"> <!-- Offers API for their models, some open-sourced -->
+                                <td>DeepSeek API (DeepSeek)</td>
+                                <td>API access to DeepSeek models, known for strong coding and reasoning capabilities. Some models are open-source.</td>
+                                <td>Free Tier (limited daily queries), Paid (Pay-as-you-go).</td>
+                                <td><a href="https://platform.deepseek.com/" target="_blank">platform.deepseek.com</a></td>
+                            </tr>
+                             <tr class="paid"> <!-- Pay-as-you-go API -->
+                                <td>GroqCloud (Groq)</td>
+                                <td>Ultra-fast LLM inference service using specialized LPU hardware. Supports open-source models like Llama, Mistral variants at very high speeds.</td>
+                                <td>Paid (Pay-as-you-go, often very competitive pricing), Free limited access may be available for experimentation.</td>
+                                <td><a href="https://groq.com/" target="_blank">groq.com</a></td>
+                            </tr>
+                             <tr class="paid"> <!-- Pay-as-you-go API -->
+                                <td>Together AI API (Together AI)</td>
+                                <td>Platform providing fast inference for a wide range of open-source and some proprietary models. Focus on speed and cost-effectiveness.</td>
+                                <td>Paid (Pay-as-you-go), Free credits often available for new users.</td>
+                                <td><a href="https://www.together.ai/" target="_blank">together.ai</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+             <!-- Open Source Section -->
+            <section id="open-source">
+                <h2>Open-Source Models & Platforms</h2>
+                <p>Models with publicly available weights or platforms primarily focused on hosting/running open-source AI.</p>
+                 <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider/Origin)</th>
+                                <th>Capabilities</th>
+                                <th>Pricing Model</th>
+                                <th>Access / More Info</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="open-source">
+                                <td>Llama Series (Meta AI)</td>
+                                <td>Highly capable family of models (Llama 2, Llama 3). Strong reasoning, coding, conversation. Different sizes available (e.g., 8B, 70B parameters).</td>
+                                <td>Open Source (License permits commercial use with restrictions). Free to download and run locally or via cloud platforms/APIs.</td>
+                                <td><a href="https://ai.meta.com/llama/" target="_blank">ai.meta.com/llama</a></td>
+                            </tr>
+                             <tr class="open-source">
+                                <td>Mistral Open Weights (Mistral AI)</td>
+                                <td>Includes models like Mistral 7B and Mixtral 8x7B. Known for high efficiency and performance relative to size. Apache 2.0 license.</td>
+                                <td>Open Source (Apache 2.0). Free to download and use.</td>
+                                <td><a href="https://mistral.ai/technology/#models" target="_blank">mistral.ai/technology</a></td>
+                            </tr>
+                             <tr class="open-source">
+                                <td>Gemma Series (Google)</td>
+                                <td>Family of lightweight, state-of-the-art open models built from the research behind Gemini. Available in different sizes (e.g., 2B, 7B).</td>
+                                <td>Open Source (License permits commercial use). Free to download and use.</td>
+                                <td><a href="https://ai.google.dev/gemma" target="_blank">ai.google.dev/gemma</a></td>
+                            </tr>
+                             <tr class="open-source">
+                                <td>DeepSeek Open Source Models</td>
+                                <td>Includes DeepSeek Coder and general LLM models. Known for strong performance, particularly in coding tasks.</td>
+                                <td>Open Source (License permits commercial use). Free to download and use.</td>
+                                <td><a href="https://github.com/deepseek-ai" target="_blank">DeepSeek GitHub</a></td>
+                            </tr>
+                            <tr class="open-source">
+                                <td>Hugging Face Hub (Hugging Face)</td>
+                                <td>Central platform for discovering, downloading, and sharing thousands of open-source AI models (LLMs, vision, audio), datasets, and demos (Spaces).</td>
+                                <td>Platform is Free to browse/download. Paid tiers for private repos, accelerated inference, etc.</td>
+                                <td><a href="https://huggingface.co/models" target="_blank">huggingface.co/models</a></td>
+                            </tr>
+                            <!-- Add more open-source models like Falcon, Qwen, etc. if needed -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Niche & Specialized Section -->
+            <section id="niche-specialized">
+                <h2>Niche & Specialized Tools</h2>
+                <p>AI tools focused on specific applications like personal companionship, character interaction, or business tasks.</p>
+                 <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Capabilities</th>
+                                <th>Pricing Model</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="free-tier"> <!-- Primarily free, unique focus -->
+                                <td>Pi, your personal AI (Inflection AI)</td>
+                                <td>Designed to be a supportive and conversational companion. Focuses on empathetic conversation rather than task completion. Very easy access (Web, App, WhatsApp).</td>
+                                <td>Free.</td>
+                                <td><a href="https://pi.ai/" target="_blank">pi.ai</a></td>
+                            </tr>
+                             <tr class="free-tier"> <!-- Free tier, character focus -->
+                                <td>Character.AI (Character Technologies)</td>
+                                <td>Platform for creating and interacting with AI characters (fictional, historical, custom). Focus on role-playing and entertainment.</td>
+                                <td>Free Tier available, Optional paid subscription (c.ai+) for faster responses and early access.</td>
+                                <td><a href="https://beta.character.ai/" target="_blank">beta.character.ai</a></td>
+                            </tr>
+                            <tr class="free-tier"> <!-- Free tier, companion focus -->
+                                <td>Replika (Luka, Inc.)</td>
+                                <td>AI companion designed for emotional connection and conversation. Offers features like journaling and coaching.</td>
+                                <td>Free Tier available, Paid Pro version unlocks more features and customization.</td>
+                                <td><a href="https://replika.ai/" target="_blank">replika.ai</a></td>
+                             </tr>
+                             <tr class="paid"> <!-- Business focus, paid plans -->
+                                <td>Jasper (Jasper AI)</td>
+                                <td>AI writing assistant focused on marketing and business content creation. Offers templates, brand voice features, and integrations.</td>
+                                <td>Paid (Subscription plans), Free trial often available.</td>
+                                <td><a href="https://www.jasper.ai/" target="_blank">jasper.ai</a></td>
+                            </tr>
+                             <tr class="free-tier"> <!-- Business focus, free plan -->
+                                <td>Tidio (Tidio)</td>
+                                <td>Customer service platform with AI chatbot features (Lyro AI). Focuses on automating customer support for small/medium businesses.</td>
+                                <td>Free Plan available (limited features), Paid plans for more capabilities.</td>
+                                <td><a href="https://www.tidio.com/" target="_blank">tidio.com</a></td>
+                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <p>Disclaimer: This list is based on information provided and general knowledge up to early 2025. AI services evolve rapidly; features and pricing may change. Always check the provider's official website for the latest details.</p>
+        </footer>
+    </div> <!-- end .container -->
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide to Free Web App & Content Hosting</title>
+    <style>
+        /* Basic Styling */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Container for layout */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Header Styling */
+        header {
+            border-bottom: 2px solid #28a745; /* Green accent for 'free' theme */
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        /* Navigation (Table of Contents) */
+        nav {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+
+        nav h2 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #495057;
+            font-size: 1.3em;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            margin-bottom: 8px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        nav ul li a:hover {
+            color: #003d80;
+            text-decoration: underline;
+        }
+
+        /* Section Styling */
+        section {
+            margin-bottom: 40px;
+        }
+
+        section h2 {
+            color: #343a40;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+        }
+         section h3 {
+            color: #495057;
+            margin-top: 25px;
+            margin-bottom: 15px;
+         }
+
+        /* Table Styling */
+        .tool-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .tool-table th, .tool-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px 15px;
+            text-align: left;
+            vertical-align: top; /* Align content to top */
+        }
+
+        .tool-table thead th {
+            background-color: #f1f3f5;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        /* Free Tier Row Styling */
+        .free-tier {
+            background-color: #e6ffed; /* Light Green */
+        }
+        .free-tier:nth-child(even) { /* Keep alternating color subtle */
+             background-color: #d9f7e3;
+        }
+
+        .tool-table a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: bold;
+            transition: text-decoration 0.3s ease;
+        }
+
+        .tool-table a:hover {
+            text-decoration: underline;
+        }
+
+        /* Emphasis for Limitations */
+        .limitations {
+            font-style: italic;
+            color: #dc3545; /* Reddish color for warnings/limits */
+            font-size: 0.95em;
+        }
+         .features {
+             font-size: 0.95em;
+         }
+
+        /* Responsive Table Handling */
+        .table-container {
+            overflow-x: auto; /* Allows horizontal scrolling on small screens */
+        }
+
+        /* Footer Styling */
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        /* Warning Box for Credit Card Sections */
+        .cc-warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+         .cc-warning strong {
+             color: #721c24;
+         }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Guide to Free Web App & Content Hosting</h1>
+            <p>Discover platforms offering generous free tiers, often without requiring a credit card to get started.</p>
+        </header>
+
+        <!-- Table of Contents -->
+        <nav>
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#static-hosting">Static Site Hosting (Front-End / Jamstack)</a></li>
+                <li><a href="#paas-hosting">Platform as a Service (PaaS) - Free Tiers (Full-Stack)</a></li>
+                <li><a href="#baas-serverless">Backend/Serverless Function Hosting - Free Tiers</a></li>
+                <li><a href="#traditional-hosting">Traditional Free Web Hosting (PHP/MySQL Focus)</a></li>
+                <li><a href="#cloud-caution">Major Cloud Providers (Free Tiers - Use with Caution)</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <!-- Static Site Hosting Section -->
+            <section id="static-hosting">
+                <h2>Static Site Hosting (Front-End / Jamstack)</h2>
+                <p>Ideal for hosting websites built with HTML, CSS, JavaScript, and front-end frameworks (React, Vue, Angular, Svelte, etc.) that build to static files. These often have the most generous free tiers.</p>
+                <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Best For</th>
+                                <th>Free Tier Features</th>
+                                <th>Limitations</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="free-tier">
+                                <td>Netlify</td>
+                                <td>Modern front-ends, Jamstack, SPAs, portfolios</td>
+                                <td class="features">Generous bandwidth/build minutes, CI/CD from Git, free SSL, custom domains, serverless functions (Netlify Functions), forms, identity. Great DX.</td>
+                                <td class="limitations">Serverless function execution limits on free tier. Build minute caps.</td>
+                                <td><a href="https://www.netlify.com/" target="_blank">netlify.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Vercel</td>
+                                <td>Next.js apps, React projects, modern front-ends</td>
+                                <td class="features">Excellent Next.js integration, CI/CD from Git, free SSL, global CDN, serverless functions, generous free tier for personal/hobby projects. Great DX.</td>
+                                <td class="limitations">Similar function execution limits to Netlify. Bandwidth/deployment caps on free tier.</td>
+                                <td><a href="https://vercel.com/" target="_blank">vercel.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Cloudflare Pages</td>
+                                <td>Performance-critical static sites, projects using Cloudflare ecosystem</td>
+                                <td class="features">Uses Cloudflare's CDN, CI/CD from Git, free SSL, **unlimited sites, requests, and bandwidth** on free tier. Integrates with Cloudflare Workers.</td>
+                                <td class="limitations">Build platform might have limits (e.g., concurrent builds). Worker limits apply.</td>
+                                <td><a href="https://pages.cloudflare.com/" target="_blank">pages.cloudflare.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>GitHub Pages</td>
+                                <td>Project documentation, simple personal/project sites, blogs from repo</td>
+                                <td class="features">Directly integrated with GitHub, simple setup, free SSL (HTTPS), custom domains. Uses Jekyll or GitHub Actions for builds.</td>
+                                <td class="limitations">**Static files only.** No direct server-side processing/database. Build process less flexible than others without Actions. Usage limits apply.</td>
+                                <td><a href="https://pages.github.com/" target="_blank">pages.github.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>GitLab Pages</td>
+                                <td>GitLab users needing project pages or static sites</td>
+                                <td class="features">Integrated with GitLab, uses GitLab CI/CD for flexible builds, free SSL, custom domains.</td>
+                                <td class="limitations">**Static files only.** Relies on GitLab CI runners (shared runners have usage limits).</td>
+                                <td><a href="https://docs.gitlab.com/ee/user/project/pages/" target="_blank">GitLab Pages Docs</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Render (Static Sites)</td>
+                                <td>Users who might add backend services later on the same platform</td>
+                                <td class="features">Free static site hosting, CI/CD from Git, free SSL, global CDN, custom domains, unlimited collaborators.</td>
+                                <td class="limitations">Primarily known for backend, but static offering is solid. Build resource limits apply.</td>
+                                <td><a href="https://render.com/docs/static-sites" target="_blank">render.com (Static)</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Platform as a Service (PaaS) Section -->
+            <section id="paas-hosting">
+                <h2>Platform as a Service (PaaS) - Free Tiers (Full-Stack)</h2>
+                <p>Host dynamic applications with backends (Node.js, Python, Ruby, Go, PHP, etc.) and often databases. Free tiers usually have significant limitations like resource caps or "sleeping" after inactivity.</p>
+                 <div class="table-container">
+                    <table class="tool-table">
+                         <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Best For</th>
+                                <th>Free Tier Features</th>
+                                <th>Limitations</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             <tr class="free-tier">
+                                <td>Render (Web Services)</td>
+                                <td>Full-stack apps where slow startup is okay, prototypes</td>
+                                <td class="features">Free tier for web services (Node, Python, Go, Ruby, etc.), background workers, PostgreSQL DBs. Git deployment.</td>
+                                <td class="limitations">**Apps sleep** after 15 mins inactivity (slow initial load). Resource limits (RAM/CPU). Small free DBs.</td>
+                                <td><a href="https://render.com/docs/web-services" target="_blank">render.com (Web)</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Fly.io</td>
+                                <td>Full-stack apps needing "always-on" within limits, Docker users</td>
+                                <td class="features">Generous "always free" resource allowance (CPU, RAM, disk, bandwidth, IPs). Apps don't inherently sleep if within limits. Free Postgres DBs (small). Deploy containers near users.</td>
+                                <td class="limitations">Requires monitoring usage to stay free. Slightly steeper learning curve (CLI, Docker useful). May ask for CC for verification later.</td>
+                                <td><a href="https://fly.io/" target="_blank">fly.io</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Cyclic.sh</td>
+                                <td>Node.js/Express apps, APIs</td>
+                                <td class="features">Focus on Node.js. Deploys from GitHub. Built on AWS Lambda/DynamoDB (serverless). Generous free tier (requests, runtime, DB storage). **No sleeping apps**. Cron jobs.</td>
+                                <td class="limitations">**Primarily Node.js only.** Serverless architecture limitations (e.g., ephemeral filesystem).</td>
+                                <td><a href="https://www.cyclic.sh/" target="_blank">cyclic.sh</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Railway.app</td>
+                                <td>Experimenting, small full-stack apps, projects managing usage</td>
+                                <td class="features">Flexible deployment (Nixpacks/Dockerfiles). DBs available (Postgres, MySQL, Redis, Mongo). Free "Starter" plan with monthly $5 credit / 500 compute hours. Doesn't sleep inherently.</td>
+                                <td class="limitations">**Usage-based free tier** - can run out. Requires monitoring usage. May ask for CC for verification later.</td>
+                                <td><a href="https://railway.app/" target="_blank">railway.app</a></td>
+                             </tr>
+                            <tr class="free-tier">
+                                <td>Glitch</td>
+                                <td>Quick prototypes, simple Node.js apps, learning</td>
+                                <td class="features">Very easy to use, remix existing projects, collaborative coding environment. Free hosting for Node.js/static.</td>
+                                <td class="limitations">**Apps sleep** after 5 mins inactivity. Resource limits. Not ideal for production.</td>
+                                <td><a href="https://glitch.com/" target="_blank">glitch.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Replit</td>
+                                <td>Learning, small apps, educational projects</td>
+                                <td class="features">Online IDE with integrated hosting. Supports many languages (Node, Python, etc.). Collaborative features. Free "Starter" plan.</td>
+                                <td class="limitations">**Apps sleep** after inactivity on free tier. Resource limits. Some features require paid plans.</td>
+                                <td><a href="https://replit.com/" target="_blank">replit.com</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Heroku</td>
+                                <td>Learning Heroku, small hobby projects where sleep is okay</td>
+                                <td class="features">Historically popular, simple Git deployment, large ecosystem/docs.</td>
+                                <td class="limitations">**Free tier significantly limited.** Shared pool of free dyno hours per account. **Apps sleep** after 30 mins inactivity. Limited free Postgres. No longer a top free choice.</td>
+                                <td><a href="https://www.heroku.com/" target="_blank">heroku.com</a></td>
+                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Backend as a Service (BaaS) / Serverless Section -->
+            <section id="baas-serverless">
+                <h2>Backend/Serverless Function Hosting - Free Tiers</h2>
+                <p>Run backend code without managing servers. Often used alongside static site hosting for APIs or specific tasks.</p>
+                <div class="table-container">
+                    <table class="tool-table">
+                        <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Best For</th>
+                                <th>Free Tier Features</th>
+                                <th>Limitations</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="free-tier">
+                                <td>Cloudflare Workers</td>
+                                <td>Edge functions, APIs for static sites, performance-critical logic</td>
+                                <td class="features">Runs JS/WASM at the edge. 100,000 requests/day free. Low latency. Integrates with Pages & other CF services. KV store free tier.</td>
+                                <td class="limitations">Execution time limits (CPU time). Free tier storage limits (KV, Durable Objects).</td>
+                                <td><a href="https://workers.cloudflare.com/" target="_blank">workers.cloudflare.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Netlify Functions</td>
+                                <td>APIs for sites hosted on Netlify, background tasks</td>
+                                <td class="features">Integrated with Netlify hosting. Generous free tier (invocations, runtime). Supports Node.js, Go. Easy setup via Netlify CLI/UI.</td>
+                                <td class="limitations">Execution time limits per invocation. Memory limits. Tied to Netlify platform.</td>
+                                <td><a href="https://docs.netlify.com/functions/overview/" target="_blank">Netlify Functions Docs</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Vercel Serverless Functions</td>
+                                <td>APIs for sites hosted on Vercel, Next.js API routes</td>
+                                <td class="features">Integrated with Vercel hosting. Generous free tier (invocations, runtime). Supports Node.js, Go, Python, Ruby. Great Next.js integration.</td>
+                                <td class="limitations">Execution time limits per invocation. Memory limits. Tied to Vercel platform.</td>
+                                <td><a href="https://vercel.com/docs/functions" target="_blank">Vercel Functions Docs</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Firebase (Cloud Functions, Firestore, Auth, etc.)</td>
+                                <td>Apps needing integrated backend services (DB, Auth, Functions)</td>
+                                <td class="features">Generous "Spark" free plan for Firestore (NoSQL DB), Authentication, Hosting, Cloud Functions (Node.js). Realtime Database also available.</td>
+                                <td class="limitations">Usage limits on reads/writes, function invocations, storage. Pay-as-you-go beyond limits (may require CC eventually). Google ecosystem lock-in.</td>
+                                <td><a href="https://firebase.google.com/pricing" target="_blank">firebase.google.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>Supabase</td>
+                                <td>Open-source Firebase alternative needing Postgres</td>
+                                <td class="features">Generous free tier includes Postgres DB, Auth, Storage, Realtime, Edge Functions. Open source.</td>
+                                <td class="limitations">Free tier DB size limits, bandwidth limits, function usage limits. Inactive projects may be paused.</td>
+                                <td><a href="https://supabase.com/pricing" target="_blank">supabase.com</a></td>
+                             </tr>
+                             <tr class="free-tier">
+                                <td>Neon</td>
+                                <td>Serverless Postgres Database</td>
+                                <td class="features">Serverless Postgres. Generous free tier includes DB size limit, compute hours, branching. Scales to zero when inactive.</td>
+                                <td class="limitations">Compute hour limits on free tier. Not full application hosting, just the database.</td>
+                                <td><a href="https://neon.tech/" target="_blank">neon.tech</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>PlanetScale</td>
+                                <td>Serverless MySQL-compatible Database</td>
+                                <td class="features">Serverless MySQL-compatible DB. Free tier includes storage limit, read/write limits, branching. Scales well.</td>
+                                <td class="limitations">Row read/write limits on free tier. Not full application hosting, just the database.</td>
+                                <td><a href="https://planetscale.com/" target="_blank">planetscale.com</a></td>
+                            </tr>
+                            <tr class="free-tier">
+                                <td>MongoDB Atlas</td>
+                                <td>NoSQL Document Database (MongoDB)</td>
+                                <td class="features">Free "M0" shared cluster with storage limits (e.g., 512MB). Good for learning/small projects.</td>
+                                <td class="limitations">Shared resources, limited storage/RAM. Not full application hosting, just the database.</td>
+                                <td><a href="https://www.mongodb.com/cloud/atlas/register" target="_blank">mongodb.com/cloud/atlas</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Traditional Free Hosting Section -->
+            <section id="traditional-hosting">
+                <h2>Traditional Free Web Hosting (PHP/MySQL Focus)</h2>
+                <p>These often offer cPanel-like interfaces and are geared towards PHP-based applications like WordPress or custom PHP sites. Performance and reliability can vary significantly.</p>
+                 <div class="table-container">
+                    <table class="tool-table">
+                         <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Best For</th>
+                                <th>Free Tier Features</th>
+                                <th>Limitations</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             <tr class="free-tier">
+                                <td>InfinityFree</td>
+                                <td>PHP apps, WordPress, learning cPanel</td>
+                                <td class="features">Claims unlimited disk/bandwidth (subject to fair use). PHP/MySQL support. Free SSL. Softaculous installer. Custom domains.</td>
+                                <td class="limitations">Performance can be slow/throttled. No Node/Python/Ruby support. Ads on control panel. Reliability can vary. CPU/entry process limits.</td>
+                                <td><a href="https://infinityfree.com/" target="_blank">infinityfree.com</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>ProFreeHost</td>
+                                <td>PHP apps, learning cPanel</td>
+                                <td class="features">Claims unlimited disk/bandwidth. PHP/MySQL support. Free SSL. cPanel-like interface. Free subdomains.</td>
+                                <td class="limitations">Similar limitations to InfinityFree regarding performance, reliability, and resource caps. No Node/Python etc.</td>
+                                <td><a href="https://profreehost.com/" target="_blank">profreehost.com</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>AwardSpace</td>
+                                <td>Simple PHP sites, beginners</td>
+                                <td class="features">1GB disk space, 5GB bandwidth. PHP/MySQL support. Free website builder & CMS installer. 24/7 support (limited).</td>
+                                <td class="limitations">Strict resource limits (disk/bandwidth). Slower performance likely. Only 1 domain hosted.</td>
+                                <td><a href="https://www.awardspace.com/free-hosting/" target="_blank">awardspace.com</a></td>
+                             </tr>
+                              <tr class="free-tier">
+                                <td>GoogieHost</td>
+                                <td>PHP sites needing slightly better specs than others</td>
+                                <td class="features">1GB NVMe storage (faster), claims unmetered bandwidth. Free SSL. PHP/MySQL. cPanel. Allows subdomains. Email accounts.</td>
+                                <td class="limitations">Likely still has underlying resource limits despite "unmetered" claims. Reliability can vary.</td>
+                                <td><a href="https://googiehost.com/freehosting.html" target="_blank">googiehost.com</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+             <!-- Major Cloud Providers Section -->
+            <section id="cloud-caution">
+                <h2>Major Cloud Providers (Free Tiers - Use with Caution)</h2>
+                 <div class="cc-warning">
+                    <strong>Warning:</strong> While powerful, these platforms often have a steep learning curve and **typically require a credit card for signup** (even for the free tier) to verify identity and prevent abuse. It's easy to accidentally exceed free limits and incur charges if you're not careful monitoring usage.
+                </div>
+                <p>AWS, Google Cloud (GCP), and Azure offer limited "always free" services or more extensive 12-month free trials on various services like virtual machines, databases, and serverless functions.</p>
+                <div class="table-container">
+                    <table class="tool-table">
+                         <thead>
+                            <tr>
+                                <th>Name (Provider)</th>
+                                <th>Best For</th>
+                                <th>Free Tier Examples</th>
+                                <th>Limitations</th>
+                                <th>Website</th>
+                            </tr>
+                        </thead>
+                         <tbody>
+                             <tr class="free-tier">
+                                <td>AWS Free Tier (Amazon)</td>
+                                <td>Learning cloud infrastructure, scalable prototypes</td>
+                                <td class="features">EC2 micro instance (VM), S3 storage, RDS (DB), Lambda (serverless), DynamoDB (NoSQL). Mix of 12-month trial & always free limits.</td>
+                                <td class="limitations">Very complex platform. Easy to exceed limits. **CC Required**. Strict usage caps on free tiers.</td>
+                                <td><a href="https://aws.amazon.com/free/" target="_blank">aws.amazon.com/free</a></td>
+                             </tr>
+                              <tr class="free-tier">
+                                <td>Google Cloud Free Tier (Google)</td>
+                                <td>Learning GCP, apps using Google services</td>
+                                <td class="features">Compute Engine e2-micro instance (VM), Cloud Storage, Cloud Functions, Firestore. Mix of 12-month trial ($300 credit) & always free limits.</td>
+                                <td class="limitations">Complex platform. Easy to exceed limits. **CC Required**. Strict usage caps on free tiers.</td>
+                                <td><a href="https://cloud.google.com/free" target="_blank">cloud.google.com/free</a></td>
+                            </tr>
+                             <tr class="free-tier">
+                                <td>Azure Free Tier (Microsoft)</td>
+                                <td>Learning Azure, Windows-based apps, .NET projects</td>
+                                <td class="features">Linux/Windows VMs, SQL Database, Blob Storage, Functions. Mix of 12-month trial ($200 credit) & always free limits.</td>
+                                <td class="limitations">Complex platform. Easy to exceed limits. **CC Required**. Strict usage caps on free tiers.</td>
+                                <td><a href="https://azure.microsoft.com/en-us/free/" target="_blank">azure.microsoft.com/free</a></td>
+                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+
+        <footer>
+            <p>Disclaimer: Free hosting tiers come with limitations (resources, performance, sleeping apps, support). Terms and features change frequently. Always verify details and limitations on the provider's official website before deploying critical applications. For production apps needing reliability and performance, paid plans are usually necessary.</p>
+        </footer>
+    </div> <!-- end .container -->
+</body>
+</html>

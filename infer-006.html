@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Services Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        p {
+            color: #555;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .table-all-chat-apps {
+            background-color: #f0f8ff;
+        }
+        .table-free-tiers {
+            background-color: #e6ffe6;
+        }
+        .table-smartest {
+            background-color: #fff0f5;
+        }
+        .table-large-context {
+            background-color: #f5f5dc;
+        }
+        .table-local-inference {
+            background-color: #e0ffff;
+        }
+        .table-desktop-apps {
+            background-color: #fafad2;
+        }
+        .table-marketplaces {
+            background-color: #ffe4e1;
+        }
+    </style>
+</head>
+<body>
+    <h1>AI Services Dashboard</h1>
+    <p>This dashboard lists popular chat apps, inference services, desktop apps, and AI model marketplaces, categorized by free tiers, intelligence, context window sizes, and platform compatibility. Updated as of May 10, 2025.</p>
+
+    <!-- All Chat Apps Section -->
+    <h2>All Chat Apps</h2>
+    <table class="table-all-chat-apps">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>OpenAI - ChatGPT</td>
+            <td>Industry-leading chatbot with 200,000-token context and robust free tier</td>
+            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
+        </tr>
+        <tr>
+            <td>Google - Gemini</td>
+            <td>Versatile chatbot with 1,000,000-token context, free access</td>
+            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
+        </tr>
+        <tr>
+            <td>Anthropic - Claude</td>
+            <td>Safe, helpful AI with 200,000-token context window</td>
+            <td><a href="https://claude.ai/">claude.ai</a></td>
+        </tr>
+        <tr>
+            <td>Microsoft - Copilot</td>
+            <td>AI assistant integrated with Microsoft services</td>
+            <td><a href="https://copilot.microsoft.com/">copilot.microsoft.com</a></td>
+        </tr>
+        <tr>
+            <td>Perplexity AI</td>
+            <td>Research-focused chatbot with real-time web access</td>
+            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
+        </tr>
+        <tr>
+            <td>xAI - Grok</td>
+            <td>Insightful AI for reasoning and truth-seeking</td>
+            <td><a href="https://grok.com/">grok.com</a></td>
+        </tr>
+        <tr>
+            <td>DeepSeek Chat</td>
+            <td>High-intelligence open-source chatbot</td>
+            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
+        </tr>
+        <tr>
+            <td>Cohere - Command</td>
+            <td>Enterprise-grade chatbot with NLP focus</td>
+            <td><a href="https://dashboard.cohere.com/playground/chat">dashboard.cohere.com</a></td>
+        </tr>
+        <tr>
+            <td>Mistral AI - Mistral Large</td>
+            <td>High-performance chatbot with 128,000-token context</td>
+            <td><a href="https://chat.mistral.ai/">chat.mistral.ai</a></td>
+        </tr>
+        <tr>
+            <td>Meta AI</td>
+            <td>General-purpose chatbot integrated with Meta platforms</td>
+            <td><a href="https://meta.ai/">meta.ai</a></td>
+        </tr>
+        <tr>
+            <td>Groq</td>
+            <td>High-speed inference platform with chatbot capabilities</td>
+            <td><a href="https://groq.com/">groq.com</a></td>
+        </tr>
+        <tr>
+            <td>YouChat</td>
+            <td>Search-integrated chatbot for quick answers</td>
+            <td><a href="https://you.com/search?tbm=youchat">you.com</a></td>
+        </tr>
+        <tr>
+            <td>Poe</td>
+            <td>Platform for accessing multiple AI models</td>
+            <td><a href="https://poe.com/">poe.com</a></td>
+        </tr>
+        <tr>
+            <td>Hugging Face Chat</td>
+            <td>Open-source chatbot platform</td>
+            <td><a href="https://huggingface.co/chat">huggingface.co</a></td>
+        </tr>
+        <tr>
+            <td>Character.AI</td>
+            <td>Customizable character-based chatbot</td>
+            <td><a href="https://beta.character.ai/">beta.character.ai</a></td>
+        </tr>
+        <tr>
+            <td>Lyro</td>
+            <td>AI customer service chatbot</td>
+            <td><a href="https://www.tidio.com/lyro/">tidio.com</a></td>
+        </tr>
+        <tr>
+            <td>Drift</td>
+            <td>Chatbot with scheduling options</td>
+            <td><a href="https://www.drift.com/">drift.com</a></td>
+        </tr>
+        <tr>
+            <td>Ada</td>
+            <td>Multilingual support chatbot</td>
+            <td><a href="https://www.ada.cx/">ada.cx</a></td>
+        </tr>
+        <tr>
+            <td>Jasper Chat</td>
+            <td>Written content creation chatbot</td>
+            <td><a href="https://www.jasper.ai/">jasper.ai</a></td>
+        </tr>
+        <tr>
+            <td>DialogFlow</td>
+            <td>Smooth connection with Google Cloud</td>
+            <td><a href="https://cloud.google.com/dialogflow">cloud.google.com</a></td>
+        </tr>
+        <tr>
+            <td>Customers.ai</td>
+            <td>Social media communication chatbot</td>
+            <td><a href="https://mobilemonkey.com/">mobilemonkey.com</a></td>
+        </tr>
+        <tr>
+            <td>Replika</td>
+            <td>Companion chatbot</td>
+            <td><a href="https://replika.ai/">replika.ai</a></td>
+        </tr>
+        <tr>
+            <td>Hey Pi</td>
+            <td>Everyday conversations chatbot</td>
+            <td><a href="https://heypi.com/">heypi.com</a></td>
+        </tr>
+        <tr>
+            <td>Brave Leo AI</td>
+            <td>Privacy-focused AI assistant</td>
+            <td><a href="https://brave.com/leo/">brave.com</a></td>
+        </tr>
+        <tr>
+            <td>Komo</td>
+            <td>Link-surfacing AI search engine</td>
+            <td><a href="https://komo.ai/">komo.ai</a></td>
+        </tr>
+        <tr>
+            <td>Andi</td>
+            <td>Simplicity-focused AI search engine</td>
+            <td><a href="https://andi.ai/">andi.ai</a></td>
+        </tr>
+        <tr>
+            <td>Microsoft Bing AI</td>
+            <td>AI-powered search and chat</td>
+            <td><a href="https://www.bing.com/chat">bing.com</a></td>
+        </tr>
+    </table>
+
+    <!-- Chat Apps with Best Free Tiers Section -->
+    <h2>Chat Apps with Best Free Tiers</h2>
+    <table class="table-free-tiers">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>OpenAI - ChatGPT</td>
+            <td>Free tier with access to advanced models</td>
+            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
+        </tr>
+        <tr>
+            <td>Google - Gemini</td>
+            <td>Fully free with no usage caps</td>
+            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
+        </tr>
+        <tr>
+            <td>Perplexity AI</td>
+            <td>Free version available</td>
+            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
+        </tr>
+        <tr>
+            <td>Anthropic - Claude</td>
+            <td>Free tier available</td>
+            <td><a href="https://claude.ai/">claude.ai</a></td>
+        </tr>
+        <tr>
+            <td>DeepSeek Chat</td>
+            <td>Open-source and free</td>
+            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
+        </tr>
+        <tr>
+            <td>YouChat</td>
+            <td>Free to use</td>
+            <td><a href="https://you.com/search?tbm=youchat">you.com</a></td>
+        </tr>
+        <tr>
+            <td>Poe</td>
+            <td>Free access to multiple models</td>
+            <td><a href="https://poe.com/">poe.com</a></td>
+        </tr>
+        <tr>
+            <td>Hugging Face Chat</td>
+            <td>Free open-source platform</td>
+            <td><a href="https://huggingface.co/chat">huggingface.co</a></td>
+        </tr>
+        <tr>
+            <td>Character.AI</td>
+            <td>Free to use</td>
+            <td><a href="https://beta.character.ai/">beta.character.ai</a></td>
+        </tr>
+        <tr>
+            <td>Replika</td>
+            <td>Free version available</td>
+            <td><a href="https://replika.ai/">replika.ai</a></td>
+        </tr>
+    </table>
+
+    <!-- Smartest Chat Apps Section -->
+    <h2>Smartest Chat Apps</h2>
+    <table class="table-smartest">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>OpenAI - ChatGPT</td>
+            <td>Top-ranked for reasoning and knowledge</td>
+            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
+        </tr>
+        <tr>
+            <td>DeepSeek Chat</td>
+            <td>Excels in coding and complex queries</td>
+            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
+        </tr>
+        <tr>
+            <td>Google - Gemini</td>
+            <td>High intelligence with vast data access</td>
+            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
+        </tr>
+        <tr>
+            <td>Anthropic - Claude</td>
+            <td>Strong reasoning and safety features</td>
+            <td><a href="https://claude.ai/">claude.ai</a></td>
+        </tr>
+        <tr>
+            <td>Perplexity AI</td>
+            <td>Advanced research and real-time web access</td>
+            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
+        </tr>
+    </table>
+
+    <!-- Chat Apps with Largest Context Windows Section -->
+    <h2>Chat Apps with Largest Context Windows</h2>
+    <table class="table-large-context">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>Google - Gemini</td>
+            <td>1,000,000 tokens for extensive text processing</td>
+            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
+        </tr>
+        <tr>
+            <td>Anthropic - Claude</td>
+            <td>200,000 tokens, ideal for long conversations</td>
+            <td><a href="https://claude.ai/">claude.ai</a></td>
+        </tr>
+        <tr>
+            <td>OpenAI - ChatGPT</td>
+            <td>200,000 tokens with advanced models</td>
+            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
+        </tr>
+        <tr>
+            <td>Mistral AI - Mistral Large</td>
+            <td>128,000 tokens for high-performance interactions</td>
+            <td><a href="https://chat.mistral.ai/">chat.mistral.ai</a></td>
+        </tr>
+    </table>
+
+    <!-- Local Inference Services Section -->
+    <h2>Local Inference Services</h2>
+    <table class="table-local-inference">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>Ollama</td>
+            <td>Run LLMs locally on your device</td>
+            <td><a href="https://ollama.com/">ollama.com</a></td>
+        </tr>
+        <tr>
+            <td>Jan</td>
+            <td>Open-source ChatGPT alternative, 100% offline</td>
+            <td><a href="https://jan.ai/">jan.ai</a></td>
+        </tr>
+        <tr>
+            <td>LM Studio</td>
+            <td>Discover, download, and run local LLMs</td>
+            <td><a href="https://lmstudio.ai/">lmstudio.ai</a></td>
+        </tr>
+        <tr>
+            <td>GPT4All</td>
+            <td>Local LLM runner for macOS</td>
+            <td><a href="https://gpt4all.io/">gpt4all.io</a></td>
+        </tr>
+        <tr>
+            <td>LocalAI</td>
+            <td>Drop-in replacement for OpenAI, runs locally</td>
+            <td><a href="https://localai.io/">localai.io</a></td>
+        </tr>
+        <tr>
+            <td>Cortex</td>
+            <td>Local AI API platform, open-source brain for robots</td>
+            <td><a href="https://cortex.so/">cortex.so</a></td>
+        </tr>
+    </table>
+
+    <!-- Desktop Apps Section -->
+    <h2>Desktop Apps</h2>
+    <table class="table-desktop-apps">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>Fello AI</td>
+            <td>Universal AI chatbot supporting multiple models</td>
+            <td><a href="https://felloai.com/">felloai.com</a></td>
+        </tr>
+        <tr>
+            <td>Chatbox AI</td>
+            <td>AI client for macOS, compatible with multiple models</td>
+            <td><a href="https://chatboxai.app/en">chatboxai.app</a></td>
+        </tr>
+        <tr>
+            <td>TypingMind</td>
+            <td>AI-driven chat assistant for macOS</td>
+            <td><a href="https://www.typingmind.com/">typingmind.com</a></td>
+        </tr>
+        <tr>
+            <td>Elephas</td>
+            <td>AI-assisted writing tool for Mac</td>
+            <td><a href="https://elephas.app/">elephas.app</a></td>
+        </tr>
+        <tr>
+            <td>ClickUp</td>
+            <td>AI-powered productivity and workflow management</td>
+            <td><a href="https://clickup.com/">clickup.com</a></td>
+        </tr>
+        <tr>
+            <td>Craft</td>
+            <td>AI-enhanced note-taking and document organization</td>
+            <td><a href="https://www.craft.do/">craft.do</a></td>
+        </tr>
+    </table>
+
+    <!-- AI Platforms and Marketplaces Section -->
+    <h2>AI Platforms and Marketplaces</h2>
+    <table class="table-marketplaces">
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>URL</th>
+        </tr>
+        <tr>
+            <td>GitHub Model Catalog</td>
+            <td>Marketplace for discovering and sharing AI models</td>
+            <td><a href="https://github.com/marketplace?type=models">github.com</a></td>
+        </tr>
+        <tr>
+            <td>Hugging Face</td>
+            <td>Major platform for AI models and chatbots</td>
+            <td><a href="https://huggingface.co/">huggingface.co</a></td>
+        </tr>
+        <tr>
+            <td>Replicate</td>
+            <td>Run models in the cloud</td>
+            <td><a href="https://replicate.com/">replicate.com</a></td>
+        </tr>
+        <tr>
+            <td>Kaggle Models</td>
+            <td>Models section for data science</td>
+            <td><a href="https://www.kaggle.com/models">kaggle.com</a></td>
+        </tr>
+        <tr>
+            <td>Papers with Code</td>
+            <td>Lists models with implementations</td>
+            <td><a href="https://paperswithcode.com/">paperswithcode.com</a></td>
+        </tr>
+    </table>
+
+</body>
+</html>

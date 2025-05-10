@@ -1,0 +1,110 @@
+Great, I’ll compile an expanded and structured HTML directory of publicly accessible generative AI tools, chatbots, inference services, and related platforms as of May 2025. This will include both popular and experimental services, with a focus on macOS-compatible and cross-platform local inference apps. Each category will be presented in a color-coded table for clarity and easy navigation. I’ll let you know once the detailed HTML output is ready.
+
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Generative AI Tools</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; }
+h2 { margin-top: 40px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+table th, table td { border: 1px solid #ccc; padding: 8px; }
+table th { background: #ddd; }
+.chat th, .chat td { background-color: #E0F7FA; }
+.inference th, .inference td { background-color: #E8F5E9; }
+.local th, .local td { background-color: #FFFDE7; }
+.desktop th, .desktop td { background-color: #F3E5F5; }
+.market th, .market td { background-color: #FFE0B2; }
+@media (max-width: 600px) {
+  table, thead, tbody, th, td, tr { display: block; }
+  table th { text-align: left; }
+  table td { text-align: left; padding-left: 50%; position: relative; }
+  table td:before { position: absolute; left: 10px; width: 45%; padding-right: 10px; white-space: nowrap; }
+  .chat td:nth-of-type(1):before { content: "Chat App"; }
+  .chat td:nth-of-type(2):before { content: "Description"; }
+  .chat td:nth-of-type(3):before { content: "URL"; }
+  .chat td:nth-of-type(4):before { content: "Access"; }
+  .inference td:nth-of-type(1):before { content: "Service"; }
+  .inference td:nth-of-type(2):before { content: "Description"; }
+  .inference td:nth-of-type(3):before { content: "URL"; }
+  .inference td:nth-of-type(4):before { content: "Access"; }
+  .local td:nth-of-type(1):before { content: "Tool"; }
+  .local td:nth-of-type(2):before { content: "Description"; }
+  .local td:nth-of-type(3):before { content: "URL"; }
+  .local td:nth-of-type(4):before { content: "Access"; }
+  .desktop td:nth-of-type(1):before { content: "App"; }
+  .desktop td:nth-of-type(2):before { content: "Description"; }
+  .desktop td:nth-of-type(3):before { content: "URL"; }
+  .desktop td:nth-of-type(4):before { content: "Access"; }
+  .market td:nth-of-type(1):before { content: "Platform"; }
+  .market td:nth-of-type(2):before { content: "Description"; }
+  .market td:nth-of-type(3):before { content: "URL"; }
+  .market td:nth-of-type(4):before { content: "Access"; }
+}
+</style>
+</head>
+<body>
+<h1>Generative AI Tools (as of May 2025)</h1>
+<h2>1. Chat Apps</h2>
+<table class="chat">
+<tr><th>Tool/Platform</th><th>Description</th><th>URL</th><th>Free Tier / Access</th></tr>
+<tr><td>ChatGPT (OpenAI)</td><td>Web-based AI chatbot by OpenAI (GPT-4o):contentReference[oaicite:0]{index=0}. Advanced conversational AI with built-in plugins and tools.</td><td><a href="https://chat.openai.com">chat.openai.com</a></td><td>Free tier with limited GPT-4o usage:contentReference[oaicite:1]{index=1} (upgrade to Plus/Pro for higher limits).</td></tr>
+<tr><td>Claude (Anthropic)</td><td>AI assistant by Anthropic (e.g., Claude 3.7 Sonnet):contentReference[oaicite:2]{index=2}. Focuses on safe, helpful conversation.</td><td><a href="https://claude.ai">claude.ai</a></td><td>Free to use with signup (limited usage):contentReference[oaicite:3]{index=3}; paid plans for higher limits.</td></tr>
+<tr><td>Google Gemini</td><td>Google’s AI chatbot (formerly Bard):contentReference[oaicite:4]{index=4}, based on Gemini LLM. Accessible via Google account.</td><td><a href="https://gemini.google.com">gemini.google.com</a></td><td>Free access with Google account; integrated in Google Search/Assistant (limits apply).</td></tr>
+<tr><td>DeepSeek</td><td>Chinese AI chatbot by DeepSeek (models R1, V3):contentReference[oaicite:5]{index=5}. Known for high performance at lower cost.</td><td><a href="https://chat.deepseek.com">chat.deepseek.com</a></td><td>Free web/mobile app (regional restrictions may apply):contentReference[oaicite:6]{index=6}.</td></tr>
+<tr><td>Grok (xAI)</td><td>AI chatbot by Elon Musk’s xAI, launched 2023:contentReference[oaicite:7]{index=7}. Branded as “truth-seeking” and humorous.</td><td><a href="https://grok.com">grok.com</a></td><td>Available via X (Twitter) platform (requires X Premium in many regions).</td></tr>
+<tr><td>Microsoft Copilot (Bing Chat)</td><td>Microsoft’s AI chat tool (renamed Copilot in Bing):contentReference[oaicite:8]{index=8}. Integrated into Bing search and Edge browser.</td><td><a href="https://copilot.microsoft.com">copilot.microsoft.com</a></td><td>Free with a Microsoft account (limits apply); corporate Copilot offerings available.</td></tr>
+<tr><td>Character.AI</td><td>Chat platform for AI “characters”:contentReference[oaicite:9]{index=9}. Users create or chat with AI personas (fictional or real).</td><td><a href="https://character.ai">character.ai</a></td><td>Free registration required; basic usage included, with optional Pro tier.</td></tr>
+<tr><td>Poe (Quora)</td><td>Aggregator for multiple AI models (ChatGPT, Claude, etc.):contentReference[oaicite:10]{index=10}. Single interface to chat with various bots.</td><td><a href="https://poe.com">poe.com</a></td><td>Free usage with Quora login (limited queries), offers Multi-bot chats and paid add-ons.</td></tr>
+<tr><td>Perplexity AI</td><td>AI Q&A engine with citations:contentReference[oaicite:11]{index=11}. Provides concise answers with source links.</td><td><a href="https://www.perplexity.ai">perplexity.ai</a></td><td>Free basic tier; paid Pro subscription for higher query limits and private mode.</td></tr>
+<tr><td>HuggingChat</td><td>Community chat interface by Hugging Face:contentReference[oaicite:12]{index=12}. Lets users interact with open models via web UI.</td><td><a href="https://huggingface.co/chat">huggingface.co/chat</a></td><td>Free to use (Hugging Face account needed) with open-source models.</td></tr>
+</table>
+
+<h2>2. Inference Services</h2>
+<table class="inference">
+<tr><th>Service</th><th>Description</th><th>URL</th><th>Free Tier / Access</th></tr>
+<tr><td>Hugging Face Inference</td><td>Cloud API for hosting and running thousands of open models:contentReference[oaicite:13]{index=13}. Supports NLP, vision, audio, etc.</td><td><a href="https://huggingface.co/">huggingface.co</a></td><td>Free tier with limited credits (community models); paid plans for higher throughput.</td></tr>
+<tr><td>GroqCloud</td><td>High-speed AI inference platform (Groq hardware):contentReference[oaicite:14]{index=14}. Optimized for ultra-low latency.</td><td><a href="https://groq.com">groq.com</a></td><td>Free API key available:contentReference[oaicite:15]{index=15}; usage billed by compute (e.g. GPU-hours).</td></tr>
+<tr><td>Together.ai</td><td>AI compute cloud for training and serving open models (200+ models):contentReference[oaicite:16]{index=16}. Offers easy scaling and fine-tuning support.</td><td><a href="https://together.ai">together.ai</a></td><td>Free community tier (for experiments); paid usage-based pricing for enterprise-level compute.</td></tr>
+<tr><td>Google Vertex AI</td><td>Google Cloud platform for ML/AI, including generative AI agents:contentReference[oaicite:17]{index=17} (Gemini, etc.). Managed model serving with Google’s infrastructure.</td><td><a href="https://cloud.google.com/vertex-ai">cloud.google.com/vertex-ai</a></td><td>Free trial credits (new users); pay-as-you-go for deployed models and training.</td></tr>
+<tr><td>Amazon Bedrock</td><td>AWS managed service offering multiple foundation models (Anthropic, Cohere, Mistral, etc.):contentReference[oaicite:18]{index=18} via a single API.</td><td><a href="https://aws.amazon.com/bedrock/">aws.amazon.com/bedrock</a></td><td>Free trial credit (new AWS accounts); pay-per-call and per-instance pricing based on model.</td></tr>
+<tr><td>Azure OpenAI Service</td><td>Microsoft Azure’s deployment of OpenAI models (GPT-4, DALL·E, etc.) in cloud. Enterprise features like Azure AD integration.</td><td><a href="https://azure.microsoft.com/en-us/services/cognitive-services/openai-service/">azure.microsoft.com</a></td><td>Pay-as-you-go; Azure free credits available for new accounts.</td></tr>
+</table>
+
+<h2>3. Local Inference Tools</h2>
+<table class="local">
+<tr><th>Tool</th><th>Description</th><th>URL</th><th>Access</th></tr>
+<tr><td>Ollama</td><td>Open-source CLI/app for running local LLMs on macOS:contentReference[oaicite:19]{index=19}. Supports model downloads (LLama, GPT) and chat via localhost.</td><td><a href="https://ollama.com">ollama.com</a></td><td>Free; runs on Apple Silicon (local download of models required).</td></tr>
+<tr><td>LM Studio</td><td>Cross-platform GUI for local LLMs:contentReference[oaicite:20]{index=20}. Discover, download, and chat with open models on your computer.</td><td><a href="https://lmstudio.ai">lmstudio.ai</a></td><td>Free download (Windows, macOS, Linux); no cloud needed.</td></tr>
+<tr><td>GPT4All</td><td>Local AI chat app by Nomic:contentReference[oaicite:21]{index=21}. Runs large language models privately on-device (Windows/Mac/Linux).</td><td><a href="https://gpt4all.io">gpt4all.io</a></td><td>Free & open-source; desktop application (GPU optional, CPU mode available).</td></tr>
+<tr><td>LocalAI</td><td>Open-source local inference server (OpenAI API-compatible):contentReference[oaicite:22]{index=22}. Serves LLMs, image/audio models locally via REST.</td><td><a href="https://localai.io">localai.io</a></td><td>Free (self-hosted); supports multiple backends (llama.cpp, vLLM, etc.).</td></tr>
+<tr><td>text-generation-webui</td><td>Community web UI for local LLMs (uses PyTorch or llama.cpp) to chat or generate text. Supports many open models.</td><td><a href="https://github.com/oobabooga/text-generation-webui">GitHub repository</a></td><td>Free; Python-based, requires manual setup and GPU (CPU fallback available).</td></tr>
+</table>
+
+<h2>4. Desktop Apps for Generative AI</h2>
+<table class="desktop">
+<tr><th>App</th><th>Description</th><th>URL</th><th>Access</th></tr>
+<tr><td>DiffusionBee</td><td>macOS app bundling Stable Diffusion for offline image generation:contentReference[oaicite:23]{index=23}. Offers text→image, inpainting, upscaling, and model training.</td><td><a href="https://diffusionbee.com">diffusionbee.com</a></td><td>Free download (macOS only); runs entirely offline.</td></tr>
+<tr><td>Fello AI</td><td>macOS chatbot app aggregating multiple AI models (ChatGPT, Claude, DeepSeek, etc.):contentReference[oaicite:24]{index=24}. Summon via menu bar.</td><td><a href="https://apps.apple.com/app/id1598658238">App Store</a></td><td>Free on Mac App Store (in-app purchases for premium features).</td></tr>
+<tr><td>Pieces</td><td>Productivity desktop app for developers:contentReference[oaicite:25]{index=25}. AI-assisted code search, completion, and contextual help using LLMs.</td><td><a href="https://docs.pieces.app/products/desktop">docs.pieces.app</a></td><td>Free tier (macOS/Windows/Linux); paid Team/Enterprise plans for collaboration.</td></tr>
+<tr><td>Straico</td><td>Universal AI assistant app:contentReference[oaicite:26]{index=26}. AI suggestions via hotkey; templates for writing, summarizing, etc. (Windows/macOS/Linux).</td><td><a href="https://straico.com">straico.com</a></td><td>Free beta desktop app; sign-up required.</td></tr>
+<tr><td>Descript</td><td>Multimedia editing app with AI (transcription, text-based video editing, voice cloning). Popular on macOS and Windows.</td><td><a href="https://www.descript.com">descript.com</a></td><td>Free tier (watermark, limited exports); paid plans starting ~$12/mo.</td></tr>
+</table>
+
+<h2>5. Model Marketplaces & Development Platforms</h2>
+<table class="market">
+<tr><th>Platform</th><th>Description</th><th>URL</th><th>Access</th></tr>
+<tr><td>GitHub Models Catalog</td><td>GitHub’s AI model marketplace:contentReference[oaicite:27]{index=27}. Browse and test models from various providers; integrates with Azure for production use.</td><td><a href="https://github.com/marketplace/models">github.com/marketplace/models</a></td><td>Free to browse and prototype (GitHub or Azure account needed for deployment).</td></tr>
+<tr><td>Hugging Face Hub</td><td>Community repository of 1M+ ML models and datasets:contentReference[oaicite:28]{index=28}. Enables hosting, sharing, and inference of models across modalities.</td><td><a href="https://huggingface.co/models">huggingface.co/models</a></td><td>Free for public models; paid options for private models and managed inference.</td></tr>
+<tr><td>Replicate</td><td>API marketplace for running open-source models:contentReference[oaicite:29]{index=29} (text, image, audio, etc.). One-line code integration.</td><td><a href="https://replicate.com">replicate.com</a></td><td>Free tier (limited compute credits); pay-per-use pricing thereafter.</td></tr>
+<tr><td>ModelScope</td><td>Alibaba’s model hub for research and enterprise AI (multimodal) with inference APIs.</td><td><a href="https://modelscope.cn">modelscope.cn</a></td><td>Free tier for many community models; enterprise plans for large-scale use.</td></tr>
+<tr><td>AI Model Repositories</td><td>Various lists/catalogs of AI models (e.g. TensorFlow Hub, CivitAI for diffusion LoRAs, etc.).</td><td><em>See e.g. tensorflow.org/hub, civitai.com, etc.</em></td><td>Publicly accessible (often free downloads; check licenses per model).</td></tr>
+</table>
+
+<p><small>Sources: Official documentation and news (e.g. OpenAI, Anthropic, Google, TechCrunch):contentReference[oaicite:30]{index=30}:contentReference[oaicite:31]{index=31}:contentReference[oaicite:32]{index=32}:contentReference[oaicite:33]{index=33}:contentReference[oaicite:34]{index=34}, etc.</small></p>
+</body>
+</html>

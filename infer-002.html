@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive AI, Chatbot & Inference Services Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p.intro {
+            text-align: center;
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 0.95em;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            color: #fff;
+            font-weight: bold;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        .tag {
+            background-color: #e0e0e0;
+            color: #555;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-right: 5px;
+            display: inline-block;
+            margin-bottom: 3px;
+        }
+        .tag-macos { background-color: #cce5ff; color: #004085; }
+        .tag-windows { background-color: #d4edda; color: #155724; }
+        .tag-linux { background-color: #f8d7da; color: #721c24; }
+        .tag-web { background-color: #fff3cd; color: #856404; }
+        .tag-api { background-color: #d1ecf1; color: #0c5460; }
+        .tag-free { background-color: #c3e6cb; color: #155724; font-weight: bold;}
+        .tag-generous { background-color: #b8daff; color: #004085;}
+
+        /* Color schemes for tables */
+        .table-chatbots th { background-color: #3498db; } /* Blue */
+        .table-search th { background-color: #2ecc71; } /* Green */
+        .table-local th { background-color: #e67e22; } /* Orange */
+        .table-desktop th { background-color: #9b59b6; } /* Purple */
+        .table-marketplaces th { background-color: #1abc9c; } /* Teal */
+        .table-developer th { background-color: #f1c40f; color:#333;} /* Yellow */
+        .table-specialized th { background-color: #e74c3c; } /* Red */
+
+        .notes {
+            background-color: #fffde7;
+            border-left: 5px solid #fbc02d;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Comprehensive AI, Chatbot & Inference Services Dashboard</h1>
+        <p class="intro">An extensive list of publicly accessible generative AI, chatbot services, inference platforms, and tools. Prioritizing free services or those with generous free tiers.
+        <br><strong>Projected as of: May 15, 2025.</strong> <em>Note: The AI landscape is highly dynamic; features and availability may change.</em></p>
+
+        <div class="notes">
+            <p><strong>Key for Tags:</strong></p>
+            <span class="tag tag-web">Web</span>: Accessible via a web browser.
+            <span class="tag tag-macos">macOS</span>: Native or well-supported macOS application.
+            <span class="tag tag-windows">Windows</span>: Native or well-supported Windows application.
+            <span class="tag tag-linux">Linux</span>: Native or well-supported Linux application.
+            <span class="tag tag-api">API</span>: Offers an Application Programming Interface for developers.
+            <span class="tag tag-free">Free</span>: Core service is free or has a substantial free offering.
+            <span class="tag tag-generous">Generous Tier</span>: Offers a significant free tier for exploration/light use.
+        </div>
+
+        <!-- Web-Based Chatbots & Conversational AI -->
+        <h2>Web-Based Chatbots & Conversational AI</h2>
+        <table class="table-chatbots">
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Access</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>OpenAI - ChatGPT</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-free">Free</span> Access to GPT-3.5 (unlimited), GPT-4o (rate-limited, text, vision, voice, data analysis, file uploads). Excellent reasoning, creativity. Context window up to 128k tokens for GPT-4 Turbo models (paid), GPT-4o offers strong capabilities on free tier.</td>
+                    <td><a href="https://chat.openai.com/" target="_blank">chat.openai.com</a></td>
+                </tr>
+                <tr>
+                    <td>Google - Gemini</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-free">Free</span> Access to Gemini 1.0 Pro. Gemini Advanced (paid) offers Gemini 1.5 Pro with 1M token context window. Strong multimodal capabilities, integration with Google Workspace. Free tier is very capable for general use.</td>
+                    <td><a href="https://gemini.google.com/" target="_blank">gemini.google.com</a></td>
+                </tr>
+                <tr>
+                    <td>Anthropic - Claude</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Claude 3 Sonnet/Haiku (free tier, rate-limited), Opus (paid). Known for safety, long context (up to 200K tokens), and strong reasoning. Free tier is excellent for text processing and summarization.</td>
+                    <td><a href="https://claude.ai/" target="_blank">claude.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Microsoft Copilot</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-windows">Windows</span></td>
+                    <td><span class="tag tag-free">Free</span> Powered by OpenAI models (including GPT-4/GPT-4o at times) and Bing search. Image generation (DALL-E 3). Integrated into Windows, Edge, Microsoft 365 (paid for M365 integration). Free web version is powerful.</td>
+                    <td><a href="https://copilot.microsoft.com/" target="_blank">copilot.microsoft.com</a></td>
+                </tr>
+                <tr>
+                    <td>Perplexity AI</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Conversational search with citations. Free tier uses their own model and provides good search-augmented answers. Pro version offers choice of models (GPT-4, Claude 3, etc.) and more "Pro" searches.</td>
+                    <td><a href="https://www.perplexity.ai/" target="_blank">perplexity.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Meta AI (Llama 3)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Access to Llama 3 models. Integrated into Facebook, Instagram, WhatsApp, and a standalone website. Strong open model, image generation.</td>
+                    <td><a href="https://www.meta.ai/" target="_blank">meta.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Mistral AI - Le Chat</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Access to Mistral Small/Large models (free tier likely rate-limited or uses smaller models). Known for efficiency and strong performance, especially open-weight models.</td>
+                    <td><a href="https://chat.mistral.ai/" target="_blank">chat.mistral.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Cohere - Coral / Playground</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Enterprise-focused, but Playground offers free access for experimentation with Command models. Strong on RAG and tool use. Free tier for developers.</td>
+                    <td><a href="https://dashboard.cohere.com/playground/chat" target="_blank">cohere.com/playground</a></td>
+                </tr>
+                <tr>
+                    <td>Hugging Face Chat</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Access to various open-source models (e.g., Llama, Mistral fine-tunes). Community-driven. Great for trying out new OS models.</td>
+                    <td><a href="https://huggingface.co/chat/" target="_blank">huggingface.co/chat</a></td>
+                </tr>
+                <tr>
+                    <td>Poe by Quora</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-macos">macOS</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Access multiple models (ChatGPT, Claude, Llama, Gemini, etc.) in one interface. Free daily message credits for various bots. Subscription for higher limits.</td>
+                    <td><a href="https://poe.com/" target="_blank">poe.com</a></td>
+                </tr>
+                 <tr>
+                    <td>xAI - Grok</td>
+                    <td><span class="tag tag-web">Web</span> (via X Premium)</td>
+                    <td>Requires X Premium subscription. Known for real-time information access from X and a rebellious streak.</td>
+                    <td><a href="https://x.ai/grok" target="_blank">x.ai/grok</a> (Info)</td>
+                </tr>
+                <tr>
+                    <td>DeepSeek Chat</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-free">Free</span> Access to DeepSeek models, strong in coding and reasoning. Generous free API credits often available.</td>
+                    <td><a href="https://chat.deepseek.com/" target="_blank">chat.deepseek.com</a></td>
+                </tr>
+                <tr>
+                    <td>Character.AI</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Create and chat with AI characters. Focus on personality and role-playing. Free tier is very usable.</td>
+                    <td><a href="https://beta.character.ai/" target="_blank">beta.character.ai</a></td>
+                </tr>
+                <tr>
+                    <td>You.com (YouChat)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> AI-powered search engine with chat modes. Free tier for basic chat and search. Paid plans for advanced AI modes.</td>
+                    <td><a href="https://you.com/" target="_blank">you.com</a></td>
+                </tr>
+                <tr>
+                    <td>Phind</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> AI search engine for developers. Free tier provides useful answers for coding questions. Pair programming features.</td>
+                    <td><a href="https://www.phind.com/" target="_blank">phind.com</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- AI-Powered Search Engines & Research Assistants -->
+        <h2>AI-Powered Search Engines & Research Assistants</h2>
+        <table class="table-search">
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Access</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Perplexity AI</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Conversational search with citations, focus modes (e.g., Academic, Wolfram Alpha). Free tier is excellent for daily search.</td>
+                    <td><a href="https://www.perplexity.ai/" target="_blank">perplexity.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Microsoft Copilot (via Bing)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Integrates AI chat with Bing search results, providing summarized answers and conversational follow-ups. Includes image generation.</td>
+                    <td><a href="https://www.bing.com/chat" target="_blank">bing.com/chat</a> (redirects to Copilot)</td>
+                </tr>
+                <tr>
+                    <td>You.com</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Search engine with various "AI modes" (Smart, Genius, Research, Create). Free tier for basic search and standard AI.</td>
+                    <td><a href="https://you.com/" target="_blank">you.com</a></td>
+                </tr>
+                <tr>
+                    <td>Phind</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> AI search engine optimized for developers and technical questions. Provides code examples and explanations.</td>
+                    <td><a href="https://www.phind.com/" target="_blank">phind.com</a></td>
+                </tr>
+                 <tr>
+                    <td>Google (AI Overviews / SGE)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> AI-generated summaries and answers integrated directly into Google Search results for many queries. Gradually rolling out.</td>
+                    <td><a href="https://www.google.com/" target="_blank">google.com</a></td>
+                </tr>
+                 <tr>
+                    <td>Brave Search (Answer with AI)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Privacy-focused search engine with an "Answer with AI" feature for summarized results. Free.</td>
+                    <td><a href="https://search.brave.com/" target="_blank">search.brave.com</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Local Inference Platforms -->
+        <h2>Local Inference Platforms (Run AI Models on Your Own Machine)</h2>
+        <table class="table-local">
+            <thead>
+                <tr>
+                    <th>Tool Name</th>
+                    <th>Platform</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ollama</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-linux">Linux</span> <span class="tag tag-windows">Windows</span></td>
+                    <td><span class="tag tag-free">Free</span> Open-source. Easily run large language models locally (Llama, Mistral, Phi, etc.). CLI and API. Growing community support. Excellent for experimentation.</td>
+                    <td><a href="https://ollama.com/" target="_blank">ollama.com</a></td>
+                </tr>
+                <tr>
+                    <td>LM Studio</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-free">Free</span> User-friendly GUI to discover, download, and run LLMs locally. Supports various model formats (GGUF). Built-in chat interface and local server.</td>
+                    <td><a href="https://lmstudio.ai/" target="_blank">lmstudio.ai</a></td>
+                </tr>
+                <tr>
+                    <td>GPT4All</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-free">Free</span> Open-source ecosystem to run powerful & customized LLMs locally. Chat client and model downloads. Privacy-focused.</td>
+                    <td><a href="https://gpt4all.io/" target="_blank">gpt4all.io</a></td>
+                </tr>
+                <tr>
+                    <td>Jan</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-free">Free</span> Open-source alternative to LM Studio. Aims to be an open and extensible local AI environment. Supports various models.</td>
+                    <td><a href="https://jan.ai/" target="_blank">jan.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Pinokio</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-free">Free</span> Browser-like application to install, run, and control AI applications (including LLMs, image generators, etc.) locally with one click.</td>
+                    <td><a href="https://pinokio.computer/" target="_blank">pinokio.computer</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Desktop AI Applications -->
+        <h2>Desktop AI Applications</h2>
+        <table class="table-desktop">
+            <thead>
+                <tr>
+                    <th>App Name</th>
+                    <th>Platform</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Raycast AI</td>
+                    <td><span class="tag tag-macos">macOS</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (Part of Raycast launcher) AI chat, commands, quick actions. Free tier uses GPT-3.5 Turbo. Pro subscription for GPT-4 and more features.</td>
+                    <td><a href="https://www.raycast.com/ai" target="_blank">raycast.com/ai</a></td>
+                </tr>
+                <tr>
+                    <td>TypingMind</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span> <span class="tag tag-web">Web</span></td>
+                    <td>One-time purchase for UI. Connects to various APIs (OpenAI, Claude, Gemini, etc. - API costs separate). Advanced chat features, prompt library.</td>
+                    <td><a href="https://www.typingmind.com/" target="_blank">typingmind.com</a></td>
+                </tr>
+                <tr>
+                    <td>MacGPT / Text Assistant</td>
+                    <td><span class="tag tag-macos">macOS</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (if using free API access from model providers) Native macOS app to access ChatGPT (and other models via API) from menu bar or globally. Requires your own API key for some models. Some offer free basic usage.</td>
+                    <td><a href="https://www.macgpt.com/" target="_blank">macgpt.com</a> (one example)</td>
+                </tr>
+                <tr>
+                    <td>Obsidian (with community plugins)</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-free">Free</span> (Obsidian is free for personal use) Numerous community plugins integrate local or API-based AI for text generation, summarization, etc. within your notes. (e.g., "Obsidian Ollama", "Text Generator")</td>
+                    <td><a href="https://obsidian.md/" target="_blank">obsidian.md</a></td>
+                </tr>
+                 <tr>
+                    <td>Cursor</td>
+                    <td><span class="tag tag-macos">macOS</span> <span class="tag tag-windows">Windows</span> <span class="tag tag-linux">Linux</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> AI-first code editor. Features like "Chat with your codebase", AI code generation/editing. Free tier with limited GPT-4/advanced model usage, unlimited basic AI.</td>
+                    <td><a href="https://cursor.sh/" target="_blank">cursor.sh</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- AI Model Marketplaces & Hubs -->
+        <h2>AI Model Marketplaces & Hubs</h2>
+        <table class="table-marketplaces">
+            <thead>
+                <tr>
+                    <th>Platform Name</th>
+                    <th>Access</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Hugging Face Hub</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-free">Free</span> Massive collection of open-source models (LLMs, vision, audio, etc.), datasets, and Spaces (demos). Free to browse, download models, and use many Spaces. Inference API with generous free tier.</td>
+                    <td><a href="https://huggingface.co/" target="_blank">huggingface.co</a></td>
+                </tr>
+                <tr>
+                    <td>GitHub (Marketplace & Search)</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Search for AI/ML projects and models. GitHub Marketplace has some AI tools. Many open-source models hosted on GitHub.</td>
+                    <td><a href="https://github.com/topics/large-language-models" target="_blank">github.com (search)</a></td>
+                </tr>
+                <tr>
+                    <td>NVIDIA NGC</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Hub for GPU-optimized AI software, pre-trained models, and SDKs. Many resources are free, especially for individual developers and researchers. Some require NVIDIA hardware.</td>
+                    <td><a href="https://catalog.ngc.nvidia.com/" target="_blank">catalog.ngc.nvidia.com</a></td>
+                </tr>
+                <tr>
+                    <td>TensorFlow Hub</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Repository of pre-trained TensorFlow models. Easy to browse and integrate into TensorFlow projects.</td>
+                    <td><a href="https://tfhub.dev/" target="_blank">tfhub.dev</a></td>
+                </tr>
+                <tr>
+                    <td>PyTorch Hub</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Collection of pre-trained PyTorch models, easily loadable via `torch.hub`.</td>
+                    <td><a href="https://pytorch.org/hub/" target="_blank">pytorch.org/hub</a></td>
+                </tr>
+                <tr>
+                    <td>Civitai</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Primarily focused on image generation models (Stable Diffusion, LoRAs, etc.), but a major hub for community-shared AI models and resources.</td>
+                    <td><a href="https://civitai.com/" target="_blank">civitai.com</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Developer Platforms & APIs (with Free Tiers) -->
+        <h2>Developer Platforms & APIs (with notable free/generous tiers)</h2>
+        <table class="table-developer">
+            <thead>
+                <tr>
+                    <th>Platform Name</th>
+                    <th>Access</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>OpenAI API</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (Often trial credits) Access to GPT models, DALL-E, Whisper, Embeddings. Pay-as-you-go, but new accounts often get free starting credits. GPT-4o API is relatively cheaper.</td>
+                    <td><a href="https://platform.openai.com/" target="_blank">platform.openai.com</a></td>
+                </tr>
+                <tr>
+                    <td>Google AI / Vertex AI (Gemini API)</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Access Gemini models (Pro, Vision Pro) via Google AI Studio or Vertex AI. Generous free quotas for Gemini Pro.</td>
+                    <td><a href="https://ai.google.dev/" target="_blank">ai.google.dev</a></td>
+                </tr>
+                <tr>
+                    <td>Anthropic API</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (Often trial credits) Access to Claude models. New accounts may receive free credits for evaluation.</td>
+                    <td><a href="https://www.anthropic.com/product" target="_blank">anthropic.com/product</a></td>
+                </tr>
+                <tr>
+                    <td>Cohere API</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Trial API key with free credits for Command, Embed, Rerank models. Excellent for RAG and enterprise use cases.</td>
+                    <td><a href="https://cohere.com/pricing" target="_blank">cohere.com/pricing</a></td>
+                </tr>
+                <tr>
+                    <td>Mistral AI API</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Access to Mistral models (e.g., Mistral Small, Large, Embeddings). Often has a free tier or trial credits.</td>
+                    <td><a href="https://mistral.ai/product/" target="_blank">mistral.ai/product</a></td>
+                </tr>
+                <tr>
+                    <td>Hugging Face Inference API / Endpoints</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Free Inference API for thousands of models (rate-limited). Serverless Inference Endpoints for dedicated workloads (paid, but can scale to zero).</td>
+                    <td><a href="https://huggingface.co/inference-api" target="_blank">huggingface.co/inference-api</a></td>
+                </tr>
+                <tr>
+                    <td>Replicate</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Run open-source models with an API. Often provides free initial credits. Pay-per-second billing. Vast model library.</td>
+                    <td><a href="https://replicate.com/" target="_blank">replicate.com</a></td>
+                </tr>
+                <tr>
+                    <td>Fireworks.ai</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Fast LLM inference platform. Offers free credits for new users to try various open-source models.</td>
+                    <td><a href="https://fireworks.ai/" target="_blank">fireworks.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Together.ai</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Cloud platform for running open-source AI models. Offers free credits upon signup for experimentation.</td>
+                    <td><a href="https://www.together.ai/" target="_blank">together.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Groq API</td>
+                    <td><span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (Often trial access/free quotas) Extremely fast inference on LPUs for selected open-source models. Great for low-latency applications.</td>
+                    <td><a href="https://groq.com/" target="_blank">groq.com</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Specialized Generative AI -->
+        <h2>Specialized Generative AI (Image, Audio, Video - with Free Access)</h2>
+        <table class="table-specialized">
+            <thead>
+                <tr>
+                    <th>Service Name</th>
+                    <th>Type</th>
+                    <th>Access</th>
+                    <th>Key Features / Free Tier Details</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Leonardo.Ai</td>
+                    <td>Image</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Daily free tokens for image generation, fine-tuned models, image editing tools.</td>
+                    <td><a href="https://leonardo.ai/" target="_blank">leonardo.ai</a></td>
+                </tr>
+                <tr>
+                    <td>Playground AI</td>
+                    <td>Image</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Free daily image generations with Stable Diffusion and their own models. Social features.</td>
+                    <td><a href="https://playground.com/" target="_blank">playground.com</a></td>
+                </tr>
+                <tr>
+                    <td>Adobe Firefly</td>
+                    <td>Image, Vector, Effects</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Free monthly generative credits for text-to-image, generative fill, text effects. Designed for commercial safety.</td>
+                    <td><a href="https://firefly.adobe.com/" target="_blank">firefly.adobe.com</a></td>
+                </tr>
+                <tr>
+                    <td>Microsoft Designer (Image Creator)</td>
+                    <td>Image</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Powered by DALL-E. Free image generations with "boosts" for faster generation. Integrated into Copilot.</td>
+                    <td><a href="https://designer.microsoft.com/image-creator" target="_blank">designer.microsoft.com/image-creator</a></td>
+                </tr>
+                 <tr>
+                    <td>Stable Diffusion Online (various)</td>
+                    <td>Image</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-free">Free</span> Many websites offer free UIs to run Stable Diffusion (e.g., Stable Diffusion Online, Mage.space free tier). Quality and features vary.</td>
+                    <td><a href="https://stablediffusiononline.com/" target="_blank">stablediffusiononline.com</a> (example)</td>
+                </tr>
+                <tr>
+                    <td>ElevenLabs</td>
+                    <td>Audio (TTS, Voice Cloning)</td>
+                    <td><span class="tag tag-web">Web</span> <span class="tag tag-api">API</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Free tier with character quota for speech synthesis and some voice cloning capabilities. High-quality voices.</td>
+                    <td><a href="https://elevenlabs.io/" target="_blank">elevenlabs.io</a></td>
+                </tr>
+                <tr>
+                    <td>Runway (Gen-2, Gen-3)</td>
+                    <td>Video, Image, Audio</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Free starting credits for text-to-video, image-to-video, and many other AI magic tools.</td>
+                    <td><a href="https://runwayml.com/" target="_blank">runwayml.com</a></td>
+                </tr>
+                <tr>
+                    <td>Suno AI</td>
+                    <td>Music</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> Daily free credits to generate songs (lyrics + music) from text prompts.</td>
+                    <td><a href="https://suno.com/" target="_blank">suno.com</a></td>
+                </tr>
+                 <tr>
+                    <td>Udio</td>
+                    <td>Music</td>
+                    <td><span class="tag tag-web">Web</span></td>
+                    <td><span class="tag tag-generous">Generous Tier</span> (Beta, free credits) High-quality music generation from text prompts. Allows for extending songs.</td>
+                    <td><a href="https://www.udio.com/" target="_blank">udio.com</a></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p style="text-align:center; margin-top:40px; font-size:0.9em; color:#777;">
+            This dashboard is a living document. The AI landscape evolves rapidly. Always check the services' official websites for the latest features and pricing.
+        </p>
+    </div>
+</body>
+</html>

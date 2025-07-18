@@ -1,219 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" >
 <head>
-  <meta charset="UTF-8">
-  <title>Generative AI Web Dashboard – July 2025</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat Apps and Inference Services Dashboard - July 2025</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    nav a { margin-right: 12px; text-decoration: none; color: #0A4D8C; }
-    table { width: 100%; border-collapse: collapse; margin: 30px 0; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { color: white; }
-    .ui-chat { background: #4A90E2; }
-    .aggregator { background: #50E3C2; }
-    .api-service { background: #7ED321; }
-    section h2 { margin-top: 40px; }
-  </style>
-</head>
-<body>
-  <h1>🧭 Generative AI Web Inference Dashboard (July 2025)</h1>
-  <nav>
-    <a href="#ui-chat">UI-Based Chatbots</a>
-    <a href="#aggregators">Aggregator Platforms</a>
-    <a href="#api-services">API / Inference Services (Web)</a>
-  </nav>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: #eee;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.5s ease;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    h1, h2, h3 {
+      color: #f0e9f0;
+      text-shadow: 0 0 5px rgba(255 255 255 / 0.3);
+      user-select: none;
+    }
 
-  <!-- UI-Based Chatbots -->
-  <section id="ui-chat">
-    <h2>UI‑Based Chatbots (Direct Interaction & Writing)</h2>
-    <table>
-      <thead class="ui-chat">
-        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Use Cases</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="https://chat.openai.com">ChatGPT (OpenAI)</a></td>
-          <td>GPT‑4 Turbo / GPT‑4o; multimodal; plugin support</td>
-          <td>Cloud-only; subscription cost; central data storage</td>
-          <td>Creative writing, research Q&A, multimodal tasks</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.anthropic.com/claude">Claude 3/4 (Anthropic)</a></td>
-          <td>Safety-first; strong reasoning; long-context support</td>
-          <td>Slower response; paid access; limited plugin ecosystem</td>
-          <td>Academic analysis, long-form drafting, safe chat</td>
-        </tr>
-        <tr>
-          <td><a href="https://ai.google.com/studio">Google AI Studio</a></td>
-          <td>Interactive prompt prototyping; exportable code; Gemini models support</td>
-          <td>Requires GCP auth/key; limited to Google ecosystem :contentReference[oaicite:1]{index=1}</td>
-          <td>Prompt tuning, multimodal experiments, API prototyping</td>
-        </tr>
-        <tr>
-          <td><a href="https://cloud.google.com/vertex-ai/studio">Vertex AI Studio</a></td>
-          <td>Access to Gemini and >150 models; enterprise MLOps; secure</td>
-          <td>Enterprise SLAs; billing/account setup needed :contentReference[oaicite:2]{index=2}</td>
-          <td>Prototype-to-production workflows, secure inference</td>
-        </tr>
-        <tr>
-          <td><a href="https://gemini.google.com">Google Gemini (Web)</a></td>
-          <td>Multimodal; Pro / Flash / Live variants; voice, file‑upload support :contentReference[oaicite:3]{index=3}</td>
-          <td>Advanced tiers behind paywall; cloud-only</td>
-          <td>Everyday assistant, media handling, deep reasoning</td>
-        </tr>
-        <tr>
-          <td><a href="https://copilot.microsoft.com">Microsoft Copilot</a></td>
-          <td>Seamless Office/Edge integration; GPT-based aid</td>
-          <td>Cloud-bound; requires MS account/subscription</td>
-          <td>Document drafting, summarization, productivity</td>
-        </tr>
-        <tr>
-          <td><a href="https://plex.com/grok">Grok (xAI)</a></td>
-          <td>Fast Q&A; integrated with X posts</td>
-          <td>Deflects controversy; limited domain scope</td>
-          <td>Quick factual Q&A, social-media based info</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.inflection.ai/pi">Pi (Inflection)</a></td>
-          <td>Supportive tone; personal chatbot</td>
-          <td>No browsing; casual focus</td>
-          <td>Wellness chat, simple conversations, emotional support</td>
-        </tr>
-        <tr>
-          <td><a href="https://bard.google.com">Google Bard (legacy)</a></td>
-          <td>Replaced by Gemini; same infrastructure</td>
-          <td>Legacy name; being phased out</td>
-          <td>Historical reference</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+    /* Glassmorphism container */
+    .glass {
+      background: rgba(255 255 255 / 0.1);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      box-shadow:
+        0 4px 30px rgba(0 0 0 / 0.1),
+        inset 0 0 0 1px rgba(255 255 255 / 0.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin-bottom: 2.5rem;
+      border: 1px solid rgba(255 255 255 / 0.2);
+    }
 
-  <!-- Aggregator Platforms -->
-  <section id="aggregators">
-    <h2>Aggregator Platforms (Compare Models)</h2>
-    <table>
-      <thead class="aggregator">
-        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Use Cases</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="https://perplexity.ai">Perplexity</a></td>
-          <td>Chat + search + source citations</td>
-          <td>UI clutter; usage rate limits</td>
-          <td>Research with transparent sourcing</td>
-        </tr>
-        <tr>
-          <td><a href="https://poe.com">Poe (Quora)</a></td>
-          <td>Multiple backend bots; tiered access</td>
-          <td>Web-only; rate limits; limited logs</td>
-          <td>Model-side-by-side comparisons</td>
-        </tr>
-        <tr>
-          <td><a href="https://huggingface.co/chat">HuggingChat</a></td>
-          <td>Open‑source models via browser; privacy-friendly</td>
-          <td>Variable quality; basic UI</td>
-          <td>Testing open models, lower privacy risk</td>
-        </tr>
-        <tr>
-          <td><a href="https://lumioai.tech">Lumio AI</a></td>
-          <td>Multi-model workspace; switch engines; smart cost control :contentReference[oaicite:4]{index=4}</td>
-          <td>New startup; freemium limits; UI immature</td>
-          <td>Compare GPT‑4, Claude 4, Gemini 2.5, Grok, R1</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+    /* Links */
+    a {
+      color: #a7c7e7;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover, a:focus {
+      text-decoration: underline;
+      color: #e0d9ff;
+      outline: none;
+    }
 
-  <!-- API & Inference Services -->
-  <section id="api-services">
-    <h2>API / Inference Services (Cloud-Based)</h2>
-    <table>
-      <thead class="api-service">
-        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Use Cases</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><a href="https://platform.openai.com">OpenAI API</a></td>
-          <td>Top-tier GPT models; broad endpoints; plugin support</td>
-          <td>Cloud-only; scale costs; data privacy concerns</td>
-          <td>App/backend AI, summarization, chatbots</td>
-        </tr>
-        <tr>
-          <td><a href="https://console.anthropic.com">Anthropic API</a></td>
-          <td>Safe models; long-context; abstract reasoning</td>
-          <td>Slower throughput; subscription cost</td>
-          <td>Safe agents, compliance workflows</td>
-        </tr>
-        <tr>
-          <td><a href="https://ai.google.dev/gemini-api">Google Gemini API</a></td>
-          <td>Multimodal; live models; thinking chain-of-thought :contentReference[oaicite:5]{index=5}</td>
-          <td>Google ecosystem; usage costs</td>
-          <td>Multimodal apps, reasoning agents, vision tasks</td>
-        </tr>
-        <tr>
-          <td><a href="https://cloud.google.com/vertex-ai/docs/generative">Vertex AI API</a></td>
-          <td>Access Gemini + open models; MLOps; governance</td>
-          <td>Enterprise billing; GCP integration required :contentReference[oaicite:6]{index=6}</td>
-          <td>Large-scale apps, production inference</td>
-        </tr>
-        <tr>
-          <td><a href="https://azure.microsoft.com/ai-services/openai-service">Azure OpenAI</a></td>
-          <td>Enterprise SLAs; compliance; Azure ecosystem</td>
-          <td>Complex billing; cloud-bound usage</td>
-          <td>Enterprise chatbots, compliance-first apps</td>
-        </tr>
-        <tr>
-          <td><a href="https://aws.amazon.com/bedrock">AWS Bedrock / Amazon Q</a></td>
-          <td>Titan + GPT models; UI for conversation; enterprise</td>
-          <td>AW ecosystem; complexity, cost</td>
-          <td>Lift internal assistant, IT bots, cloud inference</td>
-        </tr>
-        <tr>
-          <td><a href="https://cloud.ibm.com">IBM watsonx.ai</a></td>
-          <td>Governed LLM studio; fine-tuning & pipelines</td>
-          <td>Heavy UI; enterprise pricing</td>
-          <td>Regulated industries, model governance</td>
-        </tr>
-        <tr>
-          <td><a href="https://replicate.com">Replicate API</a></td>
-          <td>Many model types; pay-per-call flexibility</td>
-          <td>Model stability varies; rate constraints</td>
-          <td>Media generation, pipelines, demos</td>
-        </tr>
-        <tr>
-          <td><a href="https://huggingface.co/inference-endpoints">HF Inference Endpoints</a></td>
-          <td>Open models served; easy endpoint deployment</td>
-          <td>Costs scale; quality varies per model</td>
-          <td>Prototype, custom model serving</td>
-        </tr>
-        <tr>
-          <td><a href="https://cloud.yandex.com/en/services/yandexgpt">YandexGPT API</a></td>
-          <td>Strong Russian language; regional performance</td>
-          <td>Language-limited; regional cloud</td>
-          <td>Russian language apps, niche markets</td>
-        </tr>
-        <tr>
-          <td><a href="https://ai.baidu.com/erniebot">Baidu Ernie Bot API</a></td>
-          <td>GPT-like in Chinese; enterprise features</td>
-          <td>China-restricted access</td>
-          <td>Chinese LLM workflows, local inference</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.alibabacloud.com/solutions/ai/qwen">Alibaba Qwen API</a></td>
-          <td>High-performance LLM; soon open-source</td>
-          <td>China-market focused</td>
-          <td>Chinese language tasks, cost-effective apps</td>
-        </tr>
-        <tr>
-          <td><a href="https://www.bytedance.com">ByteDance Doubao API</a></td>
-          <td>Low-cost MoE LLM; competitive performance</td>
-          <td>Limited availability; China-focused</td>
-          <td>Affordable Chinese model usage</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
+    /* Tables */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #f0e9f0;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid rgba(255 255 255 / 0.1);
+    }
+    th {
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      background: rgba(255 255 255 / 0.1);
+      font-weight: 700;
+      color: #dcd6f7;
+      transition: background-color 0.3s ease;
+    }
+    th:hover {
+      background: rgba(255 255 255 / 0.2);
+    }
+    th.asc::after,
+    th.desc::after {
+      content: "";
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      pointer-events: none;
+      transform: translateY(-50%);
+    }
+    th.asc::after {
+      border-width: 6px 5px 0 5px;
+      border-color: #dcd6f7 transparent transparent transparent;
+    }
+    th.desc::after {
+      border-width: 0 5px 6px 5px;
+      border-color: transparent transparent #dcd6f7 transparent;
+    }
 
-</body>
-</html>
+    /* Filter input */
+    .filter-container {
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    input[type="search"] {
+      width: 100%;
+      max-width: 400px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      color: #222;
+      outline-offset:

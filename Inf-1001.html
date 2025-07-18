@@ -112,4 +112,411 @@
       border: none;
       font-size: 1rem;
       color: #222;
-      outline-offset:
+      outline-offset: 3px;
+      outline-color: #a7c7e7;
+      transition: box-shadow 0.3s ease;
+    }
+    input[type="search"]:focus {
+      box-shadow: 0 0 8px 2px #a7c7e7aa;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #222;
+      user-select: none;
+      margin-right: 6px;
+      margin-bottom: 4px;
+    }
+    .free {
+      background: #4caf50;
+      color: white;
+      box-shadow: 0 0 6px #4caf50aa;
+    }
+    .paid {
+      background: #f44336;
+      color: white;
+      box-shadow: 0 0 6px #f44336aa;
+    }
+    .opensource {
+      background: #2196f3;
+      color: white;
+      box-shadow: 0 0 6px #2196f3aa;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      th, td {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+      }
+      input[type="search"] {
+        max-width: 100%;
+      }
+    }
+
+    /* Dark mode toggle button */
+    #toggle-theme {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(255 255 255 / 0.1);
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      color: #eee;
+      font-size: 22px;
+      box-shadow:
+        0 0 8px rgba(255 255 255 / 0.15);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    #toggle-theme:hover {
+      background: rgba(255 255 255 / 0.2);
+      color: #fff;
+    }
+
+    /* Animation for table rows */
+    tbody tr {
+      transition: background-color 0.25s ease, transform 0.3s ease;
+    }
+    tbody tr:hover {
+      background-color: rgba(255 255 255 / 0.12);
+      transform: scale(1.02);
+    }
+
+    /* Scroll container for tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 2rem;
+    }
+
+    /* Section subtitle */
+    .section-subtitle {
+      margin-top: 0.3rem;
+      font-size: 0.9rem;
+      color: #bbb;
+    }
+
+  </style>
+</head>
+<body>
+
+  <button id="toggle-theme" title="Toggle Light/Dark Mode">🌙</button>
+
+  <h1>Chat Apps and Inference Services - July 2025</h1>
+  <p>A comprehensive, interactive dashboard for publicly accessible generative AI chatbots, inference services, and model marketplaces. Includes Free / Paid / Open-source tags, search/filter per table, sorting, animations, and glassmorphism styling.</p>
+
+  <!-- Chat Apps Table -->
+  <section class="glass" aria-label="Chat Apps">
+    <h2>Chat Apps</h2>
+    <div class="filter-container">
+      <input
+        type="search"
+        id="filter-chatapps"
+        placeholder="Search chat apps..."
+        aria-label="Search chat apps"
+        oninput="filterTable('chatapps-table', this.value)"
+      />
+    </div>
+    <div class="table-wrapper">
+      <table id="chatapps-table" aria-describedby="chatapps-desc">
+        <caption id="chatapps-desc" class="section-subtitle">Popular chat apps for direct interaction with AI models.</caption>
+        <thead>
+          <tr>
+            <th onclick="sortTable(0, 'chatapps-table')">Name</th>
+            <th onclick="sortTable(1, 'chatapps-table')">Description</th>
+            <th onclick="sortTable(2, 'chatapps-table')">Free / Paid / Open-source</th>
+            <th onclick="sortTable(3, 'chatapps-table')">Context Window (tokens)</th>
+            <th onclick="sortTable(4, 'chatapps-table')">Strengths</th>
+            <th onclick="sortTable(5, 'chatapps-table')">Weaknesses</th>
+            <th onclick="sortTable(6, 'chatapps-table')">Recommended Use Cases</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="https://chat.openai.com/" target="_blank" rel="noopener">OpenAI - ChatGPT (GPT-4)</a></td>
+            <td>Industry-leading chatbot with robust free tier and up to 200,000 tokens context window.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>200,000</td>
+            <td>Strong reasoning, broad knowledge, extensive integration ecosystem.</td>
+            <td>Costly API usage, occasional hallucinations.</td>
+            <td>Conversational AI, coding help, content generation, education.</td>
+          </tr>
+          <tr>
+            <td><a href="https://gemini.google.com/" target="_blank" rel="noopener">Google - Gemini (formerly Bard)</a></td>
+            <td>Versatile chatbot with the largest context window (1,000,000 tokens) and fully free access.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>1,000,000</td>
+            <td>Huge context, real-time web knowledge, strong reasoning.</td>
+            <td>Newer, evolving ecosystem.</td>
+            <td>Research, long documents, multi-turn conversations.</td>
+          </tr>
+          <tr>
+            <td><a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener">AI Studio</a></td>
+            <td>Google's AI prompt development platform supporting multiple models.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>Varies by model</td>
+            <td>Model variety, direct prompt development.</td>
+            <td>Not a pure chatbot, more developer-focused.</td>
+            <td>Prompt design, experimentation, model fine-tuning.</td>
+          </tr>
+          <tr>
+            <td><a href="https://claude.ai/" target="_blank" rel="noopener">Anthropic - Claude</a></td>
+            <td>Safe, helpful AI with a 200,000-token context window optimized for reasoning.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>200,000</td>
+            <td>Strong safety, reasoning, contextual understanding.</td>
+            <td>Access costs, less open ecosystem.</td>
+            <td>Enterprise assistance, compliance, complex reasoning.</td>
+          </tr>
+          <tr>
+            <td><a href="https://copilot.microsoft.com/" target="_blank" rel="noopener">Microsoft - Copilot</a></td>
+            <td>AI assistant integrated across Microsoft 365 services.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>~32,000 (estimated)</td>
+            <td>Office integration, productivity boost.</td>
+            <td>Limited to Microsoft ecosystem.</td>
+            <td>Office automation, writing assistance, business use.</td>
+          </tr>
+          <tr>
+            <td><a href="https://x.com/i/grok" target="_blank" rel="noopener">xAI - Grok on X</a></td>
+            <td>Insightful AI chatbot for reasoning and truth-seeking on X (Twitter).</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>Not disclosed</td>
+            <td>Good for social media queries and factual insights.</td>
+            <td>Limited ecosystem and API access.</td>
+            <td>Social media, public knowledge queries.</td>
+          </tr>
+          <tr>
+            <td><a href="https://dashboard.cohere.com/playground/chat" target="_blank" rel="noopener">Cohere - Command</a></td>
+            <td>Enterprise-grade chatbot focused on NLP tasks.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>Varies</td>
+            <td>Strong NLP capabilities, custom models.</td>
+            <td>Less suited for casual users.</td>
+            <td>Enterprise NLP, text classification, summarization.</td>
+          </tr>
+          <tr>
+            <td><a href="https://chat.mistral.ai/" target="_blank" rel="noopener">Mistral AI - Mistral Large (via Le Chat)</a></td>
+            <td>High-performance chatbot with a 128,000-token context window.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>128,000</td>
+            <td>Open weights, high performance, large context.</td>
+            <td>Newer model, smaller ecosystem.</td>
+            <td>Research, coding assistance, creative writing.</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.perplexity.ai/" target="_blank" rel="noopener">Perplexity AI</a></td>
+            <td>Research-focused chatbot with real-time web access.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>~4,096 - 8,192</td>
+            <td>Real-time info, multimodal input.</td>
+            <td>Shorter context window.</td>
+            <td>Research, Q&A, fact-checking.</td>
+          </tr>
+          <tr>
+            <td><a href="https://meta.ai/" target="_blank" rel="noopener">Meta AI (Meta Llama)</a></td>
+            <td>General-purpose chatbot integrated with Meta's platforms.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>Varies (usually up to 65,000 tokens)</td>
+            <td>Open research, good integration.</td>
+            <td>Less consumer-focused UI.</td>
+            <td>Research, development, social AI integration.</td>
+          </tr>
+          <tr>
+            <td><a href="https://groq.com/" target="_blank" rel="noopener">Groq</a></td>
+            <td>High-speed inference platform with chatbot capabilities.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>Varies</td>
+            <td>Low latency, hardware-accelerated inference.</td>
+            <td>Mostly enterprise focus.</td>
+            <td>Real-time inference, AI acceleration.</td>
+          </tr>
+          <tr>
+            <td><a href="https://chat.deepseek.com/" target="_blank" rel="noopener">DeepSeek Chat</a></td>
+            <td>Open-source chatbot excelling in coding and complex queries.</td>
+            <td><span class="tag opensource" aria-label="Open-source">Open-source</span></td>
+            <td>Varies</td>
+            <td>Great at coding, highly transparent.</td>
+            <td>Smaller user base.</td>
+            <td>Programming help, complex Q&A.</td>
+          </tr>
+          <tr>
+            <td><a href="https://manus.im/app/" target="_blank" rel="noopener">Manus AI</a></td>
+            <td>AI assistant for productivity and task management.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>Not disclosed</td>
+            <td>Good integrations, task automation.</td>
+            <td>Limited public info.</td>
+            <td>Productivity, workflows, task tracking.</td>
+          </tr>
+          <tr>
+            <td><a href="https://www.yeschat.ai/" target="_blank" rel="noopener">Yeschat AI</a></td>
+            <td>Conversational AI for customer engagement.</td>
+            <td><span class="tag paid" aria-label="Paid service">Paid</span></td>
+            <td>Not disclosed</td>
+            <td>Easy deployment, analytics.</td>
+            <td>Limited AI sophistication.</td>
+            <td>Customer service, marketing automation.</td>
+          </tr>
+          <tr>
+            <td><a href="https://you.com/search?tbm=youchat" target="_blank" rel="noopener">YouChat</a></td>
+            <td>Search-integrated chatbot for quick answers.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>~2,048</td>
+            <td>Integrated search, quick responses.</td>
+            <td>Limited context length.</td>
+            <td>Q&A, browsing, casual chat.</td>
+          </tr>
+          <tr>
+            <td><a href="https://poe.com/" target="_blank" rel="noopener">Poe</a></td>
+            <td>Platform aggregating multiple AI chat models for side-by-side use.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>Varies by model</td>
+            <td>Access to many chatbots in one UI.</td>
+            <td>Platform dependent, some API limits.</td>
+            <td>Comparison, experimentation, general use.</td>
+          </tr>
+          <tr>
+            <td><a href="https://huggingface.co/chat" target="_blank" rel="noopener">Hugging Face Chat</a></td>
+            <td>Open-source chatbot platform with multiple model backends.</td>
+            <td><span class="tag opensource" aria-label="Open-source">Open-source</span></td>
+            <td>Varies</td>
+            <td>Wide variety of open models, community driven.</td>
+            <td>Some models less polished.</td>
+            <td>Experimentation, open research, education.</td>
+          </tr>
+          <tr>
+            <td><a href="https://beta.character.ai/" target="_blank" rel="noopener">Character.AI</a></td>
+            <td>Customizable character-based chatbot with personality-driven conversation.</td>
+            <td><span class="tag free" aria-label="Free tier">Free</span></td>
+            <td>~4,096</td>
+            <td>Fun, engaging, highly customizable personas.</td>
+            <td>Limited context window.</td>
+            <td>Entertainment, storytelling, role-play.</td>
+          </tr>
+          <tr>
+            <td><a href="https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat" target="_blank" rel="noopener">Llama 2 Chat (via Hugging Face Spaces)</a></td>
+            <td>Open-source Llama 2 chatbot available through various platforms.</td>
+            <td><span class="tag opensource" aria-label="Open-source">Open-source</span></td>
+            <td>Varies</td>
+            <td>Large, performant open model, no vendor lock-in.</td>
+            <td>Requires technical setup for best use.</td>
+            <td>Research, self-hosting, customization.</td>
+          </tr>
+          <tr>
+            <td><a href="https://huggingface.co/spaces/tiiuae/falcon-7b-instruct" target="_blank" rel="noopener">Falcon Chat (via Hugging Face Spaces)</a></td>
+            <td>Instruction-based Falcon 7B chatbot hosted on Hugging Face.</td>
+            <td><span class="tag opensource" aria-label="Open-source">Open-source</span></td>
+            <td>Varies</td>
+            <td>Instruction-following, lightweight model.</td>
+            <td>Smaller model, less fluent than larger ones.</td>
+            <td>Instruction tasks, coding, lightweight deployment.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Model Marketplaces -->
+  <section class="glass" aria-label="Model Marketplaces">
+    <h2>Model Marketplaces</h2>
+    <ul>
+      <li><a href="https://github.com/marketplace?type=models" target="_blank" rel="noopener">GitHub Model Catalog</a>: Marketplace for discovering and sharing AI models.</li>
+    </ul>
+  </section>
+
+  <!-- Other Free Tier Chat Apps -->
+  <section class="glass" aria-label="Other Chat Apps with Free Tiers">
+    <h3>Other Chat Apps with Free Tiers</h3>
+    <ul>
+      <li><a href="https://replika.ai/" target="_blank" rel="noopener">Replika</a>: Free emotional companion with optional paid upgrades.</li>
+      <li><a href="https://www.tidio.com/" target="_blank" rel="noopener">Tidio</a>: Free plan available for small business chatbot automation.</li>
+    </ul>
+  </section>
+
+  <script>
+    // Sort table function
+    function sortTable(colIndex, tableId) {
+      const table = document.getElementById(tableId);
+      const tbody = table.tBodies[0];
+      const rows = Array.from(tbody.rows);
+      const ths = table.tHead.rows[0].cells;
+
+      // Determine current sort order
+      const currentTh = ths[colIndex];
+      let asc = !currentTh.classList.contains('asc');
+      
+      // Remove sort classes from all headers
+      for (const th of ths) {
+        th.classList.remove('asc', 'desc');
+      }
+
+      // Add sort class to current header
+      currentTh.classList.add(asc ? 'asc' : 'desc');
+
+      rows.sort((a, b) => {
+        const aText = a.cells[colIndex].textContent.trim().toLowerCase();
+        const bText = b.cells[colIndex].textContent.trim().toLowerCase();
+
+        // Attempt numeric sort if applicable
+        const aNum = parseFloat(aText.replace(/[^0-9.]/g, ''));
+        const bNum = parseFloat(bText.replace(/[^0-9.]/g, ''));
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return asc ? aNum - bNum : bNum - aNum;
+        }
+
+        // String comparison
+        if (aText < bText) return asc ? -1 : 1;
+        if (aText > bText) return asc ? 1 : -1;
+        return 0;
+      });
+
+      // Reattach sorted rows
+      for (const row of rows) {
+        tbody.appendChild(row);
+      }
+    }
+
+    // Filter table rows based on input
+    function filterTable(tableId, query) {
+      const table = document.getElementById(tableId);
+      const tbody = table.tBodies[0];
+      const rows = Array.from(tbody.rows);
+      const q = query.trim().toLowerCase();
+
+      for (const row of rows) {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      }
+    }
+
+    // Dark/Light mode toggle
+    const toggleBtn = document.getElementById('toggle-theme');
+    toggleBtn.addEventListener('click', () => {
+      document.body.classList.toggle('light-mode');
+      if (document.body.classList.contains('light-mode')) {
+        document.body.style.background = 'linear-gradient(135deg, #f0e9ff, #d0d0ff)';
+        document.body.style.color = '#222';
+        toggleBtn.textContent = '🌙';
+      } else {
+        document.body.style.background = 'linear-gradient(135deg, #1f1c2c, #928dab)';
+        document.body.style.color = '#eee';
+        toggleBtn.textContent = '☀️';
+      }
+    });
+  </script>
+
+</body>
+</html>

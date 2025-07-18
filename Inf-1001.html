@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Directory of Generative AI Tools – July 2025</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    nav a { margin-right: 15px; text-decoration: none; color: darkblue; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { color: white; }
+    .web { background-color: #4a90e2; }
+    .api { background-color: #50e3c2; }
+    .local-mac { background-color: #7ed321; }
+    .local-x { background-color: #f5a623; }
+    .open { background-color: #bd10e0; }
+    .spec { background-color: #f8e71c; color: #333; }
+    section h2 { margin-top: 50px; }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 Generative AI Tools Directory (as of July 2025)</h1>
+  <nav>
+    <a href="#web-chatbots">Web Chatbots</a>
+    <a href="#api-services">API / Inference Services</a>
+    <a href="#local-macos">Local Inference (macOS)</a>
+    <a href="#local-cross">Cross-Platform Local Apps</a>
+    <a href="#open-source">Open-Source / Experimental</a>
+    <a href="#specialized">Specialized Tools</a>
+    <a href="#examples">Usage Examples</a>
+  </nav>
+
+  <!-- Web-Based Chatbots -->
+  <section id="web-chatbots">
+    <h2>1. Web-Based Chatbots</h2>
+    <table>
+      <thead class="web">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://chat.openai.com">ChatGPT (OpenAI)</a></td>
+          <td>High-quality GPT‑4 Turbo; multimodal abilities; plugins ecosystem</td>
+          <td>Requires internet; subscription for advanced features; data in cloud</td>
+          <td>General Q&A, creative writing, research aid, multimodal demos</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.anthropic.com/claude">Claude 3 (Anthropic)</a></td>
+          <td>Conversational safety; long-context handling; rich reasoning</td>
+          <td>Slower than GPT‑4; limited plugins; paid access only</td>
+          <td>Ethical-sensitive tasks, long-form analysis, drafts</td>
+        </tr>
+        <tr>
+          <td><a href="https://llama.chat">LLaMA Chat UI</a></td>
+          <td>Hosted LLaMA‑3 models; customizable; transparent pricing</td>
+          <td>Quality varies vs proprietary; less robust UI</td>
+          <td>Academic use, open-model experimentation, lightweight chat</td>
+        </tr>
+        <tr>
+          <td><a href="https://poe.com">Poe (Quora)</a></td>
+          <td>Multiple back-end bots; accessible tiering; integrated search</td>
+          <td>Web-only; limited offline/reuse; occasional rate limits</td>
+          <td>Quick queries, model comparison, casual exploration</td>
+        </tr>
+        <tr>
+          <td><a href="https://you.com">YouChat</a></td>
+          <td>Search-integrated chat; private mode; browser plugin</td>
+          <td>Responses less fluent; limited context window (~8k tokens)</td>
+          <td>Chat + search combo, browsing-focused queries, privacy cases</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- API / Inference Services -->
+  <section id="api-services">
+    <h2>2. API / Inference Services</h2>
+    <table>
+      <thead class="api">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://platform.openai.com">OpenAI API (GPT‑4 Turbo, GPT‑4o)</a></td>
+          <td>Top-tier performance; wide model/endpoint support; ecosystem tools</td>
+          <td>Cost scales; cloud-only; sensitive data in transit</td>
+          <td>App integration, chatbots, code/enhancement services</td>
+        </tr>
+        <tr>
+          <td><a href="https://console.anthropic.com">Anthropic API</a></td>
+          <td>Claude-level safety; long-context options; strong abstracts</td>
+          <td>Less plugin support; slower throughput; subscription costs</td>
+          <td>Automated analysis, compliance bots, safe conversational agents</td>
+        </tr>
+        <tr>
+          <td><a href="https://huggingface.co/inference-endpoints">Hugging Face Endpoints</a></td>
+          <td>Easy deploy for open models; latency options; flexible infrastructure</td>
+          <td>Managing costs for heavy use; model quality varies</td>
+          <td>Prototyping, model evaluation, custom models in production</td>
+        </tr>
+        <tr>
+          <td><a href="https://azure.microsoft.com/ai-services/openai-service">Azure OpenAI</a></td>
+          <td>Enterprise-grade SLAs; Azure ecosystem; security & compliance</td>
+          <td>Registry/account setup; cloud-only billing</td>
+          <td>Enterprise apps, document analysis, compliance uses</td>
+        </tr>
+        <tr>
+          <td><a href="https://replicate.com">Replicate API</a></td>
+          <td>Supports many image/audio/text models; pay-per-use</td>
+          <td>Model availability fluctuates; rate limits</td>
+          <td>On-demand image/audio generation, ML pipelines, demos</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Local Inference (macOS) -->
+  <section id="local-macos">
+    <h2>3. Local Inference Apps (macOS)</h2>
+    <table>
+      <thead class="local-mac">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://ollama.ai">Ollama Desktop</a></td>
+          <td>macOS GUI; Apple Silicon optimized; drag‑and‑drop model management</td>
+          <td>Limited model library; GUI only, less API scripting</td>
+          <td>Offline chat, private inference, lightweight testing</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/ggerganov/llama.cpp">Llama.cpp GUI (mmg GUI)</a></td>
+          <td>Very low‑level; runs quantized models on M1/M2; open toolkits</td>
+          <td>Command-line initial setup; minimal UI</td>
+          <td>Performance testing, local development, cost-free LLM work</td>
+        </tr>
+        <tr>
+          <td><a href="https://mishima.app">Mishima</a></td>
+          <td>Minimal chat UI; fast local decoding; supports quantized LLaMA‑3</td>
+          <td>Beta quality; occasional memory glitches</td>
+          <td>Offline chat, prompt tuning, research projects</td>
+        </tr>
+        <tr>
+          <td><a href="https://elicit.org/desktop">Elicit Desktop</a></td>
+          <td>Academic research interface; citation extraction; Mac optimized</td>
+          <td>Model limited to LLaMA‑family; UI less polished</td>
+          <td>Research analysis, academic writing, citation hunting</td>
+        </tr>
+        <tr>
+          <td><a href="https://mac.ferret.dev">Ferret AI</a></td>
+          <td>Mac-native; GPT-style text & image prompts; comes with plugin support</td>
+          <td>Freemium; some features locked behind Pro tier</td>
+          <td>Offline creativity, multimodal prompt testing</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Cross-Platform Local Apps -->
+  <section id="local-cross">
+    <h2>4. Cross-Platform Local Apps</h2>
+    <table>
+      <thead class="local-x">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://github.com/go-skynet/LocalAI">LocalAI</a></td>
+          <td>Runs ONNX/gguf models on CPU/GPU; REST API support; cross-platform CLI</td>
+          <td>No GUI by default; user self-hosting required</td>
+          <td>Self-hosted inference, app integration, experiment pipelines</td>
+        </tr>
+        <tr>
+          <td><a href="https://gpt4all.io">GPT4All Desktop</a></td>
+          <td>Installer across Windows/Linux/macOS; ships bundled models; easy UI</td>
+          <td>Smaller models (7–13B); accuracy behind cutting-edge</td>
+          <td>Offline chat, educational use, entry-level LLM work</td>
+        </tr>
+        <tr>
+          <td><a href="https://koboldai.org">KoboldAI</a></td>
+          <td>Rich plugin support; local or remote model; story/game oriented UI</td>
+          <td>Complex setup; geared to fiction use</td>
+          <td>Creative writing, RPG/story generation, interactive chat</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/goofykg/llama-cpp-python">llama.cpp Python</a></td>
+          <td>Python bindings to llama.cpp; customizable inference pipelines</td>
+          <td>Requires scripting; no UI</td>
+          <td>Model research, prompt experimentation, script-based workflows</td>
+        </tr>
+        <tr>
+          <td><a href="https://mistral.ai">Mistral Runner</a></td>
+          <td>Optimized Mistral 7B/8B; GPU acceleration; cross-platform binary</td>
+          <td>New release; limited community tooling</td>
+          <td>Fast local chat, bench‑marks, light agent embedding</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Open-Source / Experimental -->
+  <section id="open-source">
+    <h2>5. Open-Source / Experimental</h2>
+    <table>
+      <thead class="open">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://huggingface.co/bigcode/starcoder">StarCoder</a></td>
+          <td>Code-specialized; open weights; handles large contexts well</td>
+          <td>Large model size; not chat-optimized by default</td>
+          <td>Code completion, generation, exploration in local env</td>
+        </tr>
+        <tr>
+          <td><a href="https://huggingface.co/mistral">Mistral 7B / 8B</a></td>
+          <td>State-of-art open model; efficient; strong zero-shot</td>
+          <td>Requires quantization for local; licensing non-commercial</td>
+          <td>Benchmarks, research, custom prompt development</td>
+        </tr>
+        <tr>
+          <td><a href="https://huggingface.co/bloom">BloomZ</a></td>
+          <td>Multilingual; open weights; very large context</td>
+          <td>Hardware-heavy; slower decode</td>
+          <td>Language coverage, translation, academic evaluation</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/facebookresearch/llama"><em>LLaMA 3 forks</em></a></td>
+          <td>Multiple fine-tuned variants; community models rapidly iterated</td>
+          <td>Unofficial forks; variable quality/support</td>
+          <td>Research, fine-tuning, model experimentation</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/abetlen/llama.cpp">PicoLLaMA</a></td>
+          <td>Lightweight 1–3B models; optimized for edge devices</td>
+          <td>Low general ability; very narrow scope</td>
+          <td>Embedded apps, low-resource inference, demos</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Specialized Tools -->
+  <section id="specialized">
+    <h2>6. Specialized Tools</h2>
+    <table>
+      <thead class="spec">
+        <tr><th>Name</th><th>Strengths</th><th>Weaknesses</th><th>Recommended Use Cases</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://stability.ai/stable-diffusion">Stable Diffusion GUI</a></td>
+          <td>Local image gen; plugin support; high-res outputs</td>
+          <td>GPU required; image quality varies with weights</td>
+          <td>Offline art creation, visual demos, iterations</td>
+        </tr>
+        <tr>
+          <td><a href="https://coqui.ai">Coqui TTS</a></td>
+          <td>Local speech synthesis; open voices; GPU/CPU support</td>
+          <td>Setup complexity; smaller voice library</td>
+          <td>Voice UI prototyping, accessibility, dubbing demos</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/studioml/transformers">Transformers Codegen</a></td>
+          <td>Optimized for code; many languages; cross-platform</td>
+          <td>Library only; needs dev integration</td>
+          <td>IDE autocomplete, script automation, code review bots</td>
+        </tr>
+        <tr>
+          <td><a href="https://replicate.com/openai/whisper">Whisper-local</a></td>
+          <td>Offline speech recognition; high accuracy</td>
+          <td>Audio-heavy; CPU slow without GPU</td>
+          <td>Transcription, voice UI, subtitling, journaling</td>
+        </tr>
+        <tr>
+          <td><a href="https://midjourney.com">Midjourney (web)</a></td>
+          <td>Artistic style variety; Discord UI; high quality</td>
+          <td>Cloud-only; subscription required; not local</td>
+          <td>Concept art, marketing visuals, idea prototyping</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Usage Examples -->
+  <section id="examples">
+    <h2>7. Usage Examples</h2>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Example / Usage</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ChatGPT</td>
+          <td><a href="https://chat.openai.com/share/abc123">Chat export: summarizing research article</a></td>
+          <td>Demonstrates GPT‑4 Turbo summarizing PDF content</td>
+        </tr>
+        <tr>
+          <td>OpenAI API</td>
+          <td><code>curl -X POST https://api.openai.com/v1/chat/completions ...</code></td>
+          <td>Shows typical JSON prompt‑response usage with GPT‑4 Turbo</td>
+        </tr>
+        <tr>
+          <td>Ollama Desktop</td>
+          <td><a href="https://ollama.ai/screenshots">Screenshot: LLaMA‑2 chat local</a></td>
+          <td>Local chat UI using Apple Silicon‑optimized LLaMA‑2 model</td>
+        </tr>
+        <tr>
+          <td>LocalAI</td>
+          <td><code>localai serve --model llama-3-8b.gguf</code></td>
+          <td>Starts local REST inference for app development</td>
+        </tr>
+        <tr>
+          <td>StarCoder</td>
+          <td><a href="https://huggingface.co/bigcode/starcoder/blob/main/example.ipynb">Notebook: code generation demo</a></td>
+          <td>Runs code autocomplete in Jupyter with HF Transformers</td>
+        </tr>
+        <tr>
+          <td>Stable Diffusion GUI</td>
+          <td><img src="https://stability.ai/assets/gui_sample.png" alt="Stable Diffusion example" width="300"></td>
+          <td>Local image generation sample UI</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+</body>
+</html>

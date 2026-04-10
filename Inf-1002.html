@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Chat & Inference Dashboard – April 2026</title>
+  <style>
+    /* Base styles and glassmorphism */
+    *,*::before,*::after { box-sizing: border-box; }
+    body {
+      margin:0;padding:2rem;font-family:'Segoe UI',sans-serif;
+      background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#eee;
+      transition:background 0.5s,color 0.5s;
+      line-height: 1.5;
+    }
+    .light { background:linear-gradient(135deg,#eef2f3,#8e9eab);color:#222; }
+    h1,h2 { margin:0 0 1rem; }
+    .card {
+      background:rgba(255,255,255,0.05);border-radius:16px;padding:1.5rem;
+      margin-bottom:2rem;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);
+      transition:box-shadow .3s;
+    }
+    .light .card { background:rgba(255,255,255,0.7); border:1px solid rgba(0,0,0,0.1); }
+    .card:hover { box-shadow:0 12px 40px rgba(0,0,0,0.3); }
+    .filter { margin-bottom:1rem; }
+    .filter input {
+      width:100%;max-width:400px;padding:12px;border:none;border-radius:12px;
+      font-size:1rem;color:#222;box-shadow:0 2px 8px rgba(0,0,0,0.2);
+    }
+    .table-container { overflow-x:auto; }
+    table {
+      width:100%;border-collapse:collapse;font-size:0.85rem;min-width:1000px;
+    }
+    th,td {
+      padding:14px;border-bottom:1px solid rgba(255,255,255,0.05);
+      text-align: left; vertical-align: top;
+    }
+    .light th, .light td { border-bottom: 1px solid rgba(0,0,0,0.05); }
+    th {
+      background:rgba(255,255,255,0.1);cursor:pointer;position:relative;
+      user-select:none;text-transform: uppercase; letter-spacing: 1px; font-size: 0.75rem;
+    }
+    .tag {
+      display:inline-block;padding:2px 8px;border-radius:6px;
+      font-size:.7rem;margin:.1rem;color:#fff;font-weight: bold;
+    }
+    .free { background:#2e7d32; }
+    .paid { background:#c62828; }
+    .hybrid { background:#ef6c00; }
+    .opensource { background:#1565c0; }
+    
+    a { color: #4fc3f7; text-decoration: none; font-weight: bold; }
+    .light a { color: #0277bd; }
+    
+    #toggle-btn {
+      position:fixed;top:1rem;right:1rem;width:44px;height:44px;
+      border:none;border-radius:50%;background:rgba(255,255,255,0.2);
+      font-size:20px;cursor:pointer;color:inherit;display:flex;
+      justify-content:center;align-items:center;transition:background .3s;z-index: 100;
+    }
+    
+    .strength { color: #81c784; }
+    .weakness { color: #e57373; }
+    .light .strength { color: #2e7d32; }
+    .light .weakness { color: #c62828; }
+
+    @media (max-width:800px) {
+      body { padding: 1rem; }
+      .card { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+<button id="toggle-btn" title="Toggle Light/Dark Mode">🌙</button>
+<h1>AI Chat & Inference Dashboard</h1>
+<p style="opacity: 0.8;">Curated comparison of top-tier services as of April 2026. Focus on free-tier viability and reasoning capabilities.</p>
+
+<div class="card">
+  <h2>The "Big Four" & Top Chatbots</h2>
+  <div class="filter"><input id="filter-chat" placeholder="Search by name, feature, or strength…"></div>
+  <div class="table-container">
+    <table id="chat-table">
+      <thead><tr>
+        <th onclick="sortTable(0,'chat-table')">Service</th>
+        <th>Strengths & Differentiators</th>
+        <th>Weaknesses & Gotchas</th>
+        <th onclick="sortTable(3,'chat-table')">Context</th>
+        <th>Pricing & Free Tier</th>
+        <th>Key Features</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://chat.openai.com" target="_blank">ChatGPT</a></td>
+          <td><span class="strength">Best Ecosystem.</span> Native computer use, Advanced Voice 2.0, and GPT-5 reasoning.</td>
+          <td><span class="weakness">Strict Caps.</span> Free tier drops to "Mini" models very quickly (approx. 10 msgs/5hrs).</td>
+          <td>128k - 400k</td>
+          <td><span class="tag hybrid">Hybrid</span><br>Free (Limited)<br>$20/mo Plus</td>
+          <td>Custom GPTs, Canvas (Code/Writing editor), DALL-E 4.</td>
+        </tr>
+        <tr>
+          <td><a href="https://gemini.google.com" target="_blank">Google Gemini</a></td>
+          <td><span class="strength">Giant Context.</span> Deep integration with Google Workspace (Docs/Gmail/Drive).</td>
+          <td><span class="weakness">Hallucinations.</span> Still prone to creative "drift" compared to Claude in technical tasks.</td>
+          <td>1M - 2M</td>
+          <td><span class="tag free">Generous Free</span><br>Free (Gemini 3.1 Pro)<br>$20/mo Ultra</td>
+          <td>Multimodal (Video/Audio input), 2M context window, Live Voice.</td>
+        </tr>
+        <tr>
+          <td><a href="https://claude.ai" target="_blank">Claude (Anthropic)</a></td>
+          <td><span class="strength">Gold Standard Coding.</span> Claude 4 Opus is the industry lead for logic and nuance.</td>
+          <td><span class="weakness">High Friction.</span> Tightest message limits in the industry for free users. No web search.</td>
+          <td>200k - 1M</td>
+          <td><span class="tag paid">Paid Lean</span><br>Free (Tiny limit)<br>$20/mo Pro</td>
+          <td>Artifacts 2.0 (Live Previews), Projects, "Claude Code" agentic CLI.</td>
+        </tr>
+        <tr>
+          <td><a href="https://chat.deepseek.com" target="_blank">DeepSeek</a></td>
+          <td><span class="strength">Insane Value.</span> R1 Reasoner is free and rivals OpenAI o1/o3 at zero cost.</td>
+          <td><span class="weakness">Privacy/Geo.</span> Servers based in China; some enterprise security restrictions apply.</td>
+          <td>128k</td>
+          <td><span class="tag free">Truly Free</span><br>100% Free Web<br>Pay-as-you-go API</td>
+          <td>"Thinking" mode (Chain of Thought), specialized Coder V4.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.perplexity.ai" target="_blank">Perplexity</a></td>
+          <td><span class="strength">Search King.</span> Replaces traditional search with cited, real-time AI answers.</td>
+          <td><span class="weakness">Not a Creator.</span> Poor for long-form creative writing or deep coding logic.</td>
+          <td>32k (Search)</td>
+          <td><span class="tag hybrid">Hybrid</span><br>Free (Pro searches ltd)<br>$20/mo Pro</td>
+          <td>Source citations, Pro allows switching between GPT-5/Claude 4.</td>
+        </tr>
+        <tr>
+          <td><a href="https://poe.com" target="_blank">Poe (Quora)</a></td>
+          <td><span class="strength">Multi-Model.</span> One sub for every model (Claude, GPT, Gemini, Llama).</td>
+          <td><span class="weakness">Compute Points.</span> Use is governed by a complex "point" system that can be confusing.</td>
+          <td>Varies</td>
+          <td><span class="tag hybrid">Hybrid</span><br>Free (Daily Points)<br>$20/mo Pro</td>
+          <td>Create your own bots, huge library of community niches.</td>
+        </tr>
+        <tr>
+          <td><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></td>
+          <td><span class="strength">Research Specialist.</span> Grounded strictly in your uploaded docs (PDFs, URLs).</td>
+          <td><span class="weakness">Limited Scope.</span> Cannot perform general tasks or web search well.</td>
+          <td>~2M</td>
+          <td><span class="tag free">Free</span></td>
+          <td>Audio Overviews (AI Podcasts), Deep Citations, Source-grounding.</td>
+        </tr>
+        <tr>
+          <td><a href="https://mistral.ai" target="_blank">Mistral (Le Chat)</a></td>
+          <td><span class="strength">Privacy & Speed.</span> Top-tier European model, very fast, high multilingual quality.</td>
+          <td><span class="weakness">Feature Light.</span> Fewer "bells and whistles" than ChatGPT or Gemini.</td>
+          <td>128k</td>
+          <td><span class="tag free">Free</span></td>
+          <td>Open-weights available, strong coding (Mistral Large 3).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Developer Inference APIs (Cost & Context)</h2>
+  <div class="filter"><input id="filter-api" placeholder="Search APIs…"></div>
+  <div class="table-container">
+    <table id="api-table">
+      <thead><tr>
+        <th onclick="sortTable(0,'api-table')">Provider</th>
+        <th>Main Draw</th>
+        <th>Approx. Pricing (per 1M tokens)</th>
+        <th>Max Context</th>
+        <th>Known Gotcha</th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td><a href="https://aistudio.google.com" target="_blank">Google AI Studio</a></td>
+          <td>Free API Access</td>
+          <td><span class="tag free">Free Tier</span> ($0 for 1.5 Flash)</td>
+          <td>2M</td>
+          <td>Free tier uses your data for model training.</td>
+        </tr>
+        <tr>
+          <td><a href="https://platform.deepseek.com" target="_blank">DeepSeek API</a></td>
+          <td>Lowest Cost</td>
+          <td>$0.14 (Input) / $0.28 (Output)</td>
+          <td>128k</td>
+          <td>Occasional latency spikes during peak Asian hours.</td>
+        </tr>
+        <tr>
+          <td><a href="https://groq.com" target="_blank">Groq Cloud</a></td>
+          <td>Extreme Speed</td>
+          <td>Competitive (Llama/Mixtral)</td>
+          <td>32k - 128k</td>
+          <td>Strict rate limits on the free/trial tier.</td>
+        </tr>
+        <tr>
+          <td><a href="https://platform.openai.com" target="_blank">OpenAI API</a></td>
+          <td>Reliability</td>
+          <td>$2.50 (GPT-5.4 Input)</td>
+          <td>128k - 1M</td>
+          <td>Costly for long-context reasoning models.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.anthropic.com/api" target="_blank">Anthropic API</a></td>
+          <td>Intelligence</td>
+          <td>$3.00 (Sonnet 4 Input)</td>
+          <td>200k - 1M</td>
+          <td>Prompt caching is essential to keep costs down.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Toggle theme
+  const btn = document.getElementById('toggle-btn');
+  btn.onclick = () => {
+    document.body.classList.toggle('light');
+    btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  };
+
+  // Improved Sorting function
+  function sortTable(col, id) {
+    const t = document.getElementById(id);
+    const b = t.tBodies[0];
+    const rows = Array.from(b.rows);
+    const asc = !t.asc; t.asc = asc;
+    
+    rows.sort((a,b) => {
+      let A = a.cells[col].innerText.trim().toLowerCase();
+      let B = b.cells[col].innerText.trim().toLowerCase();
+      
+      // Handle context sizes like "1M" or "128k"
+      const parseVal = (s) => {
+        if(s.includes('m')) return parseFloat(s) * 1000000;
+        if(s.includes('k')) return parseFloat(s) * 1000;
+        return parseFloat(s) || s;
+      };
+
+      const nA = parseVal(A), nB = parseVal(B);
+      if(typeof nA === 'number' && typeof nB === 'number') return asc? nA - nB : nB - nA;
+      return asc? A.localeCompare(B) : B.localeCompare(A);
+    });
+    
+    rows.forEach(r => b.appendChild(r));
+    Array.from(t.tHead.rows[0].cells).forEach((h,i) => {
+      h.classList.toggle('asc', i===col && asc);
+      h.classList.toggle('desc', i===col && !asc);
+    });
+  }
+
+  // Filter function
+  ['chat','api'].forEach(id => {
+    document.getElementById('filter-'+id).addEventListener('input', e => {
+      const q = e.target.value.trim().toLowerCase();
+      const targetTable = id === 'chat' ? 'chat-table' : 'api-table';
+      document.querySelectorAll('#' + targetTable + ' tbody tr').forEach(tr => {
+        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  });
+</script>
+</body>
+</html>

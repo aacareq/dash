@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Service Comparison – 2026 Edition</title>
+  <style>
+    /* Base styles and glassmorphism */
+    *,*::before,*::after { box-sizing: border-box; }
+    body {
+      margin:0;padding:2rem;font-family:'Segoe UI', system-ui, sans-serif;
+      background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);color:#eee;
+      transition:background 0.5s,color 0.5s;
+      line-height: 1.5;
+    }
+    .light { background:linear-gradient(135deg,#fdfbfb,#ebedee);color:#222; }
+    h1 { margin:0 0 0.5rem; font-weight: 800; letter-spacing: -1px; }
+    p { margin-bottom: 2rem; opacity: 0.8; }
+    
+    .card {
+      background:rgba(255,255,255,0.05);border-radius:20px;padding:1.5rem;
+      margin-bottom:2rem;backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+    .light .card { background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.1); }
+
+    .filter { margin-bottom:1rem; }
+    .filter input {
+      width:100%;max-width:400px;padding:12px 20px;border:none;border-radius:30px;
+      font-size:1rem;background: rgba(255,255,255,0.1); color:#fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .light .filter input { background: #fff; color: #222; }
+
+    .table-container { overflow-x:auto; }
+    table { width:100%;border-collapse:collapse;font-size:0.85rem; min-width: 1000px; }
+    th,td { padding:15px; text-align: left; border-bottom:1px solid rgba(255,255,255,0.05); }
+    th { background:rgba(255,255,255,0.05); cursor:pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+    
+    tr:hover { background:rgba(255,255,255,0.05); }
+    
+    .tag { display:inline-block;padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:700;margin-right:4px; }
+    .free { background:#00c853; color: #fff; }
+    .limited { background:#ffd600; color: #000; }
+    .premium { background:#d500f9; color: #fff; }
+
+    .strength { color: #81c784; font-weight: bold; }
+    .gotcha { color: #ff8a65; font-style: italic; }
+    
+    #toggle-btn {
+      position:fixed;top:1rem;right:1rem;width:44px;height:44px;
+      border:none;border-radius:50%;background:rgba(255,255,255,0.2);
+      font-size:20px;cursor:pointer;color:inherit;display:flex;
+      justify-content:center;align-items:center;z-index: 1000;
+    }
+    a { color: #4dabf7; text-decoration: none; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width:768px) { body { padding: 1rem; } }
+  </style>
+</head>
+<body>
+
+<button id="toggle-btn" title="Toggle Light/Dark Mode">🌙</button>
+
+<h1>AI Service Navigator 2026</h1>
+<p>Ranked by Free Tier Generosity & Utility.</p>
+
+<div class="card">
+  <div class="filter"><input id="filter-chat" placeholder="Search by feature, name, or strength..."></div>
+  <div class="table-container">
+    <table id="chat-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0,'chat-table')">Service</th>
+          <th onclick="sortTable(1,'chat-table')">Best For</th>
+          <th onclick="sortTable(2,'chat-table')">Free Tier Policy</th>
+          <th onclick="sortTable(3,'chat-table')">Context</th>
+          <th onclick="sortTable(4,'chat-table')">Strengths & Differentiators</th>
+          <th onclick="sortTable(5,'chat-table')">Known Gotchas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://gemini.google.com" target="_blank">Google Gemini</a></td>
+          <td>Productivity & Ecosystem</td>
+          <td><span class="tag free">High</span> Unlimited Flash usage</td>
+          <td>1M - 2M</td>
+          <td><span class="strength">Deep Google Workspace integration</span> (Docs/Gmail). Native multimodal (sees video/audio).</td>
+          <td><span class="gotcha">"Preachiness"</span> in safety filters; creative writing can feel repetitive.</td>
+        </tr>
+        <tr>
+          <td><a href="https://chat.deepseek.com" target="_blank">DeepSeek</a></td>
+          <td>Coding & Logic</td>
+          <td><span class="tag free">High</span> Very high daily limits</td>
+          <td>128k</td>
+          <td><span class="strength">Unmatched logic for price.</span> Open-weights models; exceptional at math and complex debugging.</td>
+          <td><span class="gotcha">Server latency</span> during peak hours; privacy concerns for sensitive corp data.</td>
+        </tr>
+        <tr>
+          <td><a href="https://chat.openai.com" target="_blank">ChatGPT</a></td>
+          <td>All-Around Utility</td>
+          <td><span class="tag limited">Medium</span> GPT-4o limits vary</td>
+          <td>128k</td>
+          <td><span class="strength">Best ecosystem (GPTs, Advanced Voice).</span> Most balanced "personality" for brainstorming.</td>
+          <td><span class="gotcha">Strict rate limits</span> on 4o—reverts to "Mini" quickly for power users.</td>
+        </tr>
+        <tr>
+          <td><a href="https://www.perplexity.ai" target="_blank">Perplexity AI</a></td>
+          <td>Real-time Research</td>
+          <td><span class="tag limited">Medium</span> Unlimited basic search</td>
+          <td>~32k (Search)</td>
+          <td><span class="strength">Live web citations.</span> Acts as a replacement for traditional search engines.</td>
+          <td><span class="gotcha">Summarization errors</span>; sometimes hallucinates links between unrelated sources.</td>
+        </tr>
+        <tr>
+          <td><a href="https://copilot.microsoft.com" target="_blank">MS Copilot</a></td>
+          <td>Business & Office</td>
+          <td><span class="tag limited">Medium</span> Free GPT-4 access</td>
+          <td>~128k</td>
+          <td><span class="strength">Free access to DALL-E 3 & GPT-4.</span> Directly creates Word/PPT drafts in the sidebar.</td>
+          <td><span class="gotcha">UI Clutter.</span> The interface is heavy and conversational "turns" are capped.</td>
+        </tr>
+        <tr>
+          <td><a href="https://poe.com" target="_blank">Poe</a></td>
+          <td>Model Testing</td>
+          <td><span class="tag limited">Medium</span> Compute Point system</td>
+          <td>Varies</td>
+          <td><span class="strength">One UI for all models</span> (Claude, GPT, Llama). Create your own custom bots easily.</td>
+          <td><span class="gotcha">Point drain.</span> High-end models (Claude 3.5 Opus) consume daily points very fast.</td>
+        </tr>
+        <tr>
+          <td><a href="https://claude.ai" target="_blank">Claude</a></td>
+          <td>Nuance & Writing</td>
+          <td><span class="tag premium">Low</span> Strict message caps</td>
+          <td>200k</td>
+          <td><span class="strength">Most human-like prose.</span> "Artifacts" UI is best-in-class for live coding/previewing.</td>
+          <td><span class="gotcha">Extreme brevity.</span> You might only get 5-8 messages every few hours on the free plan.</td>
+        </tr>
+        <tr>
+          <td><a href="https://x.com/i/grok" target="_blank">Grok</a></td>
+          <td>Trends & News</td>
+          <td><span class="tag premium">X-Only</span> Free for some tiers</td>
+          <td>128k</td>
+          <td><span class="strength">Real-time X (Twitter) data.</span> Unfiltered/edgy persona (if preferred).</td>
+          <td><span class="gotcha">Platform Lock-in.</span> Requires an X account; news data can be an echo-chamber.</td>
+        </tr>
+        <tr>
+          <td><a href="https://zapier.com/central" target="_blank">Zapier Central</a></td>
+          <td>AI Automation</td>
+          <td><span class="tag premium">Niche</span> Limited active bots</td>
+          <td>N/A</td>
+          <td><span class="strength">Talks to 6000+ apps.</span> An AI "employee" that actually executes tasks (sends emails, updates rows).</td>
+          <td><span class="gotcha">Complexity.</span> Not a "chatbot" for chatting; needs setup and workflow logic.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Dark/Light Mode
+  const btn = document.getElementById('toggle-btn');
+  btn.onclick = () => {
+    document.body.classList.toggle('light');
+    btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  };
+
+  // Improved Sorting
+  function sortTable(col, id) {
+    const t = document.getElementById(id);
+    const b = t.tBodies[0];
+    const rows = Array.from(b.rows);
+    const asc = t.dataset.sortCol == col && t.dataset.sortDir === 'asc' ? false : true;
+    
+    t.dataset.sortCol = col;
+    t.dataset.sortDir = asc ? 'asc' : 'desc';
+
+    rows.sort((a, b) => {
+      const A = a.cells[col].innerText.trim().toLowerCase();
+      const B = b.cells[col].innerText.trim().toLowerCase();
+      return asc ? A.localeCompare(B) : B.localeCompare(A);
+    });
+
+    rows.forEach(r => b.appendChild(r));
+  }
+
+  // Filter Search
+  document.getElementById('filter-chat').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('#chat-table tbody tr').forEach(tr => {
+      tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+</script>
+</body>
+</html>

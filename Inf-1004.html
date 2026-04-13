@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Command Center 2026</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      --card-bg: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: #eee;
+      --accent: #4dabf7;
+      --success: #00c853;
+      --warning: #ffd600;
+      --danger: #d500f9;
+    }
+
+    .light {
+      --bg: linear-gradient(135deg, #fdfbfb, #ebedee);
+      --card-bg: rgba(0, 0, 0, 0.04);
+      --border: rgba(0, 0, 0, 0.1);
+      --text: #222;
+      --accent: #1971c2;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 2rem; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      transition: background 0.4s, color 0.4s;
+      line-height: 1.6;
+    }
+
+    header { margin-bottom: 3rem; text-align: center; }
+    h1 { font-size: 2.5rem; font-weight: 800; letter-spacing: -1.5px; margin: 0; }
+    .subtitle { opacity: 0.7; font-size: 1.1rem; }
+
+    /* Quick Launch Grid */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .quick-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    }
+    .quick-card:hover {
+      transform: translateY(-5px);
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      border-color: var(--accent);
+    }
+    .quick-card i { font-size: 2rem; display: block; margin-bottom: 0.5rem; font-style: normal; }
+    .quick-card span { font-weight: 700; font-size: 0.9rem; }
+
+    /* Dashboard Table Section */
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 2rem;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter input {
+      padding: 12px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      color: inherit;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+    }
+
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    th { 
+      text-align: left; padding: 1rem; 
+      font-size: 0.75rem; text-transform: uppercase; 
+      letter-spacing: 1px; opacity: 0.6;
+      cursor: pointer;
+      border-bottom: 2px solid var(--border);
+    }
+    th:hover { opacity: 1; color: var(--accent); }
+    td { padding: 1.2rem 1rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    
+    tr:hover { background: rgba(255,255,255,0.03); }
+
+    .tag { padding: 4px 10px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+    .free { background: var(--success); color: #fff; }
+    .limited { background: var(--warning); color: #000; }
+    .premium { background: var(--danger); color: #fff; }
+
+    .strength { color: #81c784; display: block; margin-bottom: 4px; }
+    .gotcha { color: #ff8a65; font-size: 0.85rem; }
+
+    #toggle-btn {
+      position: fixed; top: 1.5rem; right: 1.5rem;
+      width: 48px; height: 48px; border: none; border-radius: 50%;
+      background: var(--card-bg); border: 1px solid var(--border);
+      cursor: pointer; font-size: 1.5rem; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: 700; }
+    a:hover { text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .quick-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<button id="toggle-btn">🌙</button>
+
+<header>
+  <h1>AI Intelligence Hub</h1>
+  <p class="subtitle">Unified Access Point for the 2026 Intelligence Layer</p>
+</header>
+
+<div class="quick-grid">
+  <a href="https://chat.openai.com" target="_blank" class="quick-card"><i>🤖</i><span>ChatGPT</span></a>
+  <a href="https://claude.ai" target="_blank" class="quick-card"><i>✍️</i><span>Claude</span></a>
+  <a href="https://gemini.google.com" target="_blank" class="quick-card"><i>💎</i><span>Gemini</span></a>
+  <a href="https://www.perplexity.ai" target="_blank" class="quick-card"><i>🔍</i><span>Perplexity</span></a>
+  <a href="https://grok.com" target="_blank" class="quick-card"><i>𝕏</i><span>Grok</span></a>
+  <a href="https://www.meta.ai" target="_blank" class="quick-card"><i>♾️</i><span>Meta AI</span></a>
+  <a href="https://www.genspark.ai" target="_blank" class="quick-card"><i>✨</i><span>Genspark</span></a>
+  <a href="https://coda.io/one" target="_blank" class="quick-card"><i>📑</i><span>Coda One</span></a>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <div class="filter">
+      <input id="search" placeholder="Search capabilities, models, or names...">
+    </div>
+    <div class="subtitle" id="row-count">Showing all services</div>
+  </div>
+
+  <div class="table-container">
+    <table id="ai-table">
+      <thead>
+        <tr>
+          <th onclick="sortTable(0)">Service</th>
+          <th onclick="sortTable(1)">Focus</th>
+          <th onclick="sortTable(2)">Tier</th>
+          <th onclick="sortTable(3)">Context</th>
+          <th>Differentiators & Gotchas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="https://gemini.google.com" target="_blank">Google Gemini</a></td>
+          <td>Ecosystem & Data</td>
+          <td><span class="tag free">High</span></td>
+          <td>2M+</td>
+          <td>
+            <span class="strength">Deep Google Workspace integration.</span>
+            <span class="gotcha">Safety filters can be overly restrictive.</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://grok.com" target="_blank">Grok</a></td>
+          <td>Live Trends</td>
+          <td><span class="tag limited">Medium</span></td>
+          <td>128k</td>
+          <td>
+            <span class="strength">Real-time access to X.com data stream.</span>
+            <span class="gotcha">Information can be polarized; requires account.</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://www.meta.ai" target="_blank">Meta AI</a></td>
+          <td>Social & Llama</td>
+          <td><span class="tag free">High</span></td>
+          <td>128k</td>
+          <td>
+            <span class="strength">Fastest Llama 3 models; free image gen.</span>
+            <span class="gotcha">Heavily integrated into social apps.</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://www.genspark.ai" target="_blank">Genspark</a></td>
+          <td>Curated Search</td>
+          <td><span class="tag limited">Medium</span></td>
+          <td>Dynamic</td>
+          <td>
+            <span class="strength">Creates "Sparkpages" - instant micro-sites for queries.</span>
+            <span class="gotcha">Newer player; UI can feel busy.</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://coda.io/one" target="_blank">Coda One</a></td>
+          <td>Workflow AI</td>
+          <td><span class="tag premium">Business</span></td>
+          <td>Varies</td>
+          <td>
+            <span class="strength">AI that lives inside your documents and tables.</span>
+            <span class="gotcha">Steep learning curve for non-data users.</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></td>
+          <td>Research/Audio</td>
+          <td><span class="tag free">High</span></td>
+          <td>50+ docs</td>
+          <td>
+            <span class="strength">Best-in-class Audio Overviews (Podcasts).</span>
+            <span class="gotcha">Limited to provided sources (grounded).</span>
+          </td>
+        </tr>
+        <tr>
+          <td><a href="https://chat.deepseek.com" target="_blank">DeepSeek</a></td>
+          <td>Math & Coding</td>
+          <td><span class="tag free">High</span></td>
+          <td>128k</td>
+          <td>
+            <span class="strength">Exceptional logic performance per watt.</span>
+            <span class="gotcha">Higher latency during peak global hours.</span>
+          </td>
+        </tr>
+        <tr>
+            <td><a href="https://chat.mistral.ai" target="_blank">Mistral (Le Chat)</a></td>
+            <td>Open Weights</td>
+            <td><span class="tag limited">Medium</span></td>
+            <td>32k-128k</td>
+            <td>
+              <span class="strength">European privacy standards; very high quality "Large" model.</span>
+              <span class="gotcha">Web search is less robust than Perplexity.</span>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // Dark Mode Toggle
+  const btn = document.getElementById('toggle-btn');
+  btn.onclick = () => {
+    document.body.classList.toggle('light');
+    btn.textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  };
+
+  // Search Filter
+  const searchInput = document.getElementById('search');
+  searchInput.addEventListener('input', () => {
+    const filter = searchInput.value.toLowerCase();
+    const rows = document.querySelectorAll('#ai-table tbody tr');
+    let count = 0;
+
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const match = text.includes(filter);
+      row.style.display = match ? '' : 'none';
+      if(match) count++;
+    });
+    document.getElementById('row-count').innerText = `Showing ${count} services`;
+  });
+
+  // Table Sort
+  function sortTable(n) {
+    const table = document.getElementById("ai-table");
+    let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+    switching = true;
+    dir = "asc";
+    while (switching) {
+      switching = false;
+      rows = table.rows;
+      for (i = 1; i < (rows.length - 1); i++) {
+        shouldSwitch = false;
+        x = rows[i].getElementsByTagName("TD")[n];
+        y = rows[i + 1].getElementsByTagName("TD")[n];
+        if (dir == "asc") {
+          if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+            shouldSwitch = true; break;
+          }
+        } else if (dir == "desc") {
+          if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+            shouldSwitch = true; break;
+          }
+        }
+      }
+      if (shouldSwitch) {
+        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+        switching = true;
+        switchcount ++;
+      } else {
+        if (switchcount == 0 && dir == "asc") {
+          dir = "desc";
+          switching = true;
+        }
+      }
+    }
+  }
+</script>
+</body>
+</html>

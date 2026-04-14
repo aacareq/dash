@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Intelligence Dashboard 2026</title>
+  <style>
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
+    body.light { --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; padding: 2rem; transition: 0.3s; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    #filter { width: 100%; max-width: 500px; padding: 12px 20px; border-radius: 25px; border: 1px solid #475569; background: #000; color: #fff; margin-bottom: 2rem; }
+    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+    th { text-align: left; padding: 15px; background: rgba(255,255,255,0.05); font-size: 0.8rem; text-transform: uppercase; cursor: pointer; }
+    td { padding: 15px; border-top: 1px solid #334155; }
+    .tag { padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
+    .free { background: #059669; } .limited { background: #d97706; } .premium { background: #7c3aed; }
+    a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>AI Intelligence Dashboard</h1>
+  <button id="theme-toggle">Toggle Theme</button>
+</div>
+
+<input type="text" id="filter" placeholder="🔍 Search services, strengths, or features...">
+
+<table id="ai-table">
+  <thead>
+    <tr>
+      <th>Service</th><th>Best For</th><th>Policy</th><th>Strengths</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="https://gemini.google.com" target="_blank">Gemini</a></td><td>Productivity</td><td><span class="tag free">Free</span></td><td>Google Workspace integration</td></tr>
+    <tr><td><a href="https://grok.com" target="_blank">Grok</a></td><td>Real-time News</td><td><span class="tag premium">Paid</span></td><td>Real-time X data</td></tr>
+    <tr><td><a href="https://chat.openai.com" target="_blank">ChatGPT</a></td><td>All-around</td><td><span class="tag limited">Limited</span></td><td>Advanced Voice & GPTs</td></tr>
+    <tr><td><a href="https://claude.ai" target="_blank">Claude</a></td><td>Writing/Coding</td><td><span class="tag limited">Limited</span></td><td>Artifacts & Human-like tone</td></tr>
+    <tr><td><a href="https://meta.ai" target="_blank">Meta AI</a></td><td>Social/Casual</td><td><span class="tag free">Free</span></td><td>Integration into FB/IG</td></tr>
+    <tr><td><a href="https://genspark.ai" target="_blank">Genspark</a></td><td>Agentic Search</td><td><span class="tag free">Free</span></td><td>AI-generated pages</td></tr>
+    <tr><td><a href="https://groq.com" target="_blank">Groq</a></td><td>High Speed</td><td><span class="tag free">Free</span></td><td>Record-breaking inference speed</td></tr>
+    <tr><td><a href="https://chat.mistral.ai" target="_blank">Mistral</a></td><td>Efficiency</td><td><span class="tag limited">Limited</span></td><td>Open weights innovation</td></tr>
+    <tr><td><a href="https://you.com" target="_blank">You.com</a></td><td>Research</td><td><span class="tag limited">Limited</span></td><td>Multi-model search engine</td></tr>
+    <tr><td><a href="https://huggingface.co/chat" target="_blank">Hugging Face</a></td><td>Open Source</td><td><span class="tag free">Free</span></td><td>Access to all open models</td></tr>
+    <tr><td><a href="https://poe.com" target="_blank">Poe</a></td><td>Model Variety</td><td><span class="tag limited">Limited</span></td><td>Aggregated model access</td></tr>
+    <tr><td><a href="https://coda.io" target="_blank">Coda One</a></td><td>Operations</td><td><span class="tag limited">Limited</span></td><td>AI-powered documentation</td></tr>
+    <tr><td><a href="https://cohere.com" target="_blank">Cohere</a></td><td>Enterprise</td><td><span class="tag premium">Paid</span></td><td>LLMs for business</td></tr>
+  </tbody>
+</table>
+
+<script>
+  // Theme Toggle
+  document.getElementById('theme-toggle').onclick = () => document.body.classList.toggle('light');
+
+  // Search Filter
+  document.getElementById('filter').oninput = (e) => {
+    const val = e.target.value.toLowerCase();
+    document.querySelectorAll('#ai-table tbody tr').forEach(tr => {
+      tr.style.display = tr.textContent.toLowerCase().includes(val) ? '' : 'none';
+    });
+  };
+</script>
+</body>
+</html>

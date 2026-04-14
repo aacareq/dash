@@ -5,62 +5,116 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Intelligence Dashboard 2026</title>
   <style>
-    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
-    body.light { --bg: #f1f5f9; --card: #ffffff; --text: #1e293b; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; padding: 2rem; transition: 0.3s; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    #filter { width: 100%; max-width: 500px; padding: 12px 20px; border-radius: 25px; border: 1px solid #475569; background: #000; color: #fff; margin-bottom: 2rem; }
-    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
-    th { text-align: left; padding: 15px; background: rgba(255,255,255,0.05); font-size: 0.8rem; text-transform: uppercase; cursor: pointer; }
-    td { padding: 15px; border-top: 1px solid #334155; }
-    .tag { padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-    .free { background: #059669; } .limited { background: #d97706; } .premium { background: #7c3aed; }
-    a { color: var(--accent); text-decoration: none; }
+    :root { 
+        --bg: #0d1117; --card: #161b22; --text: #c9d1d9; 
+        --accent: #58a6ff; --border: #30363d; --success: #238636;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', Tahoma, sans-serif; padding: 2rem; margin: 0; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    
+    /* Command Center Header */
+    .command-center { 
+        background: linear-gradient(145deg, #1f2937, #111827); 
+        padding: 2rem; border-radius: 12px; border: 1px solid var(--border);
+        margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+    .search-group { display: flex; gap: 10px; margin-top: 1rem; }
+    #global-prompt { 
+        flex-grow: 1; padding: 15px; border-radius: 8px; border: 1px solid var(--border);
+        background: #000; color: #fff; font-size: 1rem;
+    }
+    .launch-btn { 
+        background: var(--success); color: white; border: none; padding: 0 25px; 
+        border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;
+    }
+    .launch-btn:hover { background: #2ea043; transform: scale(1.02); }
+
+    /* Dashboard Table */
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 15px; background: #21262d; font-size: 0.8rem; text-transform: uppercase; color: #8b949e; }
+    td { padding: 15px; border-top: 1px solid var(--border); vertical-align: top; }
+    
+    .tier-tag { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
+    .high { background: #23863633; color: #3fb950; border: 1px solid #238636; }
+    .med { background: #d2992233; color: #d29922; border: 1px solid #bb8719; }
+    .low { background: #f8514933; color: #f85149; border: 1px solid #f85149; }
+
+    a { color: var(--accent); text-decoration: none; font-weight: bold; }
+    a:hover { text-decoration: underline; }
+    .desc { font-size: 0.85rem; color: #8b949e; line-height: 1.4; margin-top: 5px; }
   </style>
 </head>
 <body>
 
-<div class="header">
-  <h1>AI Intelligence Dashboard</h1>
-  <button id="theme-toggle">Toggle Theme</button>
+<div class="container">
+    <div class="command-center">
+        <h1 style="margin:0; color:#fff;">Intelligence Command Center</h1>
+        <p style="color:#8b949e; margin: 5px 0;">Execute a global prompt across the most generous AI nodes.</p>
+        <div class="search-group">
+            <input type="text" id="global-prompt" placeholder="Enter your prompt here (e.g. 'Explain quantum computing in 3 sentences')">
+            <button class="launch-btn" onclick="launchMultiSearch()">Launch Intelligence</button>
+        </div>
+        <p style="font-size:0.7rem; color:#8b949e; margin-top:10px;">*Note: Browser may block pop-ups. Please 'Allow' to open all services.</p>
+    </div>
+
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Generosity</th>
+                    <th>Capability & Strengths</th>
+                </tr>
+            </thead>
+            <tbody id="service-body">
+                </tbody>
+        </table>
+    </div>
 </div>
 
-<input type="text" id="filter" placeholder="🔍 Search services, strengths, or features...">
-
-<table id="ai-table">
-  <thead>
-    <tr>
-      <th>Service</th><th>Best For</th><th>Policy</th><th>Strengths</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td><a href="https://gemini.google.com" target="_blank">Gemini</a></td><td>Productivity</td><td><span class="tag free">Free</span></td><td>Google Workspace integration</td></tr>
-    <tr><td><a href="https://grok.com" target="_blank">Grok</a></td><td>Real-time News</td><td><span class="tag premium">Paid</span></td><td>Real-time X data</td></tr>
-    <tr><td><a href="https://chat.openai.com" target="_blank">ChatGPT</a></td><td>All-around</td><td><span class="tag limited">Limited</span></td><td>Advanced Voice & GPTs</td></tr>
-    <tr><td><a href="https://claude.ai" target="_blank">Claude</a></td><td>Writing/Coding</td><td><span class="tag limited">Limited</span></td><td>Artifacts & Human-like tone</td></tr>
-    <tr><td><a href="https://meta.ai" target="_blank">Meta AI</a></td><td>Social/Casual</td><td><span class="tag free">Free</span></td><td>Integration into FB/IG</td></tr>
-    <tr><td><a href="https://genspark.ai" target="_blank">Genspark</a></td><td>Agentic Search</td><td><span class="tag free">Free</span></td><td>AI-generated pages</td></tr>
-    <tr><td><a href="https://groq.com" target="_blank">Groq</a></td><td>High Speed</td><td><span class="tag free">Free</span></td><td>Record-breaking inference speed</td></tr>
-    <tr><td><a href="https://chat.mistral.ai" target="_blank">Mistral</a></td><td>Efficiency</td><td><span class="tag limited">Limited</span></td><td>Open weights innovation</td></tr>
-    <tr><td><a href="https://you.com" target="_blank">You.com</a></td><td>Research</td><td><span class="tag limited">Limited</span></td><td>Multi-model search engine</td></tr>
-    <tr><td><a href="https://huggingface.co/chat" target="_blank">Hugging Face</a></td><td>Open Source</td><td><span class="tag free">Free</span></td><td>Access to all open models</td></tr>
-    <tr><td><a href="https://poe.com" target="_blank">Poe</a></td><td>Model Variety</td><td><span class="tag limited">Limited</span></td><td>Aggregated model access</td></tr>
-    <tr><td><a href="https://coda.io" target="_blank">Coda One</a></td><td>Operations</td><td><span class="tag limited">Limited</span></td><td>AI-powered documentation</td></tr>
-    <tr><td><a href="https://cohere.com" target="_blank">Cohere</a></td><td>Enterprise</td><td><span class="tag premium">Paid</span></td><td>LLMs for business</td></tr>
-  </tbody>
-</table>
-
 <script>
-  // Theme Toggle
-  document.getElementById('theme-toggle').onclick = () => document.body.classList.toggle('light');
+    const services = [
+        { name: "Google Gemini", url: "https://gemini.google.com", tier: "high", generosity: "High (Unlimited Flash)", desc: "Deep Google ecosystem integration. Best for processing long videos/docs (1M+ context) and daily productivity.", searchUrl: "https://gemini.google.com/app?q=" },
+        { name: "DeepSeek", url: "https://chat.deepseek.com", tier: "high", generosity: "High (High Daily Caps)", desc: "Incredible logic-to-cost ratio. Best for complex coding, math, and technical debugging.", searchUrl: "https://chat.deepseek.com/?q=" },
+        { name: "Groq", url: "https://groq.com", tier: "high", generosity: "High (Instant Inference)", desc: "Ultra-fast response speeds. Use it when you need a model to think as fast as you can read.", searchUrl: "https://groq.com/?q=" },
+        { name: "Hugging Face Chat", url: "https://huggingface.co/chat", tier: "high", generosity: "High (Open Source)", desc: "Access the latest open-weights models (Llama, Qwen, Mistral) without a subscription.", searchUrl: "https://huggingface.co/chat/?q=" },
+        { name: "Meta AI", url: "https://meta.ai", tier: "high", generosity: "High (Social/Web)", desc: "Fast, web-connected, and free. Great for casual queries and integrated social media intelligence.", searchUrl: "https://www.meta.ai/?q=" },
+        { name: "Mistral", url: "https://chat.mistral.ai", tier: "med", generosity: "Medium (La Chat)", desc: "High-quality European models. Great for 'Le Chat' usage and efficient, concise reasoning.", searchUrl: "https://chat.mistral.ai/chat?q=" },
+        { name: "Genspark", url: "https://genspark.ai", tier: "med", generosity: "Medium (Agentic)", desc: "An AI search engine that builds custom pages. Use it for research that requires synthesizing multiple sites.", searchUrl: "https://www.genspark.ai/search?q=" },
+        { name: "You.com", url: "https://you.com", tier: "med", generosity: "Medium (Research)", desc: "Professional search agent. Excellent for multi-step research and finding technical citations.", searchUrl: "https://you.com/search?q=" },
+        { name: "Poe", url: "https://poe.com", tier: "med", generosity: "Medium (Aggregator)", desc: "One interface for every model. Use it to compare Claude, GPT, and Llama in the same app.", searchUrl: "https://poe.com/?q=" },
+        { name: "ChatGPT", url: "https://chat.openai.com", tier: "med", generosity: "Dynamic (GPT-4o)", desc: "The standard all-rounder. Best for creative brainstorming and Advanced Voice features.", searchUrl: "https://chat.openai.com/?q=" },
+        { name: "Coda One", url: "https://coda.io", tier: "low", generosity: "Specialized", desc: "AI built into your docs and workflows. Best for project management and operational automation.", searchUrl: "https://coda.io/?q=" },
+        { name: "Grok", url: "https://grok.com", tier: "low", generosity: "Subscription/Limited", desc: "Real-time X (Twitter) intelligence. Best for tracking breaking news and viral trends.", searchUrl: "https://grok.com/?q=" },
+        { name: "Cohere", url: "https://cohere.com", tier: "low", generosity: "Enterprise Focus", desc: "Top-tier RAG and enterprise LLMs. Good for business-scale semantic search and classification.", searchUrl: "https://dashboard.cohere.com/chat?q=" }
+    ];
 
-  // Search Filter
-  document.getElementById('filter').oninput = (e) => {
-    const val = e.target.value.toLowerCase();
-    document.querySelectorAll('#ai-table tbody tr').forEach(tr => {
-      tr.style.display = tr.textContent.toLowerCase().includes(val) ? '' : 'none';
-    });
-  };
+    function renderTable() {
+        const body = document.getElementById('service-body');
+        body.innerHTML = services.map(s => `
+            <tr>
+                <td><a href="${s.url}" target="_blank">${s.name}</a></td>
+                <td><span class="tier-tag ${s.tier}">${s.generosity}</span></td>
+                <td>
+                    <div style="font-weight:bold;">Best for: ${s.desc.split('.')[0]}</div>
+                    <div class="desc">${s.desc}</div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function launchMultiSearch() {
+        const query = encodeURIComponent(document.getElementById('global-prompt').value);
+        if(!query) return alert("Please enter a prompt first!");
+        
+        // Launching the top 3 high-generosity services
+        window.open(`https://gemini.google.com/app?q=${query}`, '_blank');
+        window.open(`https://chat.deepseek.com/?q=${query}`, '_blank');
+        window.open(`https://groq.com/?q=${query}`, '_blank');
+    }
+
+    renderTable();
 </script>
 </body>
 </html>

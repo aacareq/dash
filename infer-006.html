@@ -3,451 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Services Dashboard</title>
+    <title>Intelligence Command 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --apple-bg: #f5f5f7;
+            --apple-card: rgba(255, 255, 255, 0.7);
+            --apple-text: #1d1d1f;
+            --airbnb-red: #FF385C;
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --shadow: 0 8px 30px rgba(0,0,0,0.04);
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            line-height: 1.6;
+            background-color: var(--apple-bg);
+            color: var(--apple-text);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
-        h1, h2 {
-            color: #333;
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-        p {
-            color: #555;
+
+        /* Hero Section - Apple Aesthetic */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
+
+        h1 {
+            font-size: 48px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 21px;
+            color: #86868b;
+            font-weight: 400;
+        }
+
+        /* Global Search - Airbnb Aesthetic */
+        .search-container {
+            background: #fff;
+            border: 1px solid #dddddd;
+            border-radius: 40px;
+            padding: 8px 8px 8px 24px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            max-width: 700px;
+            margin: 40px auto;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .search-container:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+        #global-prompt {
+            border: none;
+            flex-grow: 1;
+            font-size: 16px;
+            outline: none;
+            color: #222;
+        }
+
+        .launch-btn {
+            background: var(--airbnb-red);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s active;
+        }
+
+        .launch-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Bento Grid Layout */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--apple-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: #6e6e73;
             margin-bottom: 20px;
         }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #e8e8ed;
+            color: #1d1d1f;
         }
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
         }
-        a {
-            text-decoration: none;
+
+        .visit-link {
             color: #0066cc;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 400;
         }
-        a:hover {
-            text-decoration: underline;
-        }
-        .table-all-chat-apps {
-            background-color: #f0f8ff;
-        }
-        .table-free-tiers {
-            background-color: #e6ffe6;
-        }
-        .table-smartest {
-            background-color: #fff0f5;
-        }
-        .table-large-context {
-            background-color: #f5f5dc;
-        }
-        .table-local-inference {
-            background-color: #e0ffff;
-        }
-        .table-desktop-apps {
-            background-color: #fafad2;
-        }
-        .table-marketplaces {
-            background-color: #ffe4e1;
+
+        .visit-link:hover { text-decoration: underline; }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 32px; }
+            .grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <h1>AI Services Dashboard</h1>
-    <p>This dashboard lists popular chat apps, inference services, desktop apps, and AI model marketplaces, categorized by free tiers, intelligence, context window sizes, and platform compatibility. Updated as of May 10, 2025.</p>
 
-    <!-- All Chat Apps Section -->
-    <h2>All Chat Apps</h2>
-    <table class="table-all-chat-apps">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>OpenAI - ChatGPT</td>
-            <td>Industry-leading chatbot with 200,000-token context and robust free tier</td>
-            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
-        </tr>
-        <tr>
-            <td>Google - Gemini</td>
-            <td>Versatile chatbot with 1,000,000-token context, free access</td>
-            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
-        </tr>
-        <tr>
-            <td>Anthropic - Claude</td>
-            <td>Safe, helpful AI with 200,000-token context window</td>
-            <td><a href="https://claude.ai/">claude.ai</a></td>
-        </tr>
-        <tr>
-            <td>Microsoft - Copilot</td>
-            <td>AI assistant integrated with Microsoft services</td>
-            <td><a href="https://copilot.microsoft.com/">copilot.microsoft.com</a></td>
-        </tr>
-        <tr>
-            <td>Perplexity AI</td>
-            <td>Research-focused chatbot with real-time web access</td>
-            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
-        </tr>
-        <tr>
-            <td>xAI - Grok</td>
-            <td>Insightful AI for reasoning and truth-seeking</td>
-            <td><a href="https://grok.com/">grok.com</a></td>
-        </tr>
-        <tr>
-            <td>DeepSeek Chat</td>
-            <td>High-intelligence open-source chatbot</td>
-            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
-        </tr>
-        <tr>
-            <td>Cohere - Command</td>
-            <td>Enterprise-grade chatbot with NLP focus</td>
-            <td><a href="https://dashboard.cohere.com/playground/chat">dashboard.cohere.com</a></td>
-        </tr>
-        <tr>
-            <td>Mistral AI - Mistral Large</td>
-            <td>High-performance chatbot with 128,000-token context</td>
-            <td><a href="https://chat.mistral.ai/">chat.mistral.ai</a></td>
-        </tr>
-        <tr>
-            <td>Meta AI</td>
-            <td>General-purpose chatbot integrated with Meta platforms</td>
-            <td><a href="https://meta.ai/">meta.ai</a></td>
-        </tr>
-        <tr>
-            <td>Groq</td>
-            <td>High-speed inference platform with chatbot capabilities</td>
-            <td><a href="https://groq.com/">groq.com</a></td>
-        </tr>
-        <tr>
-            <td>YouChat</td>
-            <td>Search-integrated chatbot for quick answers</td>
-            <td><a href="https://you.com/search?tbm=youchat">you.com</a></td>
-        </tr>
-        <tr>
-            <td>Poe</td>
-            <td>Platform for accessing multiple AI models</td>
-            <td><a href="https://poe.com/">poe.com</a></td>
-        </tr>
-        <tr>
-            <td>Hugging Face Chat</td>
-            <td>Open-source chatbot platform</td>
-            <td><a href="https://huggingface.co/chat">huggingface.co</a></td>
-        </tr>
-        <tr>
-            <td>Character.AI</td>
-            <td>Customizable character-based chatbot</td>
-            <td><a href="https://beta.character.ai/">beta.character.ai</a></td>
-        </tr>
-        <tr>
-            <td>Lyro</td>
-            <td>AI customer service chatbot</td>
-            <td><a href="https://www.tidio.com/lyro/">tidio.com</a></td>
-        </tr>
-        <tr>
-            <td>Drift</td>
-            <td>Chatbot with scheduling options</td>
-            <td><a href="https://www.drift.com/">drift.com</a></td>
-        </tr>
-        <tr>
-            <td>Ada</td>
-            <td>Multilingual support chatbot</td>
-            <td><a href="https://www.ada.cx/">ada.cx</a></td>
-        </tr>
-        <tr>
-            <td>Jasper Chat</td>
-            <td>Written content creation chatbot</td>
-            <td><a href="https://www.jasper.ai/">jasper.ai</a></td>
-        </tr>
-        <tr>
-            <td>DialogFlow</td>
-            <td>Smooth connection with Google Cloud</td>
-            <td><a href="https://cloud.google.com/dialogflow">cloud.google.com</a></td>
-        </tr>
-        <tr>
-            <td>Customers.ai</td>
-            <td>Social media communication chatbot</td>
-            <td><a href="https://mobilemonkey.com/">mobilemonkey.com</a></td>
-        </tr>
-        <tr>
-            <td>Replika</td>
-            <td>Companion chatbot</td>
-            <td><a href="https://replika.ai/">replika.ai</a></td>
-        </tr>
-        <tr>
-            <td>Hey Pi</td>
-            <td>Everyday conversations chatbot</td>
-            <td><a href="https://heypi.com/">heypi.com</a></td>
-        </tr>
-        <tr>
-            <td>Brave Leo AI</td>
-            <td>Privacy-focused AI assistant</td>
-            <td><a href="https://brave.com/leo/">brave.com</a></td>
-        </tr>
-        <tr>
-            <td>Komo</td>
-            <td>Link-surfacing AI search engine</td>
-            <td><a href="https://komo.ai/">komo.ai</a></td>
-        </tr>
-        <tr>
-            <td>Andi</td>
-            <td>Simplicity-focused AI search engine</td>
-            <td><a href="https://andi.ai/">andi.ai</a></td>
-        </tr>
-        <tr>
-            <td>Microsoft Bing AI</td>
-            <td>AI-powered search and chat</td>
-            <td><a href="https://www.bing.com/chat">bing.com</a></td>
-        </tr>
-    </table>
+<div class="container">
+    <header>
+        <h1>Command Center</h1>
+        <p class="subtitle">Next-generation inference, orchestrated.</p>
+        
+        <div class="search-container">
+            <input type="text" id="global-prompt" placeholder="Search across top models...">
+            <button class="launch-btn" onclick="launchMulti()">Launch All</button>
+        </div>
+    </header>
 
-    <!-- Chat Apps with Best Free Tiers Section -->
-    <h2>Chat Apps with Best Free Tiers</h2>
-    <table class="table-free-tiers">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>OpenAI - ChatGPT</td>
-            <td>Free tier with access to advanced models</td>
-            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
-        </tr>
-        <tr>
-            <td>Google - Gemini</td>
-            <td>Fully free with no usage caps</td>
-            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
-        </tr>
-        <tr>
-            <td>Perplexity AI</td>
-            <td>Free version available</td>
-            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
-        </tr>
-        <tr>
-            <td>Anthropic - Claude</td>
-            <td>Free tier available</td>
-            <td><a href="https://claude.ai/">claude.ai</a></td>
-        </tr>
-        <tr>
-            <td>DeepSeek Chat</td>
-            <td>Open-source and free</td>
-            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
-        </tr>
-        <tr>
-            <td>YouChat</td>
-            <td>Free to use</td>
-            <td><a href="https://you.com/search?tbm=youchat">you.com</a></td>
-        </tr>
-        <tr>
-            <td>Poe</td>
-            <td>Free access to multiple models</td>
-            <td><a href="https://poe.com/">poe.com</a></td>
-        </tr>
-        <tr>
-            <td>Hugging Face Chat</td>
-            <td>Free open-source platform</td>
-            <td><a href="https://huggingface.co/chat">huggingface.co</a></td>
-        </tr>
-        <tr>
-            <td>Character.AI</td>
-            <td>Free to use</td>
-            <td><a href="https://beta.character.ai/">beta.character.ai</a></td>
-        </tr>
-        <tr>
-            <td>Replika</td>
-            <td>Free version available</td>
-            <td><a href="https://replika.ai/">replika.ai</a></td>
-        </tr>
-    </table>
+    <div class="grid" id="node-grid">
+        </div>
+</div>
 
-    <!-- Smartest Chat Apps Section -->
-    <h2>Smartest Chat Apps</h2>
-    <table class="table-smartest">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>OpenAI - ChatGPT</td>
-            <td>Top-ranked for reasoning and knowledge</td>
-            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
-        </tr>
-        <tr>
-            <td>DeepSeek Chat</td>
-            <td>Excels in coding and complex queries</td>
-            <td><a href="https://chat.deepseek.com/">chat.deepseek.com</a></td>
-        </tr>
-        <tr>
-            <td>Google - Gemini</td>
-            <td>High intelligence with vast data access</td>
-            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
-        </tr>
-        <tr>
-            <td>Anthropic - Claude</td>
-            <td>Strong reasoning and safety features</td>
-            <td><a href="https://claude.ai/">claude.ai</a></td>
-        </tr>
-        <tr>
-            <td>Perplexity AI</td>
-            <td>Advanced research and real-time web access</td>
-            <td><a href="https://www.perplexity.ai/">perplexity.ai</a></td>
-        </tr>
-    </table>
+<script>
+    const services = [
+        { name: "Claude 4.7", company: "Anthropic", tag: "Logic S-Tier", desc: "Supreme reasoning and coding capability. Use for complex architecture.", url: "https://claude.ai", search: "https://claude.ai/chat?q=" },
+        { name: "GPT-5.5 Pro", company: "OpenAI", tag: "Generalist", desc: "Highly reliable all-rounder with advanced web-browsing agents.", url: "https://chatgpt.com", search: "https://chatgpt.com/?q=" },
+        { name: "Gemini 3.1", company: "Google", tag: "2M Context", desc: "Unmatched for massive document analysis and video understanding.", url: "https://gemini.google.com", search: "https://gemini.google.com/app?q=" },
+        { name: "Groq LPU", company: "Groq", tag: "Instant", desc: "The world's fastest inference engine. Use for real-time applications.", url: "https://groq.com", search: "https://groq.com/?q=" },
+        { name: "Perplexity Pro", company: "Perplexity", tag: "Research", desc: "Search-first engine with live citations and academic focus.", url: "https://perplexity.ai", search: "https://perplexity.ai/search?q=" },
+        { name: "DeepSeek V4", company: "DeepSeek", tag: "Price/Perf", desc: "Highest intelligence-to-cost ratio. Excellent for technical debugging.", url: "https://chat.deepseek.com", search: "https://chat.deepseek.com/?q=" },
+        { name: "HuggingChat", company: "HF", tag: "Open Source", desc: "Experimental access to the latest Llama and Qwen weights.", url: "https://huggingface.co/chat", search: "https://huggingface.co/chat/?q=" },
+        { name: "Kimi K2.6", company: "Moonshot", tag: "Math/Vision", desc: "Specialized in advanced mathematical logic and multimodal tasks.", url: "https://kimi.moonshot.cn", search: "https://kimi.moonshot.cn/?q=" },
+        { name: "Mistral Le Chat", company: "Mistral", tag: "Efficient", desc: "European champion model. Concise, fast, and highly capable.", url: "https://chat.mistral.ai", search: "https://chat.mistral.ai/chat?q=" },
+        { name: "Duck.ai", company: "DuckDuckGo", tag: "Privacy", desc: "Completely anonymous access to major models without tracking.", url: "https://duck.ai", search: "https://duck.ai/?q=" }
+    ];
 
-    <!-- Chat Apps with Largest Context Windows Section -->
-    <h2>Chat Apps with Largest Context Windows</h2>
-    <table class="table-large-context">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>Google - Gemini</td>
-            <td>1,000,000 tokens for extensive text processing</td>
-            <td><a href="https://gemini.google.com/">gemini.google.com</a></td>
-        </tr>
-        <tr>
-            <td>Anthropic - Claude</td>
-            <td>200,000 tokens, ideal for long conversations</td>
-            <td><a href="https://claude.ai/">claude.ai</a></td>
-        </tr>
-        <tr>
-            <td>OpenAI - ChatGPT</td>
-            <td>200,000 tokens with advanced models</td>
-            <td><a href="https://chat.openai.com/">chat.openai.com</a></td>
-        </tr>
-        <tr>
-            <td>Mistral AI - Mistral Large</td>
-            <td>128,000 tokens for high-performance interactions</td>
-            <td><a href="https://chat.mistral.ai/">chat.mistral.ai</a></td>
-        </tr>
-    </table>
+    function render() {
+        const grid = document.getElementById('node-grid');
+        grid.innerHTML = services.map(s => `
+            <div class="card" onclick="window.open('${s.url}', '_blank')">
+                <div>
+                    <span class="tag">${s.tag}</span>
+                    <h3>${s.name}</h3>
+                    <p>${s.desc}</p>
+                </div>
+                <div class="card-footer">
+                    <span style="font-size: 12px; color: #86868b;">by ${s.company}</span>
+                    <span class="visit-link">Open →</span>
+                </div>
+            </div>
+        `).join('');
+    }
 
-    <!-- Local Inference Services Section -->
-    <h2>Local Inference Services</h2>
-    <table class="table-local-inference">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>Ollama</td>
-            <td>Run LLMs locally on your device</td>
-            <td><a href="https://ollama.com/">ollama.com</a></td>
-        </tr>
-        <tr>
-            <td>Jan</td>
-            <td>Open-source ChatGPT alternative, 100% offline</td>
-            <td><a href="https://jan.ai/">jan.ai</a></td>
-        </tr>
-        <tr>
-            <td>LM Studio</td>
-            <td>Discover, download, and run local LLMs</td>
-            <td><a href="https://lmstudio.ai/">lmstudio.ai</a></td>
-        </tr>
-        <tr>
-            <td>GPT4All</td>
-            <td>Local LLM runner for macOS</td>
-            <td><a href="https://gpt4all.io/">gpt4all.io</a></td>
-        </tr>
-        <tr>
-            <td>LocalAI</td>
-            <td>Drop-in replacement for OpenAI, runs locally</td>
-            <td><a href="https://localai.io/">localai.io</a></td>
-        </tr>
-        <tr>
-            <td>Cortex</td>
-            <td>Local AI API platform, open-source brain for robots</td>
-            <td><a href="https://cortex.so/">cortex.so</a></td>
-        </tr>
-    </table>
+    function launchMulti() {
+        const query = encodeURIComponent(document.getElementById('global-prompt').value);
+        if(!query) return alert("Please enter a prompt.");
+        
+        // Launch top 3 performers
+        const targets = [services[0], services[1], services[4]]; 
+        targets.forEach(s => {
+            window.open(`${s.search}${query}`, '_blank');
+        });
+    }
 
-    <!-- Desktop Apps Section -->
-    <h2>Desktop Apps</h2>
-    <table class="table-desktop-apps">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>Fello AI</td>
-            <td>Universal AI chatbot supporting multiple models</td>
-            <td><a href="https://felloai.com/">felloai.com</a></td>
-        </tr>
-        <tr>
-            <td>Chatbox AI</td>
-            <td>AI client for macOS, compatible with multiple models</td>
-            <td><a href="https://chatboxai.app/en">chatboxai.app</a></td>
-        </tr>
-        <tr>
-            <td>TypingMind</td>
-            <td>AI-driven chat assistant for macOS</td>
-            <td><a href="https://www.typingmind.com/">typingmind.com</a></td>
-        </tr>
-        <tr>
-            <td>Elephas</td>
-            <td>AI-assisted writing tool for Mac</td>
-            <td><a href="https://elephas.app/">elephas.app</a></td>
-        </tr>
-        <tr>
-            <td>ClickUp</td>
-            <td>AI-powered productivity and workflow management</td>
-            <td><a href="https://clickup.com/">clickup.com</a></td>
-        </tr>
-        <tr>
-            <td>Craft</td>
-            <td>AI-enhanced note-taking and document organization</td>
-            <td><a href="https://www.craft.do/">craft.do</a></td>
-        </tr>
-    </table>
-
-    <!-- AI Platforms and Marketplaces Section -->
-    <h2>AI Platforms and Marketplaces</h2>
-    <table class="table-marketplaces">
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>URL</th>
-        </tr>
-        <tr>
-            <td>GitHub Model Catalog</td>
-            <td>Marketplace for discovering and sharing AI models</td>
-            <td><a href="https://github.com/marketplace?type=models">github.com</a></td>
-        </tr>
-        <tr>
-            <td>Hugging Face</td>
-            <td>Major platform for AI models and chatbots</td>
-            <td><a href="https://huggingface.co/">huggingface.co</a></td>
-        </tr>
-        <tr>
-            <td>Replicate</td>
-            <td>Run models in the cloud</td>
-            <td><a href="https://replicate.com/">replicate.com</a></td>
-        </tr>
-        <tr>
-            <td>Kaggle Models</td>
-            <td>Models section for data science</td>
-            <td><a href="https://www.kaggle.com/models">kaggle.com</a></td>
-        </tr>
-        <tr>
-            <td>Papers with Code</td>
-            <td>Lists models with implementations</td>
-            <td><a href="https://paperswithcode.com/">paperswithcode.com</a></td>
-        </tr>
-    </table>
-
+    render();
+</script>
 </body>
 </html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inference | The Intelligence Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apple-bg: #f5f5f7;
+            --apple-text: #1d1d1f;
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --airbnb-border: #dddddd;
+            --accent: #0071e3;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --card-radius: 20px;
+        }
+
+        * { box-sizing: border-box; transition: all 0.3s ease; }
+        body { 
+            background-color: var(--apple-bg); 
+            color: var(--apple-text); 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 0;
+            line-height: 1.5;
+        }
+
+        /* --- Apple Header Section --- */
+        header {
+            padding: 80px 20px 40px;
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: #86868b;
+            margin-bottom: 40px;
+        }
+
+        /* --- Airbnb Style Command Center --- */
+        .search-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--airbnb-border);
+            border-radius: 40px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            max-width: 700px;
+            margin: 0 auto 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        #global-prompt {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            padding: 15px 25px;
+            font-size: 1.1rem;
+            outline: none;
+            color: var(--apple-text);
+        }
+
+        .launch-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .launch-btn:hover {
+            background-color: #0077ed;
+            transform: scale(1.03);
+        }
+
+        /* --- Bento Box / Airbnb Grid --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 0 40px 80px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--card-radius);
+            border: 1px solid var(--airbnb-border);
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+            transform: translateY(-5px);
+        }
+
+        .card-img {
+            height: 180px;
+            background: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-content {
+            padding: 20px;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .card h3 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: #6e6e73;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .stats {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f2f2f2;
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 2.5rem; }
+            .grid { padding: 0 20px 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Intelligence.</h1>
+    <p>Access the world's most powerful inference nodes in one interface.</p>
+    
+    <div class="search-container">
+        <input type="text" id="global-prompt" placeholder="Ask anything across 2026's top models...">
+        <button class="launch-btn" onclick="launchMultiSearch()">Launch</button>
+    </div>
+</header>
+
+<div class="grid" id="service-grid">
+    </div>
+
+<script>
+    const services = [
+        { name: "DeepSeek-V3", category: "Technical", emoji: "🧠", tier: "Ultra-Efficient", desc: "The king of logic and coding. Best-in-class reasoning for complex math and debugging.", url: "https://chat.deepseek.com", searchUrl: "https://chat.deepseek.com/?q=" },
+        { name: "Groq", category: "Speed", emoji: "⚡", tier: "Instant", desc: "Language Processing Units (LPUs) delivering sub-100ms responses. Real-time streaming at 500+ tok/s.", url: "https://groq.com", searchUrl: "https://groq.com/?q=" },
+        { name: "Cerebras", category: "Throughput", emoji: "🏭", tier: "Massive Scale", desc: "Wafer-scale inference. Best for massive batch processing and high-volume token generation.", url: "https://cerebras.ai", searchUrl: "https://cerebras.ai" },
+        { name: "Perplexity", category: "Research", emoji: "🔍", tier: "Real-time", desc: "AI-native search engine. Fact-checked answers with linked citations and live web access.", url: "https://perplexity.ai", searchUrl: "https://www.perplexity.ai/search?q=" },
+        { name: "Claude 3.5 Sonnet", category: "Creative", emoji: "✍️", tier: "Nuanced", desc: "Unmatched writing quality and coding ability. Currently the industry gold-standard for human-like prose.", url: "https://claude.ai", searchUrl: "https://claude.ai" },
+        { name: "Google Gemini 1.5", category: "Multimodal", emoji: "♊", tier: "2M Context", desc: "Unmatched context window. Analyze hours of video or massive codebases in a single prompt.", url: "https://gemini.google.com", searchUrl: "https://gemini.google.com/app?q=" },
+        { name: "NotebookLM", category: "Productivity", emoji: "📓", tier: "Contextual", desc: "Your personal AI research assistant. Grounded entirely in your own uploaded documents.", url: "https://notebooklm.google.com", searchUrl: "https://notebooklm.google.com" },
+        { name: "ChatGPT (o1)", category: "General", emoji: "🤖", tier: "The Standard", desc: "Advanced reasoning with hidden 'Chain of Thought'. Best all-rounder for daily tasks.", url: "https://chatgpt.com", searchUrl: "https://chatgpt.com/?q=" },
+        { name: "HuggingChat", category: "Open Source", emoji: "🤗", tier: "Free / Open", desc: "Access Llama 3, Qwen, and Mistral models without a subscription.", url: "https://huggingface.co/chat", searchUrl: "https://huggingface.co/chat/?q=" },
+        { name: "Together AI", category: "Developer", emoji: "🛠️", tier: "Flexible API", desc: "The fastest way to run and fine-tune open-weights models in the cloud.", url: "https://together.ai", searchUrl: "https://together.ai" },
+        { name: "Mistral Large", category: "Efficient", emoji: "🇫🇷", tier: "Premium", desc: "European powerhouse. High logic capability with an emphasis on efficiency and multi-lingual support.", url: "https://chat.mistral.ai", searchUrl: "https://chat.mistral.ai/chat?q=" },
+        { name: "Sora / Veo", category: "Video", emoji: "🎬", tier: "Generative", desc: "State-of-the-art text-to-video inference. Cinematic realism for storytelling and ads.", url: "https://labs.google/fx/tools/flow", searchUrl: "https://labs.google/fx/tools/flow" },
+        { name: "ElevenLabs", category: "Audio", emoji: "🎙️", tier: "Voice AI", desc: "The world leader in lifelike speech synthesis and voice cloning across 29 languages.", url: "https://elevenlabs.io", searchUrl: "https://elevenlabs.io" },
+        { name: "Lindy", category: "Agents", emoji: "👨‍🔧", tier: "Workflow", desc: "Autonomous AI agents that execute tasks across 2,500+ apps without human intervention.", url: "https://lindy.ai", searchUrl: "https://lindy.ai" },
+        { name: "Midjourney", category: "Art", emoji: "🎨", tier: "Aesthetic", desc: "The highest fidelity image generation available. Unrivaled artistic control and lighting.", url: "https://midjourney.com", searchUrl: "https://midjourney.com" }
+    ];
+
+    function renderGrid() {
+        const grid = document.getElementById('service-grid');
+        grid.innerHTML = services.map(s => `
+            <div class="card" onclick="window.open('${s.url}', '_blank')">
+                <div class="card-img" style="background-color: #fcfcfc;">${s.emoji}</div>
+                <div class="card-content">
+                    <span class="tag">${s.category}</span>
+                    <h3>${s.name}</h3>
+                    <p>${s.desc}</p>
+                    <div class="stats">
+                        <span>Tier: ${s.tier}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function launchMultiSearch() {
+        const query = encodeURIComponent(document.getElementById('global-prompt').value);
+        if(!query) return alert("Please enter a prompt first!");
+        
+        // Launching the top 3 specialized services
+        window.open(`https://chat.deepseek.com/?q=${query}`, '_blank');
+        window.open(`https://www.perplexity.ai/search?q=${query}`, '_blank');
+        window.open(`https://groq.com/?q=${query}`, '_blank');
+    }
+
+    renderGrid();
+</script>
+</body>
+</html>

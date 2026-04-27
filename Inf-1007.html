@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AI Intelligence Dashboard 2026</title>
+  <style>
+    :root {
+      --bg: #0f0c29;
+      --card-bg: rgba(255, 255, 255, 0.07);
+      --text: #eee;
+      --accent: #4dabf7;
+      --border: rgba(255, 255, 255, 0.15);
+    }
+    .light {
+      --bg: #fdfbfb;
+      --card-bg: rgba(0, 0, 0, 0.05);
+      --text: #222;
+      --accent: #1976d2;
+      --border: rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      margin: 0; padding: 2rem; font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg); color: var(--text); transition: all 0.3s ease;
+      min-height: 100vh;
+    }
+
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    h1 { margin: 0; font-size: 1.8rem; letter-spacing: -0.5px; }
+    
+    .dashboard-container {
+      background: var(--card-bg); border-radius: 20px; padding: 1.5rem;
+      backdrop-filter: blur(10px); border: 1px solid var(--border);
+    }
+
+    .controls { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+    input {
+      flex-grow: 1; padding: 12px 20px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2); color: var(--text); font-size: 1rem;
+    }
+    #toggle-btn {
+      padding: 0 1.5rem; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--card-bg); cursor: pointer; color: var(--text);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 1rem; color: #888; font-size: 0.8rem; text-transform: uppercase; cursor: pointer; }
+    td { padding: 1rem; border-top: 1px solid var(--border); }
+    tr:hover { background: rgba(255,255,255,0.05); }
+
+    .tag { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .cat-chat { background: #3f51b5; color: white; }
+    .cat-search { background: #009688; color: white; }
+    .cat-prod { background: #ff9800; color: white; }
+    
+    a { color: var(--accent); text-decoration: none; font-weight: 600; }
+    a:hover { text-decoration: underline; }
+    .launch-btn { padding: 6px 12px; background: var(--accent); color: white; border-radius: 6px; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AI Service Dashboard</h1>
+  <button id="toggle-btn" onclick="toggleMode()">Toggle Theme</button>
+</header>
+
+<div class="dashboard-container">
+  <div class="controls">
+    <input id="filter-input" placeholder="Search by name, category, or strength..." onkeyup="filterTable()">
+  </div>
+  
+  <table id="ai-table">
+    <thead>
+      <tr>
+        <th onclick="sortTable(0)">Service</th>
+        <th onclick="sortTable(1)">Category</th>
+        <th onclick="sortTable(2)">Strength</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      </tbody>
+  </table>
+</div>
+
+<script>
+  const services = [
+    { name: "ChatGPT", cat: "Chat", url: "https://chat.openai.com", strength: "Best all-around versatility" },
+    { name: "Google Gemini", cat: "Chat", url: "https://gemini.google.com", strength: "Google Workspace deep-integration" },
+    { name: "Claude", cat: "Chat", url: "https://claude.ai", strength: "Advanced reasoning & long context" },
+    { name: "Meta AI", cat: "Chat", url: "https://meta.ai", strength: "Social & real-time connectivity" },
+    { name: "Grok", cat: "Chat", url: "https://grok.com", strength: "Real-time trends & unfiltered data" },
+    { name: "Perplexity", cat: "Search", url: "https://www.perplexity.ai", strength: "Accurate cited research" },
+    { name: "Genspark", cat: "Search", url: "https://www.genspark.ai", strength: "AI multi-agent research" },
+    { name: "YouChat", cat: "Search", url: "https://you.com", strength: "Privacy & search integration" },
+    { name: "Coda One", cat: "Productivity", url: "https://codaone.com", strength: "50+ free writing/image tools" },
+    { name: "Zapier Central", cat: "Productivity", url: "https://zapier.com/central", strength: "AI workflow automation" },
+    { name: "MS Copilot", cat: "Productivity", url: "https://copilot.microsoft.com", strength: "Office suite integration" },
+    { name: "Amazon Q", cat: "Productivity", url: "https://aws.amazon.com/q/", strength: "Enterprise & AWS cloud management" },
+    { name: "HuggingChat", cat: "Chat", url: "https://huggingface.co/chat", strength: "Open-source model experimentation" },
+    { name: "Pi", cat: "Chat", url: "https://heypi.com", strength: "Empathetic, personal coaching" }
+  ];
+
+  function renderTable(data) {
+    const body = document.getElementById('table-body');
+    body.innerHTML = data.map(s => `
+      <tr>
+        <td><a href="${s.url}" target="_blank">${s.name}</a></td>
+        <td><span class="tag cat-${s.cat.toLowerCase()}">${s.cat}</span></td>
+        <td>${s.strength}</td>
+        <td><a href="${s.url}" target="_blank" class="launch-btn">Launch</a></td>
+      </tr>
+    `).join('');
+  }
+
+  function filterTable() {
+    const query = document.getElementById('filter-input').value.toLowerCase();
+    const filtered = services.filter(s => 
+      s.name.toLowerCase().includes(query) || 
+      s.cat.toLowerCase().includes(query) || 
+      s.strength.toLowerCase().includes(query)
+    );
+    renderTable(filtered);
+  }
+
+  function toggleMode() {
+    document.body.classList.toggle('light');
+  }
+
+  // Initial render
+  renderTable(services);
+</script>
+</body>
+</html>

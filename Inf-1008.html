@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Intelligence Hub 2026</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8;
+    }
+    .light { --bg: #f8fafc; --card: #ffffff; --text: #0f172a; --accent: #0284c7; }
+    
+    body { 
+      font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text);
+      transition: all 0.3s ease; margin: 0; padding: 2rem; display: flex; flex-direction: column; align-items: center;
+    }
+    
+    .nav { display: flex; gap: 1rem; margin-bottom: 2rem; background: var(--card); padding: 0.5rem; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); }
+    .nav-btn { padding: 0.8rem 1.5rem; border: none; cursor: pointer; border-radius: 50px; background: transparent; color: var(--text); font-weight: 600; transition: 0.3s; }
+    .nav-btn.active { background: var(--accent); color: white; }
+
+    .container { width: 100%; max-width: 1000px; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: var(--card); padding: 2rem; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); }
+    
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th { text-align: left; padding: 1rem; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; }
+    td { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+    a { color: var(--accent); text-decoration: none; font-weight: 500; }
+    .tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('chat')">🚀 Intelligence</button>
+  <button class="nav-btn" onclick="showPage('creative')">🎨 Creative Apps</button>
+  <button class="nav-btn" onclick="showPage('agents')">🤖 Agents & Workflow</button>
+</div>
+
+<div id="app" class="container"></div>
+
+<script>
+  const data = {
+    chat: [
+      { name: "ChatGPT", cat: "Chat", url: "https://chat.openai.com", note: "Versatile, best ecosystem" },
+      { name: "Google Gemini", cat: "Chat", url: "https://gemini.google.com", note: "Best Workspace integration" },
+      { name: "Claude", cat: "Chat", url: "https://claude.ai", note: "Human-like reasoning" },
+      { name: "Perplexity", cat: "Search", url: "https://www.perplexity.ai", note: "Best for cited research" },
+      { name: "Grok", cat: "Chat", url: "https://grok.com", note: "Real-time trends" },
+      { name: "Meta AI", cat: "Social", url: "https://meta.ai", note: "Integrated in socials" }
+    ],
+    creative: [
+      { name: "Leonardo.ai", cat: "Image", url: "https://leonardo.ai", note: "Generous daily free credits" },
+      { name: "ElevenLabs", cat: "Audio", url: "https://elevenlabs.io", note: "Industry best voice gen" },
+      { name: "Canva", cat: "Design", url: "https://canva.com", note: "Magic Studio suite" },
+      { name: "Notion", cat: "Writing", url: "https://notion.so", note: "AI writing assistant" },
+      { name: "Genspark", cat: "Research", url: "https://www.genspark.ai", note: "Multi-agent research" },
+      { name: "Coda One", cat: "Work", url: "https://codaone.com", note: "Docs + AI Apps" }
+    ],
+    agents: [
+      { name: "Zapier", cat: "Automation", url: "https://zapier.com/central", note: "The gold standard for triggers" },
+      { name: "Lindy", cat: "Agent", url: "https://lindy.ai", note: "Build custom personal agents" },
+      { name: "Make", cat: "Workflow", url: "https://make.com", note: "Visual, complex branching" },
+      { name: "n8n", cat: "OpenSource", url: "https://n8n.io", note: "Self-hosted power" },
+      { name: "Gumloop", cat: "Slack", url: "https://gumloop.com", note: "Slack-first agents" }
+    ]
+  };
+
+  function showPage(page) {
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const container = document.getElementById('app');
+    container.innerHTML = `
+      <div class="card">
+        <table>
+          <thead><tr><th>Service</th><th>Category</th><th>Strength</th></tr></thead>
+          <tbody>
+            ${data[page].map(item => `
+              <tr>
+                <td><a href="${item.url}" target="_blank">${item.name} ↗</a></td>
+                <td><span class="tag">${item.cat}</span></td>
+                <td>${item.note}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  // Load default
+  showPage('chat');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Creation Hub: Artifact Engine</title>
+  <style>
+    :root {
+      --bg: #030712; --card: #111827; --text: #f9fafb; --accent: #8b5cf6; --success: #10b981;
+    }
+    body { 
+      font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text);
+      margin: 0; padding: 1.5rem; display: flex; flex-direction: column; align-items: center;
+      transition: background 0.3s ease;
+    }
+    
+    /* Navigation Bar */
+    .nav { 
+      display: flex; gap: 0.5rem; margin-bottom: 2rem; background: var(--card); 
+      padding: 0.4rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
+      overflow-x: auto; max-width: 95vw;
+    }
+    .nav-btn { 
+      padding: 0.6rem 1.2rem; border: none; cursor: pointer; border-radius: 12px; 
+      background: transparent; color: var(--text); font-weight: 500; transition: 0.2s;
+      white-space: nowrap;
+    }
+    .nav-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); }
+
+    /* Dashboard Container */
+    .container { width: 100%; max-width: 1100px; animation: slideUp 0.4s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { 
+      background: var(--card); padding: 1.5rem; border-radius: 24px; 
+      border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    }
+    
+    /* Content Elements */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+    .tool-item {
+      background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
+    }
+    .tool-item:hover { transform: translateY(-3px); background: rgba(255,255,255,0.07); border-color: var(--accent); }
+    
+    .prompt-box {
+      background: #1e1b4b; border-left: 4px solid var(--accent);
+      padding: 1rem; border-radius: 8px; margin-bottom: 1rem; cursor: pointer;
+    }
+    .prompt-box:active { background: #312e81; }
+
+    h2 { margin-top: 0; font-size: 1.5rem; color: var(--accent); }
+    .tag { font-size: 0.65rem; padding: 2px 8px; border-radius: 20px; background: var(--accent); color: white; font-weight: bold; }
+    .link-btn { display: inline-block; margin-top: 10px; color: var(--accent); font-weight: 600; text-decoration: none; }
+    
+    code { background: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 4px; color: #fbbf24; }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showPage('vibe')">✨ Vibe Coding</button>
+  <button class="nav-btn" onclick="showPage('creation')">🛠️ Artifact Tools</button>
+  <button class="nav-btn" onclick="showPage('move37')">🧠 Move 37 Prompts</button>
+  <button class="nav-btn" onclick="showPage('labs')">🧪 Google Labs</button>
+</div>
+
+<div id="app" class="container"></div>
+
+<script>
+  const data = {
+    vibe: {
+      title: "Vibe Coding & Rapid Prototyping",
+      desc: "Turn language into functional code and products instantly.",
+      items: [
+        { name: "Google AI Studio", cat: "Heavyweight", url: "https://aistudio.google.com", note: "Access Gemini 1.5 Pro with 2M context. Best for 'vibing' through massive codebases." },
+        { name: "v0.dev", cat: "UI/UX", url: "https://v0.dev", note: "Generates React/Tailwind UI from text. The gold standard for artifact UI." },
+        { name: "Replit Agent", cat: "Fullstack", url: "https://replit.com", note: "Describe an app, and it builds the backend, frontend, and deploys it." },
+        { name: "Bolt.new", cat: "Web Dev", url: "https://bolt.new", note: "Full-stack web development in the browser with instant previews." },
+        { name: "Cursor (Web)", cat: "Editor", url: "https://cursor.com", note: "The premier AI code editor. Use their web docs to enhance local workflows." }
+      ]
+    },
+    creation: {
+      title: "High-Value Artifact Tools",
+      desc: "Services that produce polished, ready-to-ship digital assets.",
+      items: [
+        { name: "Gamma", cat: "Decks", url: "https://gamma.app", note: "Generates stunning slide decks and mini-sites from a single prompt." },
+        { name: "Framer AI", cat: "Websites", url: "https://framer.com", note: "Design and publish high-end landing pages via text." },
+        { name: "Leonardo Canvas", cat: "Visuals", url: "https://leonardo.ai", note: "Infinite canvas for AI image editing and consistent asset creation." },
+        { name: "Requesty", cat: "API Hub", url: "https://requesty.ai", note: "Switch between any LLM API to find the best output for your specific artifact." }
+      ]
+    },
+    labs: {
+      title: "Google Labs & Experimental",
+      desc: "Cutting edge tools for data synthesis and content delivery.",
+      items: [
+        { name: "NotebookLM", cat: "Synthesis", url: "https://notebooklm.google.com", note: "Upload 50 documents; get a podcast, a guide, or a deep analysis. Best for knowledge artifacts." },
+        { name: "Illuminate", cat: "Audio", url: "https://illuminate.google.com", note: "Turns academic papers into digestible audio discussions." },
+        { name: "MusicFX", cat: "Audio", url: "https://aitestkitchen.withgoogle.com", note: "High-fidelity background tracks for your digital products." },
+        { name: "Product Studio", cat: "E-comm", url: "https://www.google.com/retail/solutions/product-studio/", note: "AI tools specifically for creating high-end product marketing assets." }
+      ]
+    },
+    move37: {
+      title: "Move 37 Prompt Lab",
+      desc: "Click to 'copy' prompts designed to force AI into non-obvious, high-value strategic territory.",
+      items: [
+        { name: "The 'First Principles' Disruptor", text: "Ignore all industry standard constraints for [Project]. Break the goal down into pure physics and logic. Reconstruct a solution that a competitor with $0 budget would use to win." },
+        { name: "The 'Artifact Architect'", text: "Act as a Lead Systems Engineer. I have the 'vibe' for [Idea]. Create a comprehensive technical spec, file structure, and data schema that allows a junior dev to build this in 1 hour." },
+        { name: "The 'Move 37' Creative Leap", text: "Review my current plan for [X]. Identify the 'Human Bias' in this plan. Suggest 3 counter-intuitive moves that leverage AI capabilities (speed, scale, or pattern matching) which a human team would never attempt." }
+      ]
+    }
+  };
+
+  function showPage(page) {
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    if(event) event.target.classList.add('active');
+    
+    const container = document.getElementById('app');
+    const section = data[page];
+
+    let content = `
+      <div class="card">
+        <h2>${section.title}</h2>
+        <p style="opacity: 0.8; margin-bottom: 1.5rem;">${section.desc}</p>
+    `;
+
+    if (page === 'move37') {
+      content += section.items.map(p => `
+        <div class="prompt-box" onclick="copyText('${p.text}')">
+          <strong>${p.name}</strong><br>
+          <small style="opacity: 0.7;">Click to copy: "${p.text.substring(0, 60)}..."</small>
+        </div>
+      `).join('');
+    } else {
+      content += `<div class="grid">` + section.items.map(item => `
+        <div class="tool-item">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <strong>${item.name}</strong>
+            <span class="tag">${item.cat}</span>
+          </div>
+          <p style="font-size: 0.85rem; margin: 10px 0; opacity: 0.8;">${item.note}</p>
+          <a href="${item.url}" target="_blank" class="link-btn">Open Tool ↗</a>
+        </div>
+      `).join('') + `</div>`;
+    }
+
+    content += `</div>`;
+    container.innerHTML = content;
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text);
+    alert("Move 37 Prompt copied to clipboard!");
+  }
+
+  showPage('vibe');
+</script>
+
+</body>
+</html>

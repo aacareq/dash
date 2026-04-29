@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Dies qui omnia innovat</title>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-main: #202124;
+            --text-dim: #5f6368;
+            --accent: #1a73e8;
+            --border: #dadce0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #202124;
+            --card-bg: #2d2e31;
+            --text-main: #e8eaed;
+            --text-dim: #9aa0a6;
+            --accent: #8ab4f8;
+            --border: #3c4043;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 2rem auto;
+        }
+
+        h1 {
+            font-weight: 300;
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.5rem;
+        }
+
+        .link-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .link-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .link-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .link-list a {
+            text-decoration: none;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            display: block;
+        }
+
+        .link-list a:hover {
+            color: var(--accent);
+        }
+
+        hr {
+            border: 0;
+            border-top: 1px solid var(--border);
+            margin: 10px 0;
+        }
+
+        /* Dark Mode Toggle */
+        .toggle-btn {
+            background: var(--border);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 600px) {
+            .link-group { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Dies qui omnia innovat!</h1>
+    <button class="toggle-btn" onclick="toggleTheme()">Toggle Theme</button>
+</header>
+
+<div class="container">
+    <!-- Section 1: Google Services -->
+    <div class="card">
+        <h2>Google Ecosystem</h2>
+        <div class="link-group">
+            <ul class="link-list">
+                <li><a href="https://mail.google.com/">Gmail</a></li>
+                <li><a href="https://calendar.google.com/">Calendar</a></li>
+                <li><a href="https://drive.google.com/">Drive</a></li>
+                <li><a href="https://docs.google.com/">Docs</a></li>
+            </ul>
+            <ul class="link-list">
+                <li><a href="https://keep.google.com/">Keep</a></li>
+                <li><a href="https://tasks.google.com/">Tasks</a></li>
+                <li><a href="https://notebooklm.google.com/">NotebookLM</a></li>
+                <li><a href="https://aistudio.google.com/">AI Studio</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Section 2: Development -->
+    <div class="card">
+        <h2>GitHub & Dev</h2>
+        <div class="link-group">
+            <ul class="link-list">
+                <li><a href="https://github.com/">GitHub Home</a></li>
+                <li><a href="https://github.com/aacareq">Profile</a></li>
+                <li><a href="https://github.com/aacareq?tab=repositories">Repos</a></li>
+            </ul>
+            <ul class="link-list">
+                <li><a href="https://github.com/notifications">Nuntia</a></li>
+                <li><a href="https://github.com/pulls">Pull Requests</a></li>
+                <li><a href="https://github.com/issues">Issues</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Section 3: Inference & AI -->
+    <div class="card">
+        <h2>Inference & Projects</h2>
+        <ul class="link-list">
+            <li><a href="0824-001-inference.html"><strong>LLM Comparison</strong></a></li>
+            <hr>
+            <div class="link-group">
+                <ul class="link-list">
+                    <li><a href="Inf-1008.html">Inf 2026-6</a></li>
+                    <li><a href="Inf-1009.html">Inf 2026-7</a></li>
+                    <li><a href="agents.html">Agents</a></li>
+                </ul>
+                <ul class="link-list">
+                    <li><a href="coding.html">Coding</a></li>
+                    <li><a href="video.html">Video</a></li>
+                    <li><a href="music.html">Music</a></li>
+                </ul>
+            </div>
+        </ul>
+    </div>
+
+    <!-- Section 4: Maintenance -->
+    <div class="card">
+        <h2>Quick Links</h2>
+        <ul class="link-list">
+            <li><a href="https://aacareq.github.io/links/">User Links</a></li>
+            <hr>
+            <div class="link-group">
+                <ul class="link-list">
+                    <li><a href="infer-001.html">Infer 001</a></li>
+                    <li><a href="infer-002.html">Infer 002</a></li>
+                </ul>
+                <ul class="link-list">
+                    <li><a href="hosting.html">Hosting</a></li>
+                    <li><a href="search.html">Search</a></li>
+                </ul>
+            </div>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            body.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.setAttribute('data-theme', 'dark');
+    }
+</script>
+
+</body>
+</html>

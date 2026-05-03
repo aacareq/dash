@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X Builder Command Center</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: #1c1c1e;
+            --accent: #0A84FF;
+            --text: #FFFFFF;
+            --sec: #8E8E93;
+            --border: #38383a;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+        }
+
+        header {
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 30px;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            color: var(--sec);
+            font-size: 15px;
+        }
+
+        .glass {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--sec);
+            margin: 0 0 16px 0;
+            letter-spacing: 1.5px;
+        }
+
+        .btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2c2c2e;
+            color: #fff;
+            text-decoration: none;
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .btn:active {
+            background: #3a3a3c;
+        }
+
+        .tag {
+            font-size: 9px;
+            background: var(--accent);
+            padding: 3px 6px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .desc {
+            font-size: 13px;
+            color: var(--sec);
+            margin: 0 0 16px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Builder Command</h1>
+        <div class="subtitle">Actionable intelligence & tool generation</div>
+    </header>
+
+    <div class="glass">
+        <h2>Active Signal Search</h2>
+        <div class="desc">Filter for drops, tools, and technical threads.</div>
+        <a href="https://x.com/search?q=(from%3Arileybrown_ai%20OR%20from%3Anateherk%20OR%20from%3A_akhaliq%20OR%20from%3Akarpathy)%20filter%3Alinks&f=live" class="btn">Signal Drops <span class="tag">Alpha</span></a>
+        <a href="https://x.com/search?q=(%22new%20capability%22%20OR%20%22released%22%20OR%20%22open-source%22)%20-filter%3Areplies&f=live" class="btn">New Tech Capabilities</a>
+    </div>
+
+    <div class="glass">
+        <h2>Google AI Studio Engine</h2>
+        <div class="desc">Launch a vibe coding or audience growth prompt.</div>
+        <a href="https://aistudio.google.com" class="btn">Launch AI Studio <span class="tag">Vibe Code</span></a>
+        <a href="https://x.com/search?q=AI%20build%20%22how%20to%22%20min_replies%3A5&f=live" class="btn">Target Influencer Questions</a>
+    </div>
+
+    <div class="glass">
+        <h2>Platforms to Monitor</h2>
+        <div class="desc" style="margin-bottom: 0;">
+            <p><b>@karpathy</b> - Deep Intuition</p>
+            <p><b>@rileybrown_ai</b> - Vibe Coding</p>
+            <p><b>@hwchase17</b> - LLM Agents</p>
+            <p><b>@nicksaraev</b> - Multi-Agent Workflows</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

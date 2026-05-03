@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Builder OS v8.0</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: rgba(28, 28, 30, 0.7);
+            --accent: #0A84FF;
+            --text: #FFFFFF;
+            --sec: #8E8E93;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container { width: 100%; max-width: 600px; }
+
+        header { margin: 20px 0; display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 28px; font-weight: 700; letter-spacing: -1px; margin: 0; }
+        
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: var(--card); border: 1px solid var(--border); color: var(--sec); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .tab-btn.active { background: var(--accent); color: white; border: none; }
+
+        .section { background: var(--card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin-bottom: 20px; display: none; }
+        .section.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .cmd-btn { background: rgba(255, 255, 255, 0.05); color: var(--text); text-decoration: none; padding: 15px; border-radius: 16px; text-align: center; font-size: 14px; font-weight: 600; border: 1px solid var(--border); }
+        .cmd-btn:active { background: rgba(255, 255, 255, 0.1); }
+
+        .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .builder-card { background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 14px; border: 1px solid var(--border); font-size: 13px; }
+        .builder-card b { display: block; color: var(--accent); }
+        .builder-card span { color: var(--sec); font-size: 11px; }
+
+        .prompt-box { background: #000; border-radius: 12px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--accent); font-family: monospace; font-size: 13px; color: #00ff41; cursor: pointer; }
+        
+        h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--sec); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Builder OS 8.0</h1>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('radar')">Radar</button>
+            <button class="tab-btn" onclick="showTab('studio')">Prompts</button>
+        </div>
+    </header>
+
+    <div id="radar" class="section active">
+        <h2>Active Signal Commands</h2>
+        <div class="grid">
+            <a href="https://x.com/search?q=(from%3Arileybrown_ai%20OR%20from%3Akarpathy%20OR%20from%3A_akhaliq%20OR%20from%3Anateherk)%20filter%3Alinks&f=live" class="cmd-btn">Alpha Signal</a>
+            <a href="https://x.com/search?q=AI%20%22how%20to%22%20-filter%3Areplies%20min_faves%3A10&f=live" class="cmd-btn">Value-Add Ops</a>
+        </div>
+
+        <h2>Priority Roster (40)</h2>
+        <div class="builder-grid">
+            <div class="builder-card"><b>@karpathy</b><span>Andrej Karpathy (AI)</span></div>
+            <div class="builder-card"><b>@ylecun</b><span>Yann LeCun (Meta)</span></div>
+            <div class="builder-card"><b>@fchollet</b><span>François Chollet (Keras)</span></div>
+            <div class="builder-card"><b>@_akhaliq</b><span>Alex Albert (Papers)</span></div>
+            <div class="builder-card"><b>@rasbt</b><span>Sebastian Raschka (AI Eng)</span></div>
+            <div class="builder-card"><b>@simonw</b><span>Simon Willison (LLM Ops)</span></div>
+            <div class="builder-card"><b>@AndrewYNg</b><span>Andrew Ng (Education)</span></div>
+            <div class="builder-card"><b>@drfeifei</b><span>Fei-Fei Li (Spatial AI)</span></div>
+            <div class="builder-card"><b>@demishassabis</b><span>Demis Hassabis (DeepMind)</span></div>
+            <div class="builder-card"><b>@ilyasut</b><span>Ilya Sutskever (SSI)</span></div>
+            
+            <div class="builder-card"><b>@rileybrown_ai</b><span>Riley Brown (Vibe Coding)</span></div>
+            <div class="builder-card"><b>@hwchase17</b><span>Harrison Chase (LangChain)</span></div>
+            <div class="builder-card"><b>@AravSrinivas</b><span>Aravind Srinivas (Perplexity)</span></div>
+            <div class="builder-card"><b>@nateherk</b><span>Nate Herk (Automation)</span></div>
+            <div class="builder-card"><b>@mattshumer_</b><span>Matt Shumer (Otherside)</span></div>
+            <div class="builder-card"><b>@bindureddy</b><span>Bindu Reddy (Abacus.AI)</span></div>
+            <div class="builder-card"><b>@nicksaraev</b><span>Nick Saraev (Agents)</span></div>
+            <div class="builder-card"><b>@gregkamradt</b><span>Greg Kamradt (Data/LLM)</span></div>
+            <div class="builder-card"><b>@minchoi</b><span>Min Choi (Cursor/v0)</span></div>
+            <div class="builder-card"><b>@swyx</b><span>Shawn Wang (Latent Space)</span></div>
+
+            <div class="builder-card"><b>@heybarsee</b><span>Barsee (Utility tools)</span></div>
+            <div class="builder-card"><b>@rowancheung</b><span>Rowan Cheung (Rundown)</span></div>
+            <div class="builder-card"><b>@mreflow</b><span>Matthew Berman (YT/Code)</span></div>
+            <div class="builder-card"><b>@thevarunmayya</b><span>Varun Mayya (Agents)</span></div>
+            <div class="builder-card"><b>@alliekmiller</b><span>Allie K Miller (Advisory)</span></div>
+            <div class="builder-card"><b>@skirani</b><span>Sandeep Kirani (VC/Product)</span></div>
+            <div class="builder-card"><b>@emostaque</b><span>Emad (Stability/Open)</span></div>
+            <div class="builder-card"><b>@itakitya</b><span>Takiya (Workflow Automation)</span></div>
+            <div class="builder-card"><b>@levelsio</b><span>Pieter Levels (AI Indie)</span></div>
+            <div class="builder-card"><b>@levels_ai</b><span>PhotoAI / InteriorAI</span></div>
+
+            <div class="builder-card"><b>@charles_irl</b><span>Charles (v0/Next.js)</span></div>
+            <div class="builder-card"><b>@rauchg</b><span>Guillermo Rauch (Vercel)</span></div>
+            <div class="builder-card"><b>@amjad</b><span>Amjad Masad (Replit)</span></div>
+            <div class="builder-card"><b>@prakharsrivas</b><span>Prakhar (Bolt.new)</span></div>
+            <div class="builder-card"><b>@antonosika</b><span>Anton (GPT-Engineer)</span></div>
+            <div class="builder-card"><b>@yoheinakajima</b><span>Yohei (BabyAGI)</span></div>
+            <div class="builder-card"><b>@torantulino</b><span>Toran (AutoGPT)</span></div>
+            <div class="builder-card"><b>@jason_atkinson</b><span>Jason (Agent Design)</span></div>
+            <div class="builder-card"><b>@linas_beliunas</b><span>Linas (Fintech AI)</span></div>
+            <div class="builder-card"><b>@heyamine</b><span>Amine (Growth Tools)</span></div>
+        </div>
+    </div>
+
+    <div id="studio" class="section">
+        <h2>AI Studio Prompt Lab</h2>
+        <p style="font-size: 12px; color: var(--sec); margin-bottom: 20px;">Copy these, enable Search Grounding in AI Studio, and tap deploy.</p>
+        
+        <div class="prompt-box" onclick="copyText(this)">
+            "Find the 3 most viral AI technical threads on X from the last 12 hours. Summarize the core technical capability and draft a high-authority reply for each that proposes a specific technical enhancement."
+        </div>
+
+        <div class="prompt-box" onclick="copyText(this)">
+            "You are a Technical Product Architect. Analyze the following project description: [PROMPT]. Outline the optimal tech stack using Vanilla JS and Gemini 3.1 Pro APIs. Provide a single-file code structure."
+        </div>
+
+        <div class="prompt-box" onclick="copyText(this)">
+            "Generate a LinkedIn content strategy for the next 7 days based on current 'Agentic Workflow' trends. Focus on high-leverage professional audience engagement."
+        </div>
+        
+        <a href="https://aistudio.google.com" class="cmd-btn" style="display: block; width: 100%; margin-top: 20px; background: var(--accent);">Launch Google AI Studio</a>
+    </div>
+</div>
+
+<script>
+    function showTab(tabId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function copyText(element) {
+        const text = element.innerText;
+        navigator.clipboard.writeText(text);
+        const original = element.style.borderColor;
+        element.style.borderColor = "#00ff41";
+        setTimeout(() => element.style.borderColor = original, 1000);
+    }
+</script>
+
+</body>
+</html>

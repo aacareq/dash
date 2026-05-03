@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Builder OS v9.0</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: rgba(28, 28, 30, 0.9);
+            --accent: #0A84FF;
+            --text: #FFFFFF;
+            --sec: #8E8E93;
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-container { width: 100%; max-width: 600px; }
+
+        header { margin: 20px 0; display: flex; justify-content: space-between; align-items: center; }
+        h1 { font-size: 28px; font-weight: 700; letter-spacing: -1px; margin: 0; }
+        
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: var(--card); border: 1px solid var(--border); color: var(--sec); padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .tab-btn.active { background: var(--accent); color: white; border: none; }
+
+        .section { background: var(--card); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin-bottom: 20px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .section.active { display: block; }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        
+        /* High Fidelity Links */
+        .cmd-btn { 
+            display: block; 
+            background: var(--accent); 
+            color: white; 
+            text-decoration: none; 
+            padding: 18px; 
+            border-radius: 16px; 
+            text-align: center; 
+            font-size: 15px; 
+            font-weight: 700; 
+            box-shadow: 0 4px 15px rgba(10, 132, 255, 0.3);
+        }
+        
+        .cmd-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+        .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .builder-link {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            color: var(--text);
+            transition: background 0.2s;
+        }
+
+        .builder-link:active { background: rgba(255, 255, 255, 0.15); border-color: var(--accent); }
+        .builder-link b { font-size: 14px; color: var(--accent); margin-bottom: 2px; }
+        .builder-link span { font-size: 11px; color: var(--sec); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .prompt-box { background: #000; border-radius: 12px; padding: 18px; margin-bottom: 15px; border-left: 4px solid var(--accent); font-family: ui-monospace, monospace; font-size: 14px; color: #00ff41; position: relative; }
+        .copy-trigger { position: absolute; top: 5px; right: 10px; font-size: 10px; color: var(--accent); font-weight: bold; }
+        
+        h2 { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--sec); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1>Builder OS v9.0</h1>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="showTab('radar')">Radar</button>
+            <button class="tab-btn" onclick="showTab('studio')">Prompts</button>
+        </div>
+    </header>
+
+    <div id="radar" class="section active">
+        <h2>Live Commands</h2>
+        <div class="grid">
+            <a href="https://x.com/search?q=(from%3Arileybrown_ai%20OR%20from%3Akarpathy%20OR%20from%3Anateherk%20OR%20from%3A_akhaliq%20OR%20from%3Anicksaraev)%20filter%3Alinks&f=live" target="_blank" class="cmd-btn">View Drops</a>
+            <a href="https://x.com/search?q=AI%20%22how%20to%22%20-filter%3Areplies%20min_faves%3A15&f=live" target="_blank" class="cmd-btn">Find Opps</a>
+        </div>
+
+        <h2>Verified Network (40)</h2>
+        <div class="builder-grid">
+            <a href="https://x.com/karpathy" target="_blank" class="builder-link"><b>@karpathy</b><span>Andrej (Logic)</span></a>
+            <a href="https://x.com/rileybrown_ai" target="_blank" class="builder-link"><b>@rileybrown_ai</b><span>Riley (Vibe Code)</span></a>
+            <a href="https://x.com/ylecun" target="_blank" class="builder-link"><b>@ylecun</b><span>Yann (Meta AI)</span></a>
+            <a href="https://x.com/fchollet" target="_blank" class="builder-link"><b>@fchollet</b><span>François (Keras)</span></a>
+            <a href="https://x.com/_akhaliq" target="_blank" class="builder-link"><b>@_akhaliq</b><span>Alex (Papers)</span></a>
+            <a href="https://x.com/hwchase17" target="_blank" class="builder-link"><b>@hwchase17</b><span>Harrison (Agents)</span></a>
+            <a href="https://x.com/AravSrinivas" target="_blank" class="builder-link"><b>@AravSrinivas</b><span>Aravind (Search)</span></a>
+            <a href="https://x.com/nateherk" target="_blank" class="builder-link"><b>@nateherk</b><span>Nate (Automation)</span></a>
+            <a href="https://x.com/mattshumer_" target="_blank" class="builder-link"><b>@mattshumer_</b><span>Matt (Otherside)</span></a>
+            <a href="https://x.com/bindureddy" target="_blank" class="builder-link"><b>@bindureddy</b><span>Bindu (Abacus)</span></a>
+            <a href="https://x.com/nicksaraev" target="_blank" class="builder-link"><b>@nicksaraev</b><span>Nick (Workflow)</span></a>
+            <a href="https://x.com/gregkamradt" target="_blank" class="builder-link"><b>@gregkamradt</b><span>Greg (Data)</span></a>
+            <a href="https://x.com/minchoi" target="_blank" class="builder-link"><b>@minchoi</b><span>Min (Builder)</span></a>
+            <a href="https://x.com/swyx" target="_blank" class="builder-link"><b>@swyx</b><span>Shawn (Latent)</span></a>
+            <a href="https://x.com/rasbt" target="_blank" class="builder-link"><b>@rasbt</b><span>Sebastian (ML)</span></a>
+            <a href="https://x.com/simonw" target="_blank" class="builder-link"><b>@simonw</b><span>Simon (LLM Ops)</span></a>
+            <a href="https://x.com/AndrewYNg" target="_blank" class="builder-link"><b>@AndrewYNg</b><span>Andrew (Expert)</span></a>
+            <a href="https://x.com/drfeifei" target="_blank" class="builder-link"><b>@drfeifei</b><span>Fei-Fei (Vision)</span></a>
+            <a href="https://x.com/demishassabis" target="_blank" class="builder-link"><b>@demishassabis</b><span>Demis (Mind)</span></a>
+            <a href="https://x.com/ilyasut" target="_blank" class="builder-link"><b>@ilyasut</b><span>Ilya (SSI)</span></a>
+            <a href="https://x.com/heybarsee" target="_blank" class="builder-link"><b>@heybarsee</b><span>Barsee (Growth)</span></a>
+            <a href="https://x.com/rowancheung" target="_blank" class="builder-link"><b>@rowancheung</b><span>Rowan (News)</span></a>
+            <a href="https://x.com/mreflow" target="_blank" class="builder-link"><b>@mreflow</b><span>Matthew (YouTube)</span></a>
+            <a href="https://x.com/thevarunmayya" target="_blank" class="builder-link"><b>@thevarunmayya</b><span>Varun (Systems)</span></a>
+            <a href="https://x.com/alliekmiller" target="_blank" class="builder-link"><b>@alliekmiller</b><span>Allie (Business)</span></a>
+            <a href="https://x.com/skirani" target="_blank" class="builder-link"><b>@skirani</b><span>Sandeep (SaaS)</span></a>
+            <a href="https://x.com/emostaque" target="_blank" class="builder-link"><b>@emostaque</b><span>Emad (Open)</span></a>
+            <a href="https://x.com/itakitya" target="_blank" class="builder-link"><b>@itakitya</b><span>Takiya (Automation)</span></a>
+            <a href="https://x.com/levelsio" target="_blank" class="builder-link"><b>@levelsio</b><span>Pieter (Indie)</span></a>
+            <a href="https://x.com/charles_irl" target="_blank" class="builder-link"><b>@charles_irl</b><span>Charles (v0)</span></a>
+            <a href="https://x.com/rauchg" target="_blank" class="builder-link"><b>@rauchg</b><span>Guillermo (Vercel)</span></a>
+            <a href="https://x.com/amjad" target="_blank" class="builder-link"><b>@amjad</b><span>Amjad (Replit)</span></a>
+            <a href="https://x.com/prakharsrivas" target="_blank" class="builder-link"><b>@prakharsrivas</b><span>Prakhar (Bolt)</span></a>
+            <a href="https://x.com/antonosika" target="_blank" class="builder-link"><b>@antonosika</b><span>Anton (GPT-Eng)</span></a>
+            <a href="https://x.com/yoheinakajima" target="_blank" class="builder-link"><b>@yoheinakajima</b><span>Yohei (BabyAGI)</span></a>
+            <a href="https://x.com/torantulino" target="_blank" class="builder-link"><b>@torantulino</b><span>Toran (AutoGPT)</span></a>
+            <a href="https://x.com/jason_atkinson" target="_blank" class="builder-link"><b>@jason_atkinson</b><span>Jason (Design)</span></a>
+            <a href="https://x.com/linas_beliunas" target="_blank" class="builder-link"><b>@linas_beliunas</b><span>Linas (Fintech)</span></a>
+            <a href="https://x.com/heyamine" target="_blank" class="builder-link"><b>@heyamine</b><span>Amine (Builders)</span></a>
+            <a href="https://x.com/levels_ai" target="_blank" class="builder-link"><b>@levels_ai</b><span>PhotoAI (Infra)</span></a>
+        </div>
+    </div>
+
+    <div id="studio" class="section">
+        <h2>AI Studio Lab</h2>
+        <div class="prompt-box" onclick="copyText(this)">
+            <span class="copy-trigger">TAP TO COPY</span>
+            "Search X/Reddit for current AI capabilities from [Subject]. Extract technical details and draft a 2-sentence response for LinkedIn that highlights my expertise in Gemini implementation."
+        </div>
+
+        <div class="prompt-box" onclick="copyText(this)">
+            <span class="copy-trigger">TAP TO COPY</span>
+            "You are a Technical AI Engineer. Analyze this requirement: [KEYWORDS]. Build a single-file Vanilla JS tool structure with Apple-style CSS that uses Gemini API for automation."
+        </div>
+        
+        <a href="https://aistudio.google.com" target="_blank" class="cmd-btn" style="background: #34c759; margin-top: 20px;">Launch AI Studio</a>
+    </div>
+</div>
+
+<script>
+    function showTab(tabId) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function copyText(element) {
+        const text = element.childNodes[2].nodeValue.trim();
+        navigator.clipboard.writeText(text);
+        const trigger = element.querySelector('.copy-trigger');
+        trigger.innerText = "COPIED!";
+        setTimeout(() => trigger.innerText = "TAP TO COPY", 1500);
+    }
+</script>
+
+</body>
+</html>

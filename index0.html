@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Assets Factory & Command Center</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(22, 27, 34, 0.7);
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-blue: #58a6ff;
+      --accent-green: #3fb950;
+      --accent-purple: #bc8cff;
+      --accent-orange: #f0883e;
+      --border: rgba(48, 54, 61, 0.8);
+      --glass: backdrop-filter: blur(12px);
+    }
+
+    .light-theme {
+      --bg: #f6f8fa;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --text-main: #24292f;
+      --text-muted: #57606a;
+      --accent-blue: #0969da;
+      --accent-green: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-orange: #bc4c00;
+      --border: rgba(210, 216, 222, 0.8);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 1.5rem;
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    h1 { font-size: 1.6rem; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+    h2 { font-size: 1.25rem; margin-top: 0; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .orchestrator {
+      background: linear-gradient(135deg, rgba(31, 41, 55, 0.4), rgba(17, 24, 39, 0.4));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+    }
+
+    .orchestrator p { margin: 0 0 1rem 0; color: var(--text-muted); font-size: 0.9rem; }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    textarea {
+      flex-grow: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 48px;
+    }
+    .light-theme textarea { color: #000; background: #fff; }
+
+    .dispatch-btn {
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      padding: 0 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .dispatch-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .tool-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .tool-item {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .tool-item:last-child { border-bottom: none; }
+
+    .tool-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .tool-link {
+      color: var(--accent-blue);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .tool-link:hover { text-decoration: underline; }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-free { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid rgba(63, 185, 80, 0.3); }
+    .badge-cap { background: rgba(188, 140, 255, 0.15); color: var(--accent-purple); border: 1px solid rgba(188, 140, 255, 0.3); }
+    .badge-edge { background: rgba(240, 136, 62, 0.15); color: var(--accent-orange); border: 1px solid rgba(240, 136, 62, 0.3); }
+
+    .tool-desc {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    .section-divider {
+      border: 0;
+      height: 1px;
+      background: var(--border);
+      margin: 3rem 0;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .input-group { flex-direction: column; }
+      .dispatch-btn { padding: 12px; }
+      .main-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Nexus Command & Asset Factory</h1>
+    <button class="theme-toggle" onclick="toggleTheme()">Toggle Theme</button>
+  </header>
+
+  <section class="orchestrator">
+    <h2>⚡ Global Context Engine</h2>
+    <p>Simultaneously dispatch structural components, validation definitions, or prompt instructions to premium high-capacity context nodes.</p>
+    <div class="input-group">
+      <textarea id="orchestrator-input" placeholder="Type prompt matrix instructions or structured specifications here..."></textarea>
+      <button class="dispatch-btn" onclick="fireOrchestrator()">Dispatch Execution</button>
+    </div>
+  </section>
+
+  <h2>🛠️ Primary Infrastructure & Channels</h2>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Google Nodes</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://gemini.google.com" target="_blank" class="tool-link">Google Gemini</a>
+            <span class="badge badge-cap">1M Context</span>
+          </div>
+          <div class="tool-desc">Primary workspace parsing workspace, multimodal feeds, and deep context assembly loops.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://notebooklm.google" target="_blank" class="tool-link">NotebookLM</a>
+            <span class="badge badge-free">Free Base</span>
+          </div>
+          <div class="tool-desc">Autonomous synthesis node. Conversationalizes disconnected source files into coherent operational structures.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://aistudio.google.com/prompts/new_chat" target="_blank" class="tool-link">Google AI Studio</a>
+            <span class="badge badge-edge">Developer</span>
+          </div>
+          <div class="tool-desc">System instruction fine-tuning, temperature adjustments, and access to raw frontier model versions.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://mail.google.com" target="_blank" class="tool-link">Gmail / Workspace</a>
+            <span class="badge badge-free">Core Link</span>
+          </div>
+          <div class="tool-desc">Transactional hub for client pipeline tracking and automated system alerts.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Production & Factory Nodes</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://github.com" target="_blank" class="tool-link">GitHub Enterprise Hub</a>
+            <span class="badge badge-free">Free Pages</span>
+          </div>
+          <div class="tool-desc">Houses logic repos, static asset factories via Pages, and automated integration hooks.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://github.com/marketplace?type=models" target="_blank" class="tool-link">GitHub Model Marketplace</a>
+            <span class="badge badge-free">Free Playground</span>
+          </div>
+          <div class="tool-desc">Direct interface to rapidly test and evaluate leading developer models natively within GitHub ecosystems.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://chat.deepseek.com" target="_blank" class="tool-link">DeepSeek Chat</a>
+            <span class="badge badge-free">High Cap</span>
+          </div>
+          <div class="tool-desc">Highly technical reasoning engine used for code verification, validation, and math optimization modules.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://groq.com" target="_blank" class="tool-link">Groq Inference Engine</a>
+            <span class="badge badge-free">Ultra Speed</span>
+          </div>
+          <div class="tool-desc">High-speed streaming node for immediate architectural verification and logic testing.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>High Capacity Frontends</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://claude.ai" target="_blank" class="tool-link">Anthropic Claude</a>
+            <span class="badge badge-cap">200K Context</span>
+          </div>
+          <div class="tool-desc">Premium orchestration node for structured JSON schemas and building custom code foundations.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://chat.openai.com" target="_blank" class="tool-link">OpenAI ChatGPT</a>
+            <span class="badge badge-cap">Voice / Vision</span>
+          </div>
+          <div class="tool-desc">Multi-modal asset validation, complex data transformations, and rapid vector conceptualization.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://huggingface.co/chat" target="_blank" class="tool-link">Hugging Face Spaces</a>
+            <span class="badge badge-free">Open Source</span>
+          </div>
+          <div class="tool-desc">Live playground environment for checking open-weights configurations (Qwen, Llama, Mistral variants).</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <h2>💎 Innovative Asset Production Categories (High Alpha / Low Comp)</h2>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Code Factories & Custom Utilities</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://v0.dev" target="_blank" class="tool-link">v0 by Vercel</a>
+            <span class="badge badge-edge">Generous Free</span>
+          </div>
+          <div class="tool-desc">Generates highly interactive, beautifully componentized visual frontends using minimal text inputs.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://bolt.new" target="_blank" class="tool-link">Bolt.new</a>
+            <span class="badge badge-edge">Full Stack</span>
+          </div>
+          <div class="tool-desc">Full sandbox browser environments capable of prototyping multi-file web applications in a single session.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://cursor.com" target="_blank" class="tool-link">Cursor / Windsurf Interfaces</a>
+            <span class="badge badge-cap">Context Sync</span>
+          </div>
+          <div class="tool-desc">Deep codebase indexing tools that translate intent specifications directly into production code blocks.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Agent Automation Frameworks</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://www.langflow.org" target="_blank" class="tool-link">Langflow / Flowise</a>
+            <span class="badge badge-free">Visual Graph</span>
+          </div>
+          <div class="tool-desc">Visual development interfaces used to program multi-agent execution steps and state machines without writing complex code blocks.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://www.activepieces.com" target="_blank" class="tool-link">Activepieces</a>
+            <span class="badge badge-free">Cloud Free Tier</span>
+          </div>
+          <div class="tool-desc">Open-source business automation engine built specifically to coordinate model interactions with external web webhooks.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://n8n.io" target="_blank" class="tool-link">n8n Automation Node</a>
+            <span class="badge badge-edge">Advanced</span>
+          </div>
+          <div class="tool-desc">Orchestrates highly complex logic loops, handling data formats and managing long-term variables between steps easily.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Data Validation & Quality Layer</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://www.langfuse.com" target="_blank" class="tool-link">Langfuse Platform</a>
+            <span class="badge badge-free">Generous Cloud</span>
+          </div>
+          <div class="tool-desc">Tracks metrics, keeps logs of model steps, and calculates step and tool-call ratios across operational chains.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://llm.datasette.io" target="_blank" class="tool-link">Datasette Tooling</a>
+            <span class="badge badge-free">Open Source</span>
+          </div>
+          <div class="tool-desc">Helps you parse, explore, and sanitize large datasets, keeping training and evaluation data clean and useful.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://baml.dev" target="_blank" class="tool-link">BAML Language Interface</a>
+            <span class="badge badge-edge">Strict Type</span>
+          </div>
+          <div class="tool-desc">A specialized syntax tool designed to ensure models return clean JSON structures that match your schema perfectly.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>🚀 Serverless Deployment & Zero-Cost Architecture Channels</h2>
+  <div class="main-grid">
+    <div class="card">
+      <h2>Edge Content Channels</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://vercel.com" target="_blank" class="tool-link">Vercel Edge Platform</a>
+            <span class="badge badge-free">Hobby Tier</span>
+          </div>
+          <div class="tool-desc">Provides fast CDN serving and serverless edge functions that execute logic instantly near your users.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://netlify.com" target="_blank" class="tool-link">Netlify Global Node</a>
+            <span class="badge badge-free">Generous Static</span>
+          </div>
+          <div class="tool-desc">Great for hosting lightweight static web tools and managing forms and serverless functions without setup headaches.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://pages.github.com" target="_blank" class="tool-link">GitHub Static Pages</a>
+            <span class="badge badge-free">100% Free</span>
+          </div>
+          <div class="tool-desc">The ultimate simple web server. Completely free hosting for client-side HTML, CSS, and vanilla JavaScript tools.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Serverless Runtimes & State Nodes</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://supabase.com" target="_blank" class="tool-link">Supabase Cloud Database</a>
+            <span class="badge badge-free">Free Postgres</span>
+          </div>
+          <div class="tool-desc">Includes a reliable remote database, user authentication options, and built-in vector features for easy data storage.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://render.com" target="_blank" class="tool-link">Render Infrastructure</a>
+            <span class="badge badge-free">Free Web/Cron</span>
+          </div>
+          <div class="tool-desc">Allows you to deploy persistent app services, run background processes, and set up cron tasks effortlessly.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://deno.com/deploy" target="_blank" class="tool-link">Deno Deploy Edge</a>
+            <span class="badge badge-free">Sub-Millisecond</span>
+          </div>
+          <div class="tool-desc">Run simple server JavaScript functions at the edge worldwide with zero cold start delays.</div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Task Processors & Trigger Systems</h2>
+      <ul class="tool-list">
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://github.com/features/actions" target="_blank" class="tool-link">GitHub Actions Environment</a>
+            <span class="badge badge-free">2000 min/mo</span>
+          </div>
+          <div class="tool-desc">Automates code tests, runs recurring scraper scripts, and coordinates asset build tasks on a set schedule.</div>
+        </li>
+        <li class="tool-item">
+          <div class="tool-meta">
+            <a href="https://trigger.dev" target="_blank" class="tool-link">Trigger.dev Platform</a>
+            <span class="badge badge-edge">Long Running</span>
+          </div>
+          <div class="tool-desc">An open-source service designed to manage complex, long-running processes that regular edge functions timeout on.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Nexus Command Matrix • Built for Clean Mobile Prototyping and Asset Generation Engine Workflows
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+    }
+
+    function fireOrchestrator() {
+      const promptVal = document.getElementById('orchestrator-input').value;
+      if (!promptVal) {
+        alert("Please provide asset criteria inside the orchestrator frame before dispatching execution.");
+        return;
+      }
+      
+      const encoded = encodeURIComponent(promptVal);
+      
+      // Dispatching across top three highly generous diverse endpoints
+      window.open(`https://gemini.google.com/app?q=${encoded}`, '_blank');
+      window.open(`https://chat.deepseek.com/?q=${encoded}`, '_blank');
+      window.open(`https://groq.com/?q=${encoded}`, '_blank');
+    }
+  </script>
+</body>
+</html>

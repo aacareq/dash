@@ -17,6 +17,7 @@
             --accent: #b5530a;
             --accent-light: #fdf0e8;
             --accent-2: #2a6496;
+            --accent-2-light: #eef6fc;
             --th-bg: #f5f2ee;
             --link: #2a6496;
             --link-hover: #b5530a;
@@ -32,7 +33,7 @@
             color: var(--text);
             font-size: 15px;
             line-height: 1.5;
-            padding: 28px 24px 48px;
+            padding: 20px 24px 48px;
             max-width: 1100px;
             margin: 0 auto;
         }
@@ -41,14 +42,14 @@
             display: flex;
             align-items: baseline;
             gap: 16px;
-            margin-bottom: 28px;
-            padding-bottom: 18px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
             border-bottom: 2px solid var(--border-strong);
         }
 
         h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: var(--text);
             letter-spacing: -0.02em;
         }
@@ -73,12 +74,13 @@
             border-radius: 8px;
             box-shadow: var(--shadow);
             overflow: hidden;
+            margin-bottom: 20px;
         }
 
         .section-header {
             background: var(--th-bg);
             border-bottom: 1px solid var(--border);
-            padding: 10px 18px;
+            padding: 8px 16px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -86,7 +88,7 @@
 
         .section-header h2 {
             font-family: 'Playfair Display', serif;
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text);
             letter-spacing: 0.01em;
@@ -98,34 +100,38 @@
         }
 
         .section-body {
-            padding: 16px 18px;
+            padding: 12px 16px;
         }
 
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        /* Compact Flexible Columns replacing tables */
+        .columns-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
         }
 
-        th {
+        .column {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border-right: 1px solid var(--border);
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .column-title {
             background: var(--th-bg);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 14px;
-            text-align: left;
+            margin: -12px -16px 10px -16px;
+            padding: 6px 16px;
             font-size: 0.72rem;
             font-weight: 600;
             letter-spacing: 0.1em;
             text-transform: uppercase;
             color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
         }
-
-        td {
-            padding: 12px 14px;
-            vertical-align: top;
-            border-right: 1px solid var(--border);
-        }
-
-        td:last-child { border-right: none; }
 
         /* Link lists */
         .link-list {
@@ -134,17 +140,17 @@
         }
 
         .link-list li {
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .link-list a {
             text-decoration: none;
             color: var(--link);
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            padding: 2px 0;
+            padding: 1px 0;
             transition: color 0.15s;
         }
 
@@ -157,27 +163,27 @@
         .link-list hr {
             border: none;
             border-top: 1px solid var(--border);
-            margin: 8px 0;
+            margin: 6px 0;
         }
 
-        /* Search section specific */
+        /* Grid specific setups */
         .search-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 8px;
-            padding: 14px 18px;
+            padding: 12px 16px;
         }
 
         .search-link {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border: 1px solid var(--border);
             border-radius: 6px;
             text-decoration: none;
             color: var(--text);
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             font-weight: 600;
             background: var(--surface);
             transition: border-color 0.15s, background 0.15s, color 0.15s;
@@ -189,6 +195,13 @@
             color: var(--accent);
         }
 
+        /* Asset Dashboards specific highlight hovering style */
+        .search-link.asset-dash:hover {
+            border-color: var(--accent-2);
+            background: var(--accent-2-light);
+            color: var(--accent-2);
+        }
+
         .search-link .s-icon {
             width: 18px;
             height: 18px;
@@ -197,11 +210,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
         }
 
-        /* Favicon fallback circles */
+        /* Favicon fallback colors */
         .g  { background:#4285F4; color:#fff; }
         .bi { background:#FF6900; color:#fff; }
         .dd { background:#DE5833; color:#fff; }
@@ -212,9 +225,10 @@
         .ec { background:#0089BD; color:#fff; }
         .px { background:#1D2951; color:#fff; }
         .kg { background:#009900; color:#fff; }
+        .da { background:#b5530a; color:#fff; }
 
         footer {
-            margin-top: 28px;
+            margin-top: 24px;
             text-align: center;
             font-size: 0.72rem;
             color: var(--text-muted);
@@ -229,8 +243,7 @@
         <span class="tagline">Morning Dashboard</span>
     </header>
 
-    <!-- SEARCH ENGINES -->
-    <div class="section" style="margin-bottom:20px;">
+    <div class="section">
         <div class="section-header">
             <span class="icon">🔍</span>
             <h2>Search Engines</h2>
@@ -269,105 +282,109 @@
         </div>
     </div>
 
-    <!-- ESSENTIAL LINKS -->
-    <div class="section" style="margin-bottom:20px;">
+    <div class="section" style="border-color: var(--border-strong);">
+        <div class="section-header" style="background: var(--accent-light);">
+            <span class="icon">🚀</span>
+            <h2 style="color: var(--accent)">Asset & Product Dashboards</h2>
+        </div>
+        <div class="search-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+            <a class="search-link asset-dash" href="https://aacareq.github.io/dash/index0.html" target="_blank" rel="noopener">
+                <span class="s-icon da">D0</span> Digital Assets Dash 0
+            </a>
+            <a class="search-link asset-dash" href="https://aacareq.github.io/dash/index1.html" target="_blank" rel="noopener">
+                <span class="s-icon da">D1</span> Digital Assets Dash 1
+            </a>
+            <a class="search-link asset-dash" href="https://aacareq.github.io/dash/index2.html" target="_blank" rel="noopener">
+                <span class="s-icon da">D2</span> Digital Assets Dash 2
+            </a>
+        </div>
+    </div>
+
+    <div class="section">
         <div class="section-header">
             <span class="icon">⭐</span>
             <h2>Essential Links</h2>
         </div>
-        <div class="section-body" style="padding:0;">
-            <table>
-                <tr>
-                    <th>Google Services</th>
-                    <th>GitHub</th>
-                </tr>
-                <tr>
-                    <td>
-                        <ul class="link-list">
-                            <li><a href="https://mail.google.com/" target="_blank" rel="noopener">Gmail</a></li>
-                            <li><a href="https://calendar.google.com/" target="_blank" rel="noopener">Calendar</a></li>
-                            <li><a href="https://drive.google.com/" target="_blank" rel="noopener">Drive</a></li>
-                            <li><a href="https://docs.google.com/" target="_blank" rel="noopener">Docs</a></li>
-                            <li><a href="https://keep.google.com/" target="_blank" rel="noopener">Keep</a></li>
-                            <li><a href="https://tasks.google.com/tasks/" target="_blank" rel="noopener">Tasks</a></li>
-                            <li><a href="https://notebooklm.google.com/" target="_blank" rel="noopener">NotebookLM</a></li>
-                            <li><a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener">AI Studio</a></li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul class="link-list">
-                            <li><a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></li>
-                            <li><a href="https://github.com/aacareq" target="_blank" rel="noopener">GH Profile</a></li>
-                            <li><a href="https://github.com/aacareq?tab=repositories" target="_blank" rel="noopener">Repos</a></li>
-                            <li><a href="https://github.com/notifications" target="_blank" rel="noopener">Nuntia</a></li>
-                            <li><a href="https://github.com/pulls" target="_blank" rel="noopener">PRs</a></li>
-                            <li><a href="https://github.com/issues" target="_blank" rel="noopener">Issues</a></li>
-                        </ul>
-                    </td>
-                </tr>
-            </table>
+        <div class="columns-container">
+            <div class="column">
+                <div class="column-title">Google Services</div>
+                <ul class="link-list">
+                    <li><a href="https://mail.google.com/" target="_blank" rel="noopener">Gmail</a></li>
+                    <li><a href="https://calendar.google.com/" target="_blank" rel="noopener">Calendar</a></li>
+                    <li><a href="https://drive.google.com/" target="_blank" rel="noopener">Drive</a></li>
+                    <li><a href="https://docs.google.com/" target="_blank" rel="noopener">Docs</a></li>
+                    <li><a href="https://keep.google.com/" target="_blank" rel="noopener">Keep</a></li>
+                    <li><a href="https://tasks.google.com/tasks/" target="_blank" rel="noopener">Tasks</a></li>
+                    <li><a href="https://notebooklm.google.com/" target="_blank" rel="noopener">NotebookLM</a></li>
+                    <li><a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener">AI Studio</a></li>
+                </ul>
+            </div>
+            <div class="column">
+                <div class="column-title">GitHub</div>
+                <ul class="link-list">
+                    <li><a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></li>
+                    <li><a href="https://github.com/aacareq" target="_blank" rel="noopener">GH Profile</a></li>
+                    <li><a href="https://github.com/aacareq?tab=repositories" target="_blank" rel="noopener">Repos</a></li>
+                    <li><a href="https://github.com/notifications" target="_blank" rel="noopener">Nuntia</a></li>
+                    <li><a href="https://github.com/pulls" target="_blank" rel="noopener">PRs</a></li>
+                    <li><a href="https://github.com/issues" target="_blank" rel="noopener">Issues</a></li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <!-- WORK & PROJECT LINKS -->
     <div class="section">
         <div class="section-header">
             <span class="icon">🗂️</span>
-            <h2>Work &amp; Project Links</h2>
+            <h2>Work & Project Links</h2>
         </div>
-        <div class="section-body" style="padding:0;">
-            <table>
-                <tr>
-                    <th>Work Resources</th>
-                    <th>Quick Links</th>
-                </tr>
-                <tr>
-                    <td>
-                        <ul class="link-list">
-                            <li><a href="infer.html">Inference</a></li>
-                            <li><a href="index-2.html">Inference index 2</a></li>
-                            <li><a href="infer-ext.html">Inference Extended</a></li>
-                            <li><a href="Inf-1001.html">Inference Updates 2025</a></li>
-                            <li><a href="Inf-1002.html">Inference Updates 2026</a></li>
-                            <li><a href="Inf-1003.html">Inference 2026 – 1</a></li>
-                            <li><a href="Inf-1004.html">Inference 2026 – 2 Dashboard</a></li>
-                            <li><a href="Inf-1005.html">Inference 2026 – 3 Dashboard</a></li>
-                            <li><a href="Inf-1006.html">Inference 2026 – 4 Dashboard</a></li>
-                            <li><a href="Inf-1007.html">Inference 2026 – 5 Dashboard</a></li>
-                            <li><a href="Inf-1008.html">Inference 2026 – 6 Dashboard</a></li>
-                            <li><a href="Inf-1009.html">Inference 2026 – 7 Dashboard</a></li>
-                            <li><a href="0824-001-inference.html">LLM Comparison</a></li>
-                            <hr/>
-                            <li><a href="agents.html">Agents</a></li>
-                            <li><a href="search.html">Search</a></li>
-                            <li><a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener">AI Studio</a></li>
-                            <hr/>
-                            <li><a href="hosting.html">Hosting</a></li>
-                            <hr/>
-                            <li><a href="coding.html">Coding</a></li>
-                            <li><a href="coding-sec.html">Coding Sec</a></li>
-                            <hr/>
-                            <li><a href="images.html">Images</a></li>
-                            <li><a href="video.html">Video</a></li>
-                            <li><a href="video-ext.html">Video Tools Extended</a></li>
-                            <li><a href="music.html">Music</a></li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul class="link-list">
-                            <li><a href="https://aacareq.github.io/links/" target="_blank" rel="noopener">User Links</a></li>
-                            <hr/>
-                            <li><a href="infer-001.html">infer-001</a></li>
-                            <li><a href="infer-002.html">infer-002</a></li>
-                            <li><a href="infer-003.html">infer-003</a></li>
-                            <li><a href="infer-004.html">infer-004</a></li>
-                            <li><a href="infer-005.html">infer-005</a></li>
-                            <li><a href="infer-006.html">infer-006</a></li>
-                            <hr/>
-                        </ul>
-                    </td>
-                </tr>
-            </table>
+        <div class="columns-container">
+            <div class="column">
+                <div class="column-title">Work Resources</div>
+                <ul class="link-list">
+                    <li><a href="infer.html">Inference</a></li>
+                    <li><a href="index-2.html">Inference index 2</a></li>
+                    <li><a href="infer-ext.html">Inference Extended</a></li>
+                    <li><a href="Inf-1001.html">Inference Updates 2025</a></li>
+                    <li><a href="Inf-1002.html">Inference Updates 2026</a></li>
+                    <li><a href="Inf-1003.html">Inference 2026 – 1</a></li>
+                    <li><a href="Inf-1004.html">Inference 2026 – 2 Dashboard</a></li>
+                    <li><a href="Inf-1005.html">Inference 2026 – 3 Dashboard</a></li>
+                    <li><a href="Inf-1006.html">Inference 2026 – 4 Dashboard</a></li>
+                    <li><a href="Inf-1007.html">Inference 2026 – 5 Dashboard</a></li>
+                    <li><a href="Inf-1008.html">Inference 2026 – 6 Dashboard</a></li>
+                    <li><a href="Inf-1009.html">Inference 2026 – 7 Dashboard</a></li>
+                    <li><a href="0824-001-inference.html">LLM Comparison</a></li>
+                    <hr/>
+                    <li><a href="agents.html">Agents</a></li>
+                    <li><a href="search.html">Search</a></li>
+                    <li><a href="https://aistudio.google.com/prompts/new_chat" target="_blank" rel="noopener">AI Studio</a></li>
+                    <hr/>
+                    <li><a href="hosting.html">Hosting</a></li>
+                    <hr/>
+                    <li><a href="coding.html">Coding</a></li>
+                    <li><a href="coding-sec.html">Coding Sec</a></li>
+                    <hr/>
+                    <li><a href="images.html">Images</a></li>
+                    <li><a href="video.html">Video</a></li>
+                    <li><a href="video-ext.html">Video Tools Extended</a></li>
+                    <li><a href="music.html">Music</a></li>
+                </ul>
+            </div>
+            <div class="column">
+                <div class="column-title">Quick Links</div>
+                <ul class="link-list">
+                    <li><a href="https://aacareq.github.io/links/" target="_blank" rel="noopener">User Links</a></li>
+                    <hr/>
+                    <li><a href="infer-001.html">infer-001</a></li>
+                    <li><a href="infer-002.html">infer-002</a></li>
+                    <li><a href="infer-003.html">infer-003</a></li>
+                    <li><a href="infer-004.html">infer-004</a></li>
+                    <li><a href="infer-005.html">infer-005</a></li>
+                    <li><a href="infer-006.html">infer-006</a></li>
+                    <hr/>
+                </ul>
+            </div>
         </div>
     </div>
 

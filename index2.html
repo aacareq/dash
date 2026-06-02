@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Digital Goods Factory OS</title>
+
+<style>
+
+:root{
+--bg:#0b1020;
+--card:#151d35;
+--card2:#1d2745;
+--text:#f8fafc;
+--muted:#94a3b8;
+--accent:#3b82f6;
+--border:#2b3658;
+--success:#22c55e;
+}
+
+.light{
+--bg:#f8fafc;
+--card:#ffffff;
+--card2:#eef2ff;
+--text:#0f172a;
+--muted:#64748b;
+--accent:#2563eb;
+--border:#dbe4f0;
+}
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:Inter,Segoe UI,sans-serif;
+background:var(--bg);
+color:var(--text);
+}
+
+header{
+padding:20px;
+background:linear-gradient(135deg,#1e293b,#0f172a);
+}
+
+.light header{
+background:linear-gradient(135deg,#e0e7ff,#f8fafc);
+}
+
+h1{
+margin:0;
+}
+
+.subtitle{
+color:var(--muted);
+margin-top:6px;
+}
+
+.toolbar{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-top:15px;
+}
+
+input,textarea{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid var(--border);
+background:var(--card);
+color:var(--text);
+}
+
+button{
+padding:10px 14px;
+border:none;
+border-radius:8px;
+background:var(--accent);
+color:white;
+cursor:pointer;
+font-weight:600;
+}
+
+main{
+padding:20px;
+display:grid;
+grid-template-columns:300px 1fr;
+gap:20px;
+}
+
+.card{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:12px;
+padding:15px;
+}
+
+.tool-grid{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+gap:12px;
+}
+
+.tool{
+background:var(--card2);
+padding:12px;
+border-radius:10px;
+border:1px solid var(--border);
+}
+
+.tool h4{
+margin:0 0 8px;
+}
+
+.tool a{
+color:var(--accent);
+text-decoration:none;
+}
+
+.tool p{
+font-size:13px;
+color:var(--muted);
+}
+
+.favorite{
+float:right;
+cursor:pointer;
+}
+
+section{
+margin-bottom:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid var(--border);
+padding:8px;
+text-align:left;
+}
+
+textarea{
+min-height:160px;
+}
+
+.badge{
+display:inline-block;
+padding:4px 8px;
+border-radius:20px;
+background:rgba(59,130,246,.2);
+font-size:12px;
+margin-bottom:6px;
+}
+
+@media(max-width:900px){
+
+main{
+grid-template-columns:1fr;
+}
+
+}
+
+</style>
+</head>
+<body>
+
+<header>
+
+<h1>🚀 Digital Goods Factory OS</h1>
+
+<div class="subtitle">
+Idea → Research → Build → Validate → Deploy → Sell → Scale
+</div>
+
+<div class="toolbar">
+
+<input id="search" placeholder="Search tools...">
+
+<button onclick="toggleTheme()">
+Theme
+</button>
+
+<button onclick="launchResearch()">
+Launch Research Stack
+</button>
+
+</div>
+
+</header>
+
+<main>
+
+<aside>
+
+<div class="card">
+
+<h3>Quick Links</h3>
+
+<ul>
+<li><a href="https://google.com" target="_blank">Google Search</a></li>
+<li><a href="https://mail.google.com" target="_blank">Gmail</a></li>
+<li><a href="https://drive.google.com" target="_blank">Google Drive</a></li>
+<li><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></li>
+<li><a href="https://github.com" target="_blank">GitHub</a></li>
+<li><a href="https://aistudio.google.com" target="_blank">AI Studio</a></li>
+</ul>
+
+</div>
+
+<div class="card">
+
+<h3>Product Pipeline</h3>
+
+<ol>
+<li>Identify Opportunity</li>
+<li>Research Market</li>
+<li>Create Context</li>
+<li>Build MVP</li>
+<li>Run Evals</li>
+<li>Deploy</li>
+<li>Monetize</li>
+<li>Scale</li>
+</ol>
+
+</div>
+
+<div class="card">
+
+<h3>Favorites</h3>
+
+<div id="favorites"></div>
+
+</div>
+
+</aside>
+
+<div>
+
+<section class="card">
+
+<h2>AI Research Hub</h2>
+
+<div class="tool-grid tools">
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('ChatGPT')">⭐</span>
+<h4><a href="https://chatgpt.com" target="_blank">ChatGPT</a></h4>
+<p>Reasoning, coding, content.</p>
+</div>
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('Claude')">⭐</span>
+<h4><a href="https://claude.ai" target="_blank">Claude</a></h4>
+<p>Long context analysis.</p>
+</div>
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('Gemini')">⭐</span>
+<h4><a href="https://gemini.google.com" target="_blank">Gemini</a></h4>
+<p>Large context and Google ecosystem.</p>
+</div>
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('NotebookLM')">⭐</span>
+<h4><a href="https://notebooklm.google.com" target="_blank">NotebookLM</a></h4>
+<p>Persistent project intelligence.</p>
+</div>
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('Perplexity')">⭐</span>
+<h4><a href="https://perplexity.ai" target="_blank">Perplexity</a></h4>
+<p>Citation-driven research.</p>
+</div>
+
+<div class="tool">
+<span class="favorite" onclick="saveFavorite('DeepSeek')">⭐</span>
+<h4><a href="https://chat.deepseek.com" target="_blank">DeepSeek</a></h4>
+<p>Strong coding and technical reasoning.</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Software Factory</h2>
+
+<div class="tool-grid tools">
+
+<div class="tool">
+<h4><a href="https://cursor.com" target="_blank">Cursor</a></h4>
+<p>AI-first IDE.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://windsurf.com" target="_blank">Windsurf</a></h4>
+<p>Agentic coding.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://lovable.dev" target="_blank">Lovable</a></h4>
+<p>Build products from prompts.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://bolt.new" target="_blank">Bolt</a></h4>
+<p>Rapid application generation.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://replit.com" target="_blank">Replit</a></h4>
+<p>Browser development environment.</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Agent Factory</h2>
+
+<div class="tool-grid tools">
+
+<div class="tool">
+<h4><a href="https://n8n.io" target="_blank">n8n</a></h4>
+<p>Automation workflows.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://flowiseai.com" target="_blank">Flowise</a></h4>
+<p>Visual agent builder.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://crewai.com" target="_blank">CrewAI</a></h4>
+<p>Multi-agent systems.</p>
+</div>
+
+<div class="tool">
+<h4><a href="https://langchain.com/langgraph" target="_blank">LangGraph</a></h4>
+<p>Production agent orchestration.</p>
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Hosting & Deployment</h2>
+
+<div class="tool-grid tools">
+
+<div class="tool"><h4><a href="https://vercel.com">Vercel</a></h4></div>
+<div class="tool"><h4><a href="https://netlify.com">Netlify</a></h4></div>
+<div class="tool"><h4><a href="https://workers.cloudflare.com">Cloudflare Workers</a></h4></div>
+<div class="tool"><h4><a href="https://railway.app">Railway</a></h4></div>
+<div class="tool"><h4><a href="https://render.com">Render</a></h4></div>
+<div class="tool"><h4><a href="https://supabase.com">Supabase</a></h4></div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Monetization</h2>
+
+<div class="tool-grid tools">
+
+<div class="tool"><h4><a href="https://gumroad.com">Gumroad</a></h4></div>
+<div class="tool"><h4><a href="https://lemonsqueezy.com">Lemon Squeezy</a></h4></div>
+<div class="tool"><h4><a href="https://stripe.com">Stripe</a></h4></div>
+<div class="tool"><h4><a href="https://payhip.com">Payhip</a></h4></div>
+<div class="tool"><h4><a href="https://paddle.com">Paddle</a></h4></div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>Opportunity Matrix</h2>
+
+<table>
+
+<tr>
+<th>Opportunity</th>
+<th>Competition</th>
+<th>Revenue</th>
+<th>Score</th>
+</tr>
+
+<tr>
+<td>Context Libraries</td>
+<td>Low</td>
+<td>High</td>
+<td>9</td>
+</tr>
+
+<tr>
+<td>Evaluation Suites</td>
+<td>Low</td>
+<td>High</td>
+<td>9</td>
+</tr>
+
+<tr>
+<td>Agent Kits</td>
+<td>Medium</td>
+<td>High</td>
+<td>8</td>
+</tr>
+
+<tr>
+<td>Prompt Packs</td>
+<td>High</td>
+<td>Low</td>
+<td>4</td>
+</tr>
+
+</table>
+
+</section>
+
+<section class="card">
+
+<h2>Context Repository</h2>
+
+<textarea id="contextRepo"
+placeholder="Store contexts, prompts, ideas, research notes..."></textarea>
+
+<br><br>
+
+<button onclick="saveContext()">
+Save Notes
+</button>
+
+</section>
+
+</div>
+
+</main>
+
+<script>
+
+function toggleTheme(){
+
+document.body.classList.toggle("light");
+
+localStorage.setItem(
+"theme",
+document.body.classList.contains("light")
+?"light":"dark"
+);
+
+}
+
+if(localStorage.getItem("theme")==="light"){
+document.body.classList.add("light");
+}
+
+function launchResearch(){
+
+window.open("https://chatgpt.com");
+window.open("https://claude.ai");
+window.open("https://gemini.google.com");
+window.open("https://notebooklm.google.com");
+window.open("https://perplexity.ai");
+
+}
+
+function saveFavorite(name){
+
+let favs=
+JSON.parse(
+localStorage.getItem("favorites")||"[]"
+);
+
+if(!favs.includes(name)){
+
+favs.push(name);
+
+localStorage.setItem(
+"favorites",
+JSON.stringify(favs)
+);
+
+renderFavorites();
+
+}
+
+}
+
+function renderFavorites(){
+
+let favs=
+JSON.parse(
+localStorage.getItem("favorites")||"[]"
+);
+
+document.getElementById("favorites").innerHTML=
+favs.map(f=>"<div>"+f+"</div>").join("");
+
+}
+
+renderFavorites();
+
+function saveContext(){
+
+localStorage.setItem(
+"contextRepo",
+document.getElementById("contextRepo").value
+);
+
+alert("Saved");
+
+}
+
+document.getElementById("contextRepo").value=
+localStorage.getItem("contextRepo")||"";
+
+document.getElementById("search")
+.addEventListener("keyup",function(){
+
+const q=this.value.toLowerCase();
+
+document.querySelectorAll(".tool")
+.forEach(card=>{
+
+card.style.display=
+card.innerText.toLowerCase().includes(q)
+?"block":"none";
+
+});
+
+});
+
+</script>
+
+</body>
+</html>

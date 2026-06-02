@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FACTORY // Digital Assets Command</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@400;600;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+/* ─── RESET & VARIABLES ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #08090b;
+  --surface: #0f1114;
+  --surface2: #14171c;
+  --surface3: #1a1e25;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eaf0;
+  --muted: #7a8096;
+  --dim: #3d4259;
+
+  --gold: #f5c842;
+  --gold2: #c89f1e;
+  --teal: #00d4b8;
+  --teal2: #00a896;
+  --crimson: #ff4b6e;
+  --violet: #8b5cf6;
+  --sky: #38bdf8;
+  --lime: #84cc16;
+  --orange: #fb923c;
+
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-serif: 'Instrument Serif', serif;
+
+  --radius: 10px;
+  --radius-lg: 16px;
+  --transition: 0.18s ease;
+}
+
+[data-theme="light"] {
+  --bg: #f2f3f7;
+  --surface: #ffffff;
+  --surface2: #f8f9fc;
+  --surface3: #eeeff5;
+  --border: rgba(0,0,0,0.07);
+  --border2: rgba(0,0,0,0.13);
+  --text: #16181f;
+  --muted: #636680;
+  --dim: #b0b3c4;
+  --gold: #c47f00;
+  --teal: #007a6d;
+  --teal2: #00685d;
+  --crimson: #d4002e;
+  --violet: #6d28d9;
+  --sky: #0369a1;
+  --lime: #4d7c0f;
+  --orange: #c2410c;
+}
+
+/* ─── BASE ─────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--gold); }
+
+/* ─── GRID NOISE BACKGROUND ──────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+}
+
+/* ─── LAYOUT SHELL ──────────────────────────────── */
+.shell {
+  position: relative; z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+/* ─── TOPBAR ─────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  background: rgba(8,9,11,0.88);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  margin: 0 -20px 32px;
+}
+[data-theme="light"] .topbar { background: rgba(242,243,247,0.92); }
+
+.topbar-left { display: flex; align-items: center; gap: 16px; }
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.logo span { color: var(--text); font-weight: 400; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  background: rgba(0,212,184,0.1);
+  border: 1px solid rgba(0,212,184,0.25);
+  border-radius: 20px;
+  font-size: 10px;
+  color: var(--teal);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.status-pill::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.theme-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.theme-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.date-tag {
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+}
+
+/* ─── HERO SECTION ──────────────────────────────── */
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.hero-main {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-main::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(245,200,66,0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 800;
+  line-height: 1.05;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+.hero-title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--gold);
+}
+
+.hero-sub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 440px;
+  margin-bottom: 24px;
+}
+
+.hero-stats {
+  display: flex; gap: 28px;
+}
+.stat { }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gold);
+  display: block;
+}
+.stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ─── GLOBAL LAUNCHER ────────────────────────────── */
+.hero-launcher {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.launcher-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+  margin-bottom: 4px;
+}
+.launcher-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.launcher-desc { font-size: 11px; color: var(--muted); }
+
+.launcher-input-row { display: flex; gap: 10px; }
+
+.launcher-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: var(--transition);
+}
+.launcher-input:focus { border-color: var(--gold); }
+.launcher-input::placeholder { color: var(--dim); }
+
+.launch-btn {
+  padding: 12px 20px;
+  background: var(--gold);
+  color: #08090b;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.launch-btn:hover { background: var(--gold2); transform: translateY(-1px); }
+
+.launcher-targets {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.target-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 10px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.target-chip:hover, .target-chip.active { border-color: var(--gold); color: var(--gold); }
+.target-chip input[type=checkbox] { display: none; }
+
+/* ─── SECTION HEADER ─────────────────────────────── */
+.section-header {
+  display: flex; align-items: center; gap: 14px;
+  margin: 36px 0 16px;
+}
+.section-tag {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 500;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+.section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ─── GOOGLE SERVICES ROW ────────────────────────── */
+.google-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.g-card {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  transition: var(--transition);
+  text-align: center;
+}
+.g-card:hover {
+  border-color: var(--gold);
+  background: var(--surface2);
+  transform: translateY(-2px);
+  color: var(--gold);
+}
+.g-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.g-name { font-size: 11px; font-weight: 500; }
+
+/* ─── TOOL GRID ──────────────────────────────────── */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+}
+
+.tool-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  transition: var(--transition);
+  display: flex; flex-direction: column; gap: 10px;
+  cursor: pointer;
+}
+.tool-card:hover {
+  border-color: var(--border2);
+  background: var(--surface2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.tool-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.tool-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+}
+.tool-badges { display: flex; gap: 5px; flex-wrap: wrap; }
+.badge {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.badge-free { background: rgba(132,204,22,0.15); color: var(--lime); border: 1px solid rgba(132,204,22,0.3); }
+.badge-api  { background: rgba(56,189,248,0.12); color: var(--sky); border: 1px solid rgba(56,189,248,0.25); }
+.badge-hot  { background: rgba(255,75,110,0.12); color: var(--crimson); border: 1px solid rgba(255,75,110,0.25); }
+.badge-agent { background: rgba(139,92,246,0.12); color: var(--violet); border: 1px solid rgba(139,92,246,0.25); }
+.badge-ctx  { background: rgba(0,212,184,0.1); color: var(--teal); border: 1px solid rgba(0,212,184,0.25); }
+.badge-lab  { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.3); }
+
+.tool-desc { font-size: 11.5px; color: var(--muted); line-height: 1.55; }
+.tool-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+.tool-category { font-size: 9.5px; color: var(--dim); letter-spacing: 0.08em; text-transform: uppercase; }
+.tool-link {
+  font-size: 10px;
+  color: var(--gold);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  display: flex; align-items: center; gap: 3px;
+}
+.tool-link:hover { color: var(--gold2); }
+
+/* category accent lines */
+.tool-card[data-cat="chat"]     { border-left: 2px solid var(--teal); }
+.tool-card[data-cat="code"]     { border-left: 2px solid var(--violet); }
+.tool-card[data-cat="agent"]    { border-left: 2px solid var(--crimson); }
+.tool-card[data-cat="content"]  { border-left: 2px solid var(--orange); }
+.tool-card[data-cat="infra"]    { border-left: 2px solid var(--sky); }
+.tool-card[data-cat="data"]     { border-left: 2px solid var(--lime); }
+.tool-card[data-cat="market"]   { border-left: 2px solid var(--gold); }
+.tool-card[data-cat="pipeline"] { border-left: 2px solid var(--muted); }
+
+/* ─── FILTER BAR ─────────────────────────────────── */
+.filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--muted);
+  transition: var(--transition);
+}
+.filter-btn:hover, .filter-btn.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #08090b;
+}
+
+.search-bar {
+  display: flex; gap: 10px; margin-bottom: 14px;
+}
+.search-input {
+  flex: 1;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: var(--transition);
+}
+.search-input:focus { border-color: var(--gold); }
+.search-input::placeholder { color: var(--dim); }
+
+/* ─── HOSTING TABLE ──────────────────────────────── */
+.hosting-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.hosting-table { width: 100%; border-collapse: collapse; }
+.hosting-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+.hosting-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  vertical-align: top;
+}
+.hosting-table tr:last-child td { border-bottom: none; }
+.hosting-table tr:hover td { background: var(--surface2); }
+.hosting-name { font-weight: 600; color: var(--text); }
+.hosting-name a { color: inherit; }
+.hosting-name a:hover { color: var(--gold); }
+.hosting-tag {
+  display: inline-flex; align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ht-green  { background: rgba(132,204,22,0.12); color: var(--lime); }
+.ht-yellow { background: rgba(245,200,66,0.12); color: var(--gold); }
+.ht-red    { background: rgba(255,75,110,0.12); color: var(--crimson); }
+.ht-blue   { background: rgba(56,189,248,0.12); color: var(--sky); }
+.hosting-note { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+/* ─── WORKFLOW SECTION ───────────────────────────── */
+.workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.workflow-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.workflow-num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--border2);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.workflow-title {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+.workflow-body { font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+.workflow-steps { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+.workflow-step {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 11px; color: var(--muted);
+}
+.step-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold);
+  margin-top: 5px; flex-shrink: 0;
+}
+
+/* ─── CHAT APPS TABLE ────────────────────────────── */
+.chat-table-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.chat-table-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.chat-table-header {
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+}
+.chat-row {
+  display: flex; align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  transition: var(--transition);
+}
+.chat-row:last-child { border-bottom: none; }
+.chat-row:hover { background: var(--surface2); }
+.chat-rank {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dim);
+  width: 20px; flex-shrink: 0;
+}
+.chat-name { font-size: 12px; font-weight: 600; flex: 1; }
+.chat-name a { color: var(--text); }
+.chat-name a:hover { color: var(--gold); }
+.chat-detail { font-size: 10px; color: var(--muted); }
+.chat-ctx {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface3);
+  color: var(--teal);
+  border: 1px solid rgba(0,212,184,0.2);
+  white-space: nowrap;
+}
+
+/* ─── MARKET INTEL ──────────────────────────────── */
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.market-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.market-icon { font-size: 22px; margin-bottom: 10px; }
+.market-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.market-list { list-style: none; }
+.market-list li {
+  font-size: 11px;
+  color: var(--muted);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 7px;
+}
+.market-list li:last-child { border-bottom: none; }
+.market-list li::before {
+  content: '→';
+  color: var(--gold);
+  font-size: 10px; flex-shrink: 0;
+}
+
+/* ─── FOOTER ─────────────────────────────────────── */
+.footer {
+  margin-top: 48px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-left { font-size: 11px; color: var(--dim); }
+.footer-right { display: flex; gap: 16px; }
+.footer-link { font-size: 11px; color: var(--dim); transition: var(--transition); }
+.footer-link:hover { color: var(--gold); }
+
+/* ─── SCROLLBAR ──────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ─── RESPONSIVE ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; }
+  .chat-table-wrap { grid-template-columns: 1fr; }
+  .market-grid { grid-template-columns: 1fr; }
+  .hero-title { font-size: 30px; }
+}
+@media (max-width: 600px) {
+  .topbar { flex-wrap: wrap; gap: 8px; }
+  .shell { padding: 0 12px 40px; }
+  .topbar { margin: 0 -12px 24px; }
+}
+
+/* ─── ANIMATIONS ─────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero, .section-header, .tool-card, .chat-row, .hosting-table tr, .workflow-card, .market-card {
+  animation: fadeUp 0.4s ease both;
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">FACTORY<span> // Digital Assets</span></div>
+    <div class="status-pill">LIVE 2026</div>
+  </div>
+  <div class="topbar-right">
+    <div class="date-tag">JUN 2026</div>
+    <button class="theme-btn" onclick="toggleTheme()">⬤ TOGGLE LIGHT</button>
+  </div>
+</div>
+
+<div class="shell">
+
+<!-- ─── HERO ──────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-main">
+    <div class="hero-eyebrow">// Mission Control</div>
+    <h1 class="hero-title">Build.<br><em>Ship.</em><br>Scale.</h1>
+    <p class="hero-sub">Your command center for the full digital assets lifecycle — from first idea to recurring revenue. Every tool, link, and workflow you need, zero noise.</p>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-num">180+</span>
+        <span class="stat-label">Curated Tools</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">12</span>
+        <span class="stat-label">Asset Categories</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">Upside</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-launcher">
+    <div>
+      <div class="launcher-label">// Intelligence Launcher</div>
+      <div class="launcher-title">Multi-Model Blast</div>
+      <div class="launcher-desc">Fire a prompt to multiple AI nodes at once. Check targets below, paste your prompt, launch.</div>
+    </div>
+    <div class="launcher-input-row">
+      <input class="launcher-input" id="blast-input" placeholder="e.g. 'Find underserved gaps in AI productivity tools for freelancers'">
+      <button class="launch-btn" onclick="launchBlast()">LAUNCH</button>
+    </div>
+    <div id="target-chips" class="launcher-targets"></div>
+    <div style="font-size:10px;color:var(--dim);">* Allow pop-ups in browser settings for multi-launch</div>
+  </div>
+</div>
+
+<!-- ─── GOOGLE ECOSYSTEM ───────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Core</div>
+  <div class="section-title">Google Ecosystem + Essential Hubs</div>
+  <div class="section-line"></div>
+</div>
+
+<div class="google-row" id="google-grid"></div>
+
+<!-- ─── AI TOOLS ──────────────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Arsenal</div>
+  <div class="section-title">AI Tool Matrix</div>
+  <div class="section-line"></div>
+</div>
+
+<div class="search-bar">
+  <input class="search-input" id="tool-search" placeholder="Search tools, categories, capabilities..." oninput="filterTools()">
+</div>
+<div class="filter-bar" id="filter-bar"></div>
+<div class="tool-grid" id="tool-grid"></div>
+
+<!-- ─── CHAT APPS ──────────────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Brains</div>
+  <div class="section-title">Chat Intelligence: Best Free Tiers & Largest Contexts</div>
+  <div class="section-line"></div>
+</div>
+<div class="chat-table-wrap" id="chat-tables"></div>
+
+<!-- ─── HOSTING ──────────────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Infrastructure</div>
+  <div class="section-title">Deployment & Hosting — Generous Free Tiers</div>
+  <div class="section-line"></div>
+</div>
+<div class="hosting-table-wrap">
+  <table class="hosting-table" id="hosting-table">
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Free Tier</th>
+        <th>Best For</th>
+        <th>AI/Agent Ready</th>
+        <th>Notes 2026</th>
+      </tr>
+    </thead>
+    <tbody id="hosting-body"></tbody>
+  </table>
+</div>
+
+<!-- ─── WORKFLOWS ──────────────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Playbook</div>
+  <div class="section-title">Reusable Agentic Workflows</div>
+  <div class="section-line"></div>
+</div>
+<div class="workflow-grid" id="workflow-grid"></div>
+
+<!-- ─── MARKET INTEL ──────────────────────────────── -->
+<div class="section-header">
+  <div class="section-tag">// Alpha</div>
+  <div class="section-title">Market Gaps & Opportunity Intel</div>
+  <div class="section-line"></div>
+</div>
+<div class="market-grid" id="market-grid"></div>
+
+<!-- ─── FOOTER ────────────────────────────────────── -->
+<div class="footer">
+  <div class="footer-left">FACTORY // Digital Assets Command · Updated June 2026</div>
+  <div class="footer-right">
+    <a class="footer-link" href="https://github.com" target="_blank">GitHub</a>
+    <a class="footer-link" href="https://notebooklm.google.com" target="_blank">NotebookLM</a>
+    <a class="footer-link" href="https://aistudio.google.com" target="_blank">AI Studio</a>
+  </div>
+</div>
+
+</div><!-- /shell -->
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+
+const GOOGLE_SERVICES = [
+  { name: "Search", icon: "🔍", url: "https://www.google.com", color: "#4285f4" },
+  { name: "Gmail", icon: "📧", url: "https://mail.google.com", color: "#ea4335" },
+  { name: "Drive", icon: "💾", url: "https://drive.google.com", color: "#fbbc04" },
+  { name: "Docs", icon: "📄", url: "https://docs.google.com", color: "#4285f4" },
+  { name: "Sheets", icon: "📊", url: "https://sheets.google.com", color: "#0f9d58" },
+  { name: "NotebookLM", icon: "🧠", url: "https://notebooklm.google.com", color: "#00d4b8" },
+  { name: "AI Studio", icon: "⚗️", url: "https://aistudio.google.com", color: "#8b5cf6" },
+  { name: "Gemini", icon: "♊", url: "https://gemini.google.com", color: "#4285f4" },
+  { name: "Colab", icon: "⚡", url: "https://colab.research.google.com", color: "#f9ab00" },
+  { name: "Analytics", icon: "📈", url: "https://analytics.google.com", color: "#e37400" },
+  { name: "GitHub", icon: "🐙", url: "https://github.com", color: "#6e40c9" },
+  { name: "Supabase", icon: "🔋", url: "https://supabase.com", color: "#3ecf8e" },
+];
+
+const BLAST_TARGETS = [
+  { name: "Gemini", url: "https://gemini.google.com/app?q=", id: "gemini" },
+  { name: "ChatGPT", url: "https://chat.openai.com/?q=", id: "chatgpt" },
+  { name: "Claude", url: "https://claude.ai/", id: "claude" },
+  { name: "Perplexity", url: "https://www.perplexity.ai/?q=", id: "perplexity" },
+  { name: "DeepSeek", url: "https://chat.deepseek.com/?q=", id: "deepseek" },
+  { name: "Groq", url: "https://groq.com/", id: "groq" },
+  { name: "Genspark", url: "https://www.genspark.ai/search?q=", id: "genspark" },
+];
+
+const TOOLS = [
+  // Chat/Intelligence
+  { name: "Claude", cat: "chat", url: "https://claude.ai", badges: ["free","ctx","api"], desc: "Best for long-form reasoning, nuanced writing, coding. 200K context. Anthropic's flagship — strongest for complex iterative creation tasks." },
+  { name: "ChatGPT / GPT-4o", cat: "chat", url: "https://chat.openai.com", badges: ["free","api","hot"], desc: "Industry-standard. DALL-E 3, Advanced Voice, GPT-5 reasoning. Broadest ecosystem of plugins and integrations." },
+  { name: "Google Gemini", cat: "chat", url: "https://gemini.google.com", badges: ["free","ctx"], desc: "1M token context window. Native Google Workspace integration. Unrivaled for processing full codebases, long docs, video." },
+  { name: "Grok 3", cat: "chat", url: "https://grok.com", badges: ["free","hot"], desc: "Real-time X/web data. Unfiltered, fast, great for trend-spotting and competitive research. DeepSearch for multi-step web research." },
+  { name: "DeepSeek V3/R1", cat: "chat", url: "https://chat.deepseek.com", badges: ["free","api"], desc: "Elite coding and math reasoning at near-zero cost. Open source. The sleeper pick for high-volume agentic pipelines." },
+  { name: "Perplexity AI", cat: "chat", url: "https://www.perplexity.ai", badges: ["free","api"], desc: "Cited real-time research. 'Pro Search' decomposes multi-step queries. Essential for market research and competitive intelligence." },
+  { name: "Mistral Le Chat", cat: "chat", url: "https://chat.mistral.ai", badges: ["free","api"], desc: "Fast, European, private. Mistral Large + Flash modes. Strong for structured JSON outputs and enterprise-grade tasks." },
+  { name: "Genspark", cat: "chat", url: "https://www.genspark.ai", badges: ["free","hot"], desc: "Multi-agent AI search engine that synthesizes custom pages. Best tool for gap analysis and discovering underserved niches." },
+  { name: "HuggingFace Chat", cat: "chat", url: "https://huggingface.co/chat", badges: ["free","api"], desc: "Run Llama, Qwen, Mistral, Command-R for free. Model experimentation hub — test before committing to paid APIs." },
+  { name: "Poe", cat: "chat", url: "https://poe.com", badges: ["free"], desc: "One interface for Claude, GPT-4, Gemini, Llama and 50+ others. Build and monetize your own AI bots. Great for rapid comparison." },
+  { name: "Groq", cat: "chat", url: "https://groq.com", badges: ["free","api"], desc: "Fastest inference available — Llama, Mixtral at 500+ tokens/sec. Critical for real-time agent pipelines where latency kills UX." },
+
+  // Vibe Coding / Software Factory
+  { name: "Cursor", cat: "code", url: "https://cursor.sh", badges: ["hot","api"], desc: "The #1 AI code editor. $2B ARR in 2026. Composer + Agent Mode edits entire codebases from a prompt. The de-facto software factory." },
+  { name: "Claude Code", cat: "code", url: "https://claude.ai/code", badges: ["hot","agent"], desc: "Anthropic's terminal-based agentic coder. Full codebase awareness, git management, multi-step autonomous execution. Best for harness engineering." },
+  { name: "Windsurf", cat: "code", url: "https://codeium.com/windsurf", badges: ["free"], desc: "Cascade agent explains reasoning step-by-step. $15/mo. Ideal for legacy code and transparent refactors. Strong for team audits." },
+  { name: "v0 by Vercel", cat: "code", url: "https://v0.dev", badges: ["free","hot"], desc: "Prompt → production-ready frontend code instantly. Sync to GitHub, deploy to Vercel. The fastest path from idea to shipped UI." },
+  { name: "Antigravity", cat: "code", url: "https://antigravity.dev", badges: ["hot","agent"], desc: "Karpathy-endorsed multi-agent dev platform. Manager View runs parallel agents on different features simultaneously. 2026's breakout tool." },
+  { name: "Bolt.new", cat: "code", url: "https://bolt.new", badges: ["free","hot"], desc: "Full-stack app from a prompt. Backend, auth, DB, deployment — one-shot. Best for SaaS MVPs you need live in under an hour." },
+  { name: "Replit Agent", cat: "code", url: "https://replit.com", badges: ["free","agent"], desc: "Collaborative cloud IDE + AI agent. Instant deployment, always-on. Best for prototypes that need to be shareable immediately." },
+  { name: "GitHub Copilot", cat: "code", url: "https://github.com/features/copilot", badges: ["api"], desc: "Deep GitHub integration. Workspace agent understands whole repos. 2026: now includes PR review, issue triage, security scanning." },
+  { name: "Emergent", cat: "code", url: "https://emergent.sh", badges: ["free","agent"], desc: "Multi-agent full-stack builder. Specialized agents for frontend, backend, auth, payments, DB. Native Android/iOS from one codebase." },
+
+  // AI Agents & Automation
+  { name: "n8n", cat: "agent", url: "https://n8n.io", badges: ["free","api","agent"], desc: "Open-source agentic automation. Self-hostable, 400+ integrations, full LLM node support. The harness engineering workhorse." },
+  { name: "Make (Integromat)", cat: "agent", url: "https://make.com", badges: ["free","agent"], desc: "Visual workflow automation with AI modules. Complex scenario builder. 1500+ app connections. Best no-code agent orchestration." },
+  { name: "Zapier Agents", cat: "agent", url: "https://zapier.com/agents", badges: ["agent"], desc: "AI agents that trigger automations on natural language instructions. 6000+ app integrations. The enterprise automation layer." },
+  { name: "Mastra", cat: "agent", url: "https://mastra.ai", badges: ["free","api","agent"], desc: "TypeScript-native agent framework by Gatsby creators. Memory, tool calling, workflow orchestration. Best for JS/TS software factories." },
+  { name: "Composio", cat: "agent", url: "https://composio.dev", badges: ["free","api","agent"], desc: "Agent connectivity layer. 3000+ API integrations, auth handling, error recovery. The reliability glue between agents and external tools." },
+  { name: "LangGraph", cat: "agent", url: "https://langchain-ai.github.io/langgraph", badges: ["free","api","agent"], desc: "Build stateful multi-actor agent systems. Cycles, persistence, human-in-the-loop. The gold standard for production agent harnesses." },
+  { name: "Dify.ai", cat: "agent", url: "https://dify.ai", badges: ["free","api","agent"], desc: "RAG pipeline to deployed agent in one visual platform. Full stack: ingestion, retrieval, orchestration, monitoring. Self-hostable." },
+  { name: "CrewAI", cat: "agent", url: "https://crewai.com", badges: ["free","api","agent"], desc: "Multi-agent role-based framework. Define crews with specialized roles, delegate tasks, orchestrate complex research and creation pipelines." },
+  { name: "Manus AI", cat: "agent", url: "https://manus.im", badges: ["free","hot","agent"], desc: "General-purpose autonomous agent. 29 built-in tools for web browsing, coding, data analysis. Decomposes goals into subtasks independently." },
+
+  // Digital Content Creation
+  { name: "ElevenLabs", cat: "content", url: "https://elevenlabs.io", badges: ["free","api","hot"], desc: "Hyper-realistic voice cloning and TTS. 1000+ voices, 29 languages, near-zero latency. The audio layer for courses, podcasts, avatars." },
+  { name: "Runway ML", cat: "content", url: "https://runwayml.com", badges: ["api","hot"], desc: "Gen-3 video generation, motion brush, inpainting. Leading creative AI for video products, ads, course B-roll, digital art." },
+  { name: "Midjourney", cat: "content", url: "https://midjourney.com", badges: ["hot"], desc: "Best image quality for commercial assets. V7 delivers consistent characters and brand assets. Non-negotiable for visual digital products." },
+  { name: "Gamma", cat: "content", url: "https://gamma.app", badges: ["free","hot"], desc: "Prompt → polished presentation/doc/webpage in seconds. Cards-based AI layouts. Best for rapid course decks and lead magnets." },
+  { name: "Canva AI", cat: "content", url: "https://canva.com", badges: ["free","hot"], desc: "Magic Studio: Dream Lab, Magic Write, AI video. The production layer for non-designers. Publish direct to social, print, web." },
+  { name: "Synthesia", cat: "content", url: "https://synthesia.io", badges: ["api"], desc: "Text → AI avatar video in 60+ languages. Scalable course production without cameras. Enterprise-grade e-learning factory tool." },
+  { name: "Descript", cat: "content", url: "https://descript.com", badges: ["free"], desc: "Edit audio/video like a Google Doc. AI filler-word removal, overdub, screen recording. Best for podcast and course post-production." },
+  { name: "Notion AI", cat: "content", url: "https://notion.so", badges: ["free","api"], desc: "AI inside your knowledge base. Draft, summarize, generate template structures. Build and sell Notion templates with AI assistance." },
+  { name: "Adobe Firefly", cat: "content", url: "https://firefly.adobe.com", badges: ["free","api"], desc: "Commercially safe AI image & vector generation trained on licensed content. Non-negotiable for any asset you'll sell or license." },
+
+  // Data Products & APIs
+  { name: "Supabase", cat: "data", url: "https://supabase.com", badges: ["free","api"], desc: "Open-source Firebase alternative. Postgres + auth + storage + edge functions. The data backbone for AI-powered SaaS products." },
+  { name: "Pinecone", cat: "data", url: "https://pinecone.io", badges: ["free","api"], desc: "Managed vector database. The memory layer for RAG systems, semantic search, and personalized AI products. Generous free starter." },
+  { name: "Weaviate", cat: "data", url: "https://weaviate.io", badges: ["free","api"], desc: "Open-source vector DB with hybrid search. Self-hostable. Best for building and selling AI-search-powered data products." },
+  { name: "Browserbase", cat: "data", url: "https://browserbase.com", badges: ["api","agent"], desc: "Headless browser infrastructure for AI agents. Run web scraping and automation at scale. The data harvesting layer for data products." },
+  { name: "Apify", cat: "data", url: "https://apify.com", badges: ["free","api","agent"], desc: "Web scraping and automation platform. 2000+ pre-built scrapers. Sell data products or feed AI agents with fresh structured data." },
+
+  // Model Marketplaces & API Hubs
+  { name: "OpenRouter", cat: "market", url: "https://openrouter.ai", badges: ["api","hot"], desc: "Single API for 100+ models. Compare costs, latency, capability. Route to cheapest model that meets your quality bar. Token maximizer." },
+  { name: "Together AI", cat: "market", url: "https://together.ai", badges: ["free","api"], desc: "Cheapest inference for open models. Llama, Qwen, Mistral at 2-8x lower cost than OpenAI. Best for high-volume agent pipelines." },
+  { name: "Replicate", cat: "market", url: "https://replicate.com", badges: ["api"], desc: "Deploy any open-source AI model via API. 10K+ models including image, video, audio, code. Pay-per-run. Best for niche model deployment." },
+  { name: "Hugging Face Hub", cat: "market", url: "https://huggingface.co", badges: ["free","api"], desc: "The GitHub of AI. 500K+ models, datasets, spaces. Source for fine-tuning, distillation, and building proprietary model products." },
+  { name: "GitHub Model Catalog", cat: "market", url: "https://github.com/marketplace?type=models", badges: ["free","api"], desc: "Free access to GPT-4o, Llama, Mistral and more via GitHub token. Underrated free tier for prototyping and eval pipelines." },
+  { name: "Fireworks AI", cat: "market", url: "https://fireworks.ai", badges: ["api","hot"], desc: "Ultra-fast open model inference. FireLLaVA, Mixtral at production speed. Structured output enforcement. Best for JSON-returning agents." },
+
+  // Eval & Pipeline
+  { name: "LangSmith", cat: "pipeline", url: "https://smith.langchain.com", badges: ["free","api"], desc: "Traces, evals, datasets, prompts — all in one. The observability layer for agentic systems. Track latency, tool call ratios, solve rates." },
+  { name: "Braintrust", cat: "pipeline", url: "https://braintrust.dev", badges: ["free","api"], desc: "Iterative eval creation platform. Reports feed back into test cases. Run evals across models, track regression, ship with confidence." },
+  { name: "Weights & Biases", cat: "pipeline", url: "https://wandb.ai", badges: ["free","api"], desc: "MLOps platform for experiment tracking, model versioning, prompt management. The mission control for evolving AI pipelines." },
+  { name: "Helicone", cat: "pipeline", url: "https://helicone.ai", badges: ["free","api"], desc: "LLM observability proxy. One-line integration, cost tracking, caching, prompt experiments. 10x your tokens with smart caching." },
+];
+
+const CHAT_TABLES = {
+  free: [
+    { rank:1, name:"Google Gemini Flash", url:"https://gemini.google.com", detail:"Unlimited on Flash tier", ctx:"1M tokens" },
+    { rank:2, name:"DeepSeek V3", url:"https://chat.deepseek.com", detail:"High daily caps, near-unlimited", ctx:"128K tokens" },
+    { rank:3, name:"Meta AI (Llama)", url:"https://meta.ai", detail:"Free, web-connected", ctx:"128K tokens" },
+    { rank:4, name:"Groq (Llama/Mixtral)", url:"https://groq.com", detail:"Instant inference, daily limits", ctx:"128K tokens" },
+    { rank:5, name:"HuggingFace Chat", url:"https://huggingface.co/chat", detail:"Open weights, fully free", ctx:"32K–128K" },
+    { rank:6, name:"Mistral Le Chat", url:"https://chat.mistral.ai", detail:"Medium free tier", ctx:"128K tokens" },
+    { rank:7, name:"GitHub Models", url:"https://github.com/marketplace?type=models", detail:"GPT-4o free via GitHub token", ctx:"128K tokens" },
+  ],
+  smart: [
+    { rank:1, name:"Claude Opus 4", url:"https://claude.ai", detail:"Best reasoning, long-form", ctx:"200K tokens" },
+    { rank:2, name:"ChatGPT o3 / GPT-5", url:"https://chat.openai.com", detail:"Elite multi-step reasoning", ctx:"200K tokens" },
+    { rank:3, name:"Gemini 2.5 Pro", url:"https://gemini.google.com", detail:"Top benchmark scores 2026", ctx:"1M tokens" },
+    { rank:4, name:"DeepSeek R1", url:"https://chat.deepseek.com", detail:"Best open-source reasoner", ctx:"128K tokens" },
+    { rank:5, name:"Grok 3", url:"https://grok.com", detail:"Real-time data, deep search", ctx:"131K tokens" },
+    { rank:6, name:"Perplexity Pro", url:"https://perplexity.ai", detail:"Best cited research", ctx:"128K tokens" },
+  ],
+  context: [
+    { rank:1, name:"Google Gemini 2.5", url:"https://gemini.google.com", detail:"Process full codebases, docs", ctx:"1M tokens" },
+    { rank:2, name:"Claude Opus/Sonnet 4", url:"https://claude.ai", detail:"Deep long-context reasoning", ctx:"200K tokens" },
+    { rank:3, name:"ChatGPT-4o Turbo", url:"https://chat.openai.com", detail:"Projects + Memory system", ctx:"200K tokens" },
+    { rank:4, name:"Cohere Command R+", url:"https://cohere.com", detail:"Best RAG with 128K context", ctx:"128K tokens" },
+    { rank:5, name:"Mistral Large 2", url:"https://chat.mistral.ai", detail:"Efficient European model", ctx:"128K tokens" },
+  ],
+};
+
+const HOSTING = [
+  { name:"Vercel", url:"https://vercel.com", tier:"green", tierLabel:"Generous", bestFor:"Next.js, React, Edge Functions", aiReady:"✓ AI SDK, v0", notes:"100GB bandwidth, 1M serverless invocations. Best Next.js host. Hobby plan: non-commercial only." },
+  { name:"Render", url:"https://render.com", tier:"green", tierLabel:"Best Always-Free", bestFor:"Full-stack apps, APIs, Python", aiReady:"✓ Docker, Python agents", notes:"Free web service (512MB RAM) + free PostgreSQL. No credit card required. Apps spin down on inactivity." },
+  { name:"Cloudflare Workers", url:"https://workers.cloudflare.com", tier:"green", tierLabel:"Most Generous Static", bestFor:"Edge computing, AI inference", aiReady:"✓ Workers AI, KV, Vectorize", notes:"Unlimited bandwidth. 100K requests/day free. Workers AI: run LLMs at the edge for free." },
+  { name:"Supabase", url:"https://supabase.com", tier:"green", tierLabel:"Full Backend Free", bestFor:"Postgres DB, Auth, Storage, Edge", aiReady:"✓ pgvector, Edge Functions", notes:"2 free projects, 500MB DB, 1GB storage. The #1 backend for AI-powered SaaS." },
+  { name:"Netlify", url:"https://netlify.com", tier:"yellow", tierLabel:"Credit-Based", bestFor:"JAMstack, static sites", aiReady:"Partial", notes:"2026: 300 credits/month. Watch credit burn rate. Beginner plan blocks external API calls — critical limitation." },
+  { name:"HuggingFace Spaces", url:"https://huggingface.co/spaces", tier:"green", tierLabel:"Free GPU Access", bestFor:"AI model demos, Gradio/Streamlit", aiReady:"✓ GPU, inference API", notes:"Free CPU Spaces + subsidized GPU. Best for deploying AI demos, agents, and model UIs instantly." },
+  { name:"Google Cloud Run", url:"https://cloud.google.com/run", tier:"yellow", tierLabel:"Pay-per-use", bestFor:"Containerized agents, APIs", aiReady:"✓ Vertex AI integration", notes:"2M requests/month free. Scale to zero. Best for sporadic agent workloads on GCP stack." },
+  { name:"Koyeb", url:"https://koyeb.com", tier:"green", tierLabel:"Sleeper Pick", bestFor:"Full-stack + Postgres free", aiReady:"✓ Docker, scale-to-zero", notes:"1 vCPU + 512MB RAM + free Postgres. No credit card. Scale-to-zero. Underrated for AI APIs." },
+  { name:"Oracle Cloud Always Free", url:"https://oracle.com/cloud/free", tier:"green", tierLabel:"Always Free VMs", bestFor:"Self-hosted agents, VPS", aiReady:"✓ Any Docker workload", notes:"2 AMD VMs (1GB RAM each) + 1 ARM VM (4 CPUs, 24GB RAM) — permanently free. Best for self-hosting n8n, Dify, Coolify." },
+  { name:"Railway", url:"https://railway.app", tier:"yellow", tierLabel:"Trial Credits", bestFor:"Full-stack prototyping", aiReady:"✓ Docker, fast deploys", notes:"2026: $5 trial credit (not unlimited). Great DX but no longer always-free. Usage-based after trial." },
+  { name:"Fly.io", url:"https://fly.io", tier:"red", tierLabel:"Paid Only (2026)", bestFor:"Global edge VMs", aiReady:"✓ GPU instances available", notes:"No free tier for new accounts in 2026. ~$2/mo for smallest VM. Worth it for latency-sensitive agents." },
+  { name:"GitHub Pages", url:"https://pages.github.com", tier:"green", tierLabel:"Forever Free", bestFor:"Static dashboards, docs", aiReady:"Partial (static only)", notes:"100GB bandwidth/month, 10 site builds/hour. Perfect for deploying this dashboard and static AI tools." },
+];
+
+const WORKFLOWS = [
+  { num:"01", title:"Idea → Validated Asset", steps:["Perplexity / Genspark: gap research prompt", "Claude/GPT-5: pain point synthesis + ICP definition", "v0 / Gamma: MVP landing page in 30min", "Stripe: payment link before building", "Validate demand before writing a line of code"] },
+  { num:"02", title:"Reusable Prompt Harness", steps:["Define system prompt as a persistent context file", "Store in GitHub + Notion as a living document", "Version with git tags (harness v1.0, v1.1…)", "CI/CD: auto-inject into agent on every deploy", "Evolve based on LangSmith trace analysis"] },
+  { num:"03", title:"Content Factory Pipeline", steps:["Claude: outline + script generation from topic brief", "ElevenLabs: narration audio from script", "Runway/Synthesia: visuals + avatar video", "Descript: edit, clip, repurpose", "Gamma: companion slide deck auto-generated"] },
+  { num:"04", title:"Automated Eval Loop", steps:["LangSmith: capture all traces in production", "Braintrust: curate failing traces into eval dataset", "Weekly: run evals across model versions", "Report → new test cases (iterative eval creation)", "Gate deploys on: correctness, latency, solve rate"] },
+  { num:"05", title:"Multi-Agent Software Factory", steps:["Antigravity/CrewAI: define agent roles (PM, dev, QA)", "Cursor Agent: implementation parallel to tests", "Claude Code: autonomous PR creation and review", "GitHub Actions: CI gate — eval must pass to merge", "Helicone: monitor token cost and cache hit rate"] },
+  { num:"06", title:"Go-To-Market Automation", steps:["Genspark: competitor gap analysis", "Claude: positioning + differentiation copy", "Canva AI: visual assets + social kit", "Zapier/n8n: auto-publish to all channels on launch", "Customer.io: automated drip sequence on signup"] },
+];
+
+const MARKET_INTEL = [
+  { icon:"🎯", title:"Highest-Signal Gaps 2026", items:["AI-native course engines (not LMS wrappers)", "Vertical-specific agent harnesses (legal, medical, finance)", "Niche model fine-tuning for SMB use cases", "AI audit/eval tooling for non-technical teams", "Cross-model prompt libraries with evals included"] },
+  { icon:"💰", title:"Underpriced Capabilities", items:["Groq: fastest inference, most underused for agents", "Oracle Cloud: 24GB ARM VM — forever free", "GitHub Models: GPT-4o free via GitHub token", "Fireworks AI: 2-5x cheaper than OpenAI for JSON output", "Together AI: open models at 8x cost reduction vs OpenAI"] },
+  { icon:"🚀", title:"Move 37 Opportunities", items:["Agentic harnesses as SaaS products (not just apps)", "AI-assisted template businesses (Notion, Airtable, Figma)", "Voice-first digital products (ElevenLabs + content)", "Data-as-a-product from Apify/Browserbase pipelines", "Role-focused AI assistants for underserved professions"] },
+  { icon:"📡", title:"Token Maxxing Strategies", items:["OpenRouter: route to cheapest model per task type", "Helicone caching: 10x reuse on repeated prompts", "Prompt compression: gzip-style context summarization", "Tiered model use: fast/cheap for draft, best for final", "Batch API (OpenAI/Anthropic): 50% cost reduction"] },
+  { icon:"🔬", title:"Google Labs Experiments", items:["AI Studio: Gemini 2.5 Pro for free (rate-limited)", "NotebookLM: research synthesis + podcast generation", "Colab: free T4 GPU for model fine-tuning", "Project Mariner: browser agent (invite-only)", "Vertex AI: enterprise RAG with free $300 credit"] },
+  { icon:"⚙️", title:"Role-Focused Stacks", items:["Solo creator: Claude + Gamma + Canva + ElevenLabs + Gumroad", "Developer: Cursor + Claude Code + Supabase + Vercel", "Researcher: Perplexity + NotebookLM + Genspark + LangSmith", "Marketer: ChatGPT + Canva AI + Make + Customer.io", "Data founder: Apify + Weaviate + Fireworks + Supabase"] },
+];
+
+// ─── RENDER FUNCTIONS ──────────────────────────────
+
+function renderGoogleGrid() {
+  const grid = document.getElementById('google-grid');
+  grid.innerHTML = GOOGLE_SERVICES.map(s => `
+    <a class="g-card" href="${s.url}" target="_blank">
+      <div class="g-icon" style="background:${s.color}22;border:1px solid ${s.color}44">${s.icon}</div>
+      <div class="g-name">${s.name}</div>
+    </a>
+  `).join('');
+}
+
+function renderBlastTargets() {
+  const container = document.getElementById('target-chips');
+  container.innerHTML = BLAST_TARGETS.map(t => `
+    <label class="target-chip active" id="chip-${t.id}">
+      <input type="checkbox" checked onchange="toggleChip('${t.id}', this)"> ${t.name}
+    </label>
+  `).join('');
+}
+
+const activeTargets = new Set(BLAST_TARGETS.map(t => t.id));
+function toggleChip(id, el) {
+  el.checked ? activeTargets.add(id) : activeTargets.delete(id);
+  document.getElementById('chip-'+id).classList.toggle('active', el.checked);
+}
+
+function launchBlast() {
+  const q = encodeURIComponent(document.getElementById('blast-input').value.trim());
+  if (!q) { alert('Enter a prompt first.'); return; }
+  BLAST_TARGETS.filter(t => activeTargets.has(t.id)).forEach(t => {
+    window.open(t.url + q, '_blank');
+  });
+}
+
+let activeFilter = 'all';
+function renderFilterBar() {
+  const cats = ['all','chat','code','agent','content','data','market','pipeline'];
+  const labels = { all:'All Tools', chat:'Chat AI', code:'Vibe Code', agent:'Agents', content:'Content', data:'Data/APIs', market:'Model Markets', pipeline:'Eval/Ops' };
+  document.getElementById('filter-bar').innerHTML = cats.map(c => `
+    <button class="filter-btn${c==='all'?' active':''}" onclick="setFilter('${c}')" data-cat="${c}">${labels[c]}</button>
+  `).join('');
+}
+
+function setFilter(cat) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderTools();
+}
+
+function renderTools() {
+  const q = document.getElementById('tool-search').value.toLowerCase();
+  const filtered = TOOLS.filter(t => {
+    const matchCat = activeFilter === 'all' || t.cat === activeFilter;
+    const matchQ = !q || t.name.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q) || t.cat.includes(q);
+    return matchCat && matchQ;
+  });
+  document.getElementById('tool-grid').innerHTML = filtered.map((t,i) => `
+    <div class="tool-card" data-cat="${t.cat}" style="animation-delay:${i*0.03}s" onclick="window.open('${t.url}','_blank')">
+      <div class="tool-card-top">
+        <div class="tool-name">${t.name}</div>
+        <div class="tool-badges">${t.badges.map(b=>`<span class="badge badge-${b}">${b}</span>`).join('')}</div>
+      </div>
+      <div class="tool-desc">${t.desc}</div>
+      <div class="tool-footer">
+        <span class="tool-category">${t.cat}</span>
+        <a class="tool-link" href="${t.url}" target="_blank" onclick="event.stopPropagation()">Open →</a>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterTools() { renderTools(); }
+
+function renderChatTables() {
+  const container = document.getElementById('chat-tables');
+  const sections = [
+    { key:'free', title:'⚡ Best Free Tiers' },
+    { key:'context', title:'🧠 Largest Context Windows' },
+    { key:'smart', title:'🏆 Smartest Models 2026' },
+  ];
+  const allSections = [...sections];
+  container.style.gridTemplateColumns = `repeat(${Math.min(allSections.length,2)}, 1fr)`;
+  container.innerHTML = allSections.map(s => `
+    <div class="chat-table-box">
+      <div class="chat-table-header">${s.title}</div>
+      ${CHAT_TABLES[s.key].map(r => `
+        <div class="chat-row">
+          <div class="chat-rank">${r.rank}</div>
+          <div class="chat-name"><a href="${r.url}" target="_blank">${r.name}</a><br><span class="chat-detail">${r.detail}</span></div>
+          <div class="chat-ctx">${r.ctx}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderHosting() {
+  const body = document.getElementById('hosting-body');
+  body.innerHTML = HOSTING.map(h => `
+    <tr>
+      <td><div class="hosting-name"><a href="${h.url}" target="_blank">${h.name}</a></div></td>
+      <td><span class="hosting-tag ht-${h.tier}">${h.tierLabel}</span></td>
+      <td><div class="hosting-note">${h.bestFor}</div></td>
+      <td><div class="hosting-note">${h.aiReady}</div></td>
+      <td><div class="hosting-note">${h.notes}</div></td>
+    </tr>
+  `).join('');
+}
+
+function renderWorkflows() {
+  document.getElementById('workflow-grid').innerHTML = WORKFLOWS.map((w,i) => `
+    <div class="workflow-card" style="animation-delay:${i*0.05}s">
+      <div class="workflow-num">${w.num}</div>
+      <div class="workflow-title">${w.title}</div>
+      <div class="workflow-steps">
+        ${w.steps.map(s=>`<div class="workflow-step"><div class="step-dot"></div><div>${s}</div></div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMarket() {
+  document.getElementById('market-grid').innerHTML = MARKET_INTEL.map(m => `
+    <div class="market-card">
+      <div class="market-icon">${m.icon}</div>
+      <div class="market-title">${m.title}</div>
+      <ul class="market-list">
+        ${m.items.map(i=>`<li>${i}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.querySelector('.theme-btn').textContent = isDark ? '⬤ TOGGLE DARK' : '⬤ TOGGLE LIGHT';
+}
+
+// ─── INIT ─────────────────────────────────────────
+renderGoogleGrid();
+renderBlastTargets();
+renderFilterBar();
+renderTools();
+renderChatTables();
+renderHosting();
+renderWorkflows();
+renderMarket();
+</script>
+</body>
+</html>

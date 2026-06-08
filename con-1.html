@@ -134,7 +134,6 @@
             padding: 15px;
             position: relative;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            cursor: pointer;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -143,7 +142,6 @@
 
         .service-card:hover {
             border-color: var(--accent-glow);
-            transform: scale(1.02);
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
         }
 
@@ -196,21 +194,23 @@
             background: linear-gradient(135deg, #0055ff, #00ffcc);
             color: #fff;
             border: none;
-            padding: 5px 12px;
+            padding: 6px 14px;
             font-size: 11px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
+            transition: transform 0.1s;
         }
 
-        /* Live Indicator */
-        .indicator {
-            width: 6px;
-            height: 6px;
-            background-color: var(--accent-glow);
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px var(--accent-glow);
+        .fire-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Hidden input helper for rock-solid clipboard copying */
+        #clipboardHelper {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
         }
 
         /* Animations */
@@ -231,10 +231,12 @@
     <header>
         <h1>⚡ AI INFERENCE SUPERSTACK HARNESS</h1>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="indicator"></span>
-            <span style="font-size: 12px; color: var(--text-muted); font-family: monospace;">READY TO ORCHESTRATE</span>
+            <span class="indicator" id="statusDot"></span>
+            <span id="statusText" style="font-size: 12px; color: var(--text-muted); font-family: monospace;">READY TO ORCHESTRATE</span>
         </div>
     </header>
+
+    <textarea id="clipboardHelper"></textarea>
 
     <div class="container">
         <div class="harness-panel">
@@ -253,7 +255,7 @@
             <textarea class="prompt-box" id="activeInstruction" placeholder="What task are we launching across the stacks?"></textarea>
 
             <div style="margin-top: auto; font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                <strong style="color: #fff;">Superhuman Execution Flow:</strong> Choosing an inference target automatically packages your context + template instruction into your system clipboard and opens the endpoint target directly.
+                <strong style="color: #fff;">Superhuman Execution Flow:</strong> Clicking <strong>EXECUTE</strong> explicitly triggers the browser's clipboard engine to grab your context stacks, then fires open the target web space.
             </div>
         </div>
 
@@ -304,7 +306,6 @@
                 const card = document.createElement('div');
                 card.className = 'service-card';
                 card.setAttribute('data-tier', srv.tier);
-                card.onclick = () => fireHarness(srv.url);
 
                 card.innerHTML = `
                     <div class="card-header">
@@ -313,15 +314,18 @@
                     </div>
                     <div class="service-desc">${srv.desc}</div>
                     <div class="action-bar">
-                        <span class="quick-tag">LAUNCH -></span>
-                        <button class="fire-btn">EXECUTE</button>
+                        <span class="quick-tag">READY</span>
+                        <button class="fire-btn" onclick="fireHarness(event, '${srv.url}')">EXECUTE</button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function fireHarness(url) {
+        function fireHarness(event, url) {
+            // Stop bubble actions
+            event.stopPropagation();
+
             const context = document.getElementById('contextPayload').value;
             const instruction = document.getElementById('activeInstruction').value;
             
@@ -331,15 +335,40 @@
             if (context) completeStack += "=== CONTEXT DATA PAYLOAD ===\n" + context;
 
             if (completeStack.trim() !== "") {
+                // Primary Method: Modern Clipboard API
                 navigator.clipboard.writeText(completeStack).then(() => {
-                    console.log("Harness stack successfully written to system clipboard.");
+                    updateStatusTracker("COPIED & LAUNCHING...");
+                    window.open(url, '_blank');
                 }).catch(err => {
-                    console.error("Clipboard write blocked: ", err);
+                    // Fallback Method: Classic textarea text-selection execution
+                    console.warn("Clipboard API blocked, running legacy execution string fallback...");
+                    const helper = document.getElementById('clipboardHelper');
+                    helper.value = completeStack;
+                    helper.select();
+                    helper.setSelectionRange(0, 99999); // For mobile compatibility
+                    
+                    try {
+                        document.execCommand('copy');
+                        updateStatusTracker("COPIED (FALLBACK) & LAUNCHING...");
+                        window.open(url, '_blank');
+                    } catch (fallbackErr) {
+                        alert("Clipboard write failed. Please check browser tab permissions.");
+                    }
                 });
+            } else {
+                // Open anyway even if boxes are blank
+                window.open(url, '_blank');
             }
+        }
 
-            // Instantly trigger workspace target tab execution
-            window.open(url, '_blank');
+        function updateStatusTracker(msg) {
+            const txt = document.getElementById('statusText');
+            txt.innerText = msg;
+            txt.style.color = "#00ffcc";
+            setTimeout(() => {
+                txt.innerText = "READY TO ORCHESTRATE";
+                txt.style.color = "#94a3b8";
+            }, 2000);
         }
 
         // Initialize application layout

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Inference Harness Engine</title>
+    <title>AI Inference Harness Engine v1.1.0</title>
     <style>
         :root {
             --bg-color: #0a0f1d;
@@ -37,6 +37,12 @@
             margin-bottom: 25px;
         }
 
+        .brand-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
         h1 {
             font-size: 1.5rem;
             letter-spacing: 1px;
@@ -44,6 +50,13 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: pulseGlow 3s infinite alternate;
+        }
+
+        .build-tag {
+            font-family: monospace;
+            font-size: 11px;
+            color: #0077ff;
+            font-weight: bold;
         }
 
         .container {
@@ -229,7 +242,10 @@
 <body>
 
     <header>
-        <h1>⚡ AI INFERENCE SUPERSTACK HARNESS</h1>
+        <div class="brand-block">
+            <h1>⚡ AI INFERENCE SUPERSTACK HARNESS</h1>
+            <div class="build-tag">STACK_VERSION: 1.1.0-Beta (Direct Event Bound Click)</div>
+        </div>
         <div style="display: flex; align-items: center; gap: 10px;">
             <span class="indicator" id="statusDot"></span>
             <span id="statusText" style="font-size: 12px; color: var(--text-muted); font-family: monospace;">READY TO ORCHESTRATE</span>

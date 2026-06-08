@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Inference Harness Engine v1.1.0</title>
+    <title>AI Inference Harness Engine v1.2.0</title>
     <style>
         :root {
             --bg-color: #0a0f1d;
@@ -12,6 +12,7 @@
             --text-color: #e2e8f0;
             --text-muted: #94a3b8;
             --border-color: #232d45;
+            --error-color: #ff3366;
         }
 
         * {
@@ -61,7 +62,7 @@
 
         .container {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 380px 1fr;
             gap: 25px;
             height: calc(100vh - 100px);
         }
@@ -74,15 +75,17 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
         }
 
         .panel-title {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--accent-glow);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         textarea {
@@ -103,20 +106,35 @@
             border-color: var(--accent-glow);
         }
 
-        .context-box { height: 160px; }
-        .prompt-box { height: 100px; }
+        .context-box { height: 120px; }
+        .prompt-box { height: 80px; }
+
+        /* Real-time Diagnostics Terminal Widget */
+        .diagnostic-terminal {
+            background: #04070d;
+            border: 1px solid #1e293b;
+            border-radius: 6px;
+            height: 120px;
+            font-family: monospace;
+            font-size: 11px;
+            color: #38bdf8;
+            padding: 8px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
 
         .macro-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 6px;
         }
 
         .macro-btn {
             background: #1e293b;
             border: 1px solid var(--border-color);
             color: var(--text-color);
-            padding: 8px;
+            padding: 6px;
             font-size: 11px;
             border-radius: 4px;
             cursor: pointer;
@@ -127,7 +145,6 @@
             background: var(--accent-glow);
             color: #000;
             font-weight: bold;
-            transform: translateY(-1px);
         }
 
         /* Execution Grid Right Side */
@@ -155,7 +172,7 @@
 
         .service-card:hover {
             border-color: var(--accent-glow);
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);
         }
 
         .card-header {
@@ -176,11 +193,6 @@
             background: #1e293b;
             color: var(--text-muted);
             border: 1px solid var(--border-color);
-        }
-
-        .service-card[data-tier="Free Workhorse"] .tier-badge {
-            color: #00ffcc;
-            border-color: rgba(0, 255, 204, 0.4);
         }
 
         .service-desc {
@@ -207,16 +219,18 @@
             background: linear-gradient(135deg, #0055ff, #00ffcc);
             color: #fff;
             border: none;
-            padding: 6px 14px;
+            padding: 7px 16px;
             font-size: 11px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: all 0.1s ease;
         }
 
-        .fire-btn:active {
-            transform: scale(0.95);
+        /* Instant Click Visual Feedback Overrides */
+        .fire-btn.clicked-state {
+            background: linear-gradient(135deg, #ff0055, #ffcc00) !important;
+            transform: scale(0.92);
         }
 
         /* Hidden input helper for rock-solid clipboard copying */
@@ -226,17 +240,14 @@
             top: -9999px;
         }
 
-        /* Animations */
         @keyframes pulseGlow {
             0% { filter: drop-shadow(0 0 2px rgba(0,255,204,0.4)); }
             100% { filter: drop-shadow(0 0 10px rgba(0,255,204,0.8)); }
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-color); }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -244,10 +255,11 @@
     <header>
         <div class="brand-block">
             <h1>⚡ AI INFERENCE SUPERSTACK HARNESS</h1>
-            <div class="build-tag">STACK_VERSION: 1.1.0-Beta (Direct Event Bound Click)</div>
+            <div class="build-tag">STACK_VERSION: 1.2.0-Alpha (Diagnostic Core Active)</div>
         </div>
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="indicator" id="statusDot"></span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 11px; font-family: monospace; color: var(--text-muted)">FIRES: <span id="fireCount" style="color:#fff;">0</span></span>
+            <span class="indicator" id="statusDot" style="width:8px; height:8px; background-color:#00ffcc; border-radius:50%; display:inline-block; box-shadow: 0 0 8px #00ffcc;"></span>
             <span id="statusText" style="font-size: 12px; color: var(--text-muted); font-family: monospace;">READY TO ORCHESTRATE</span>
         </div>
     </header>
@@ -257,7 +269,7 @@
     <div class="container">
         <div class="harness-panel">
             <div class="panel-title">1. Context Payload Window</div>
-            <textarea class="context-box" id="contextPayload" placeholder="// Paste large context, raw code, JSON arrays, data models here..."></textarea>
+            <textarea class="context-box" id="contextPayload" placeholder="// Paste large context, raw code, JSON arrays..."></textarea>
             
             <div class="panel-title">2. Prompt Templates</div>
             <div class="macro-grid">
@@ -270,17 +282,17 @@
             <div class="panel-title">3. Active Instruction</div>
             <textarea class="prompt-box" id="activeInstruction" placeholder="What task are we launching across the stacks?"></textarea>
 
-            <div style="margin-top: auto; font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                <strong style="color: #fff;">Superhuman Execution Flow:</strong> Clicking <strong>EXECUTE</strong> explicitly triggers the browser's clipboard engine to grab your context stacks, then fires open the target web space.
-            </div>
+            <div class="panel-title">🎛️ Local Engine Diagnostics</div>
+            <div class="diagnostic-terminal" id="terminalLog">[SYSTEM SYSTEM INITIALIZED] -> Harness Standalone Ready.</div>
         </div>
 
-        <div class="execution-grid" id="serviceGrid">
-            </div>
+        <div class="execution-grid" id="serviceGrid"></div>
     </div>
 
     <script>
-        // System Templates Array Matrix
+        let counter = 0;
+        const terminal = document.getElementById('terminalLog');
+
         const templates = {
             expert: "Act as a Principal Staff Engineer and Systems Architect. Review the following payload for logical cohesion, structural performance, and edge cases:\n\n",
             json: "Transform the provided target context into a perfectly formatted, schema-validated JSON structure. Return ONLY raw JSON code block without filler text:\n\n",
@@ -288,7 +300,6 @@
             optimize: "Refactor the context payload for extreme runtime execution efficiency and lower computational footprint:\n\n"
         };
 
-        // Service Configuration Array ordered intelligently by Free Tiers Value / Performance
         const aiServices = [
             { name: "ChatGPT", tier: "Free Workhorse", desc: "GPT-4o daily free tier access and rapid conversations.", url: "https://chatgpt.com/" },
             { name: "Gemini", tier: "Free Workhorse", desc: "Massive context payload capacities.", url: "https://gemini.google.com/" },
@@ -309,9 +320,17 @@
             { name: "Grok", tier: "Real-time X Core", desc: "Direct access interface to real-time unstructured data streams.", url: "https://x.com/i/grok" }
         ];
 
+        function logToTerminal(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const colorPrefix = isError ? "[ERROR]" : "[OK]";
+            terminal.innerHTML += `\n${timestamp} ${colorPrefix} ${message}`;
+            terminal.scrollTop = terminal.scrollHeight; 
+        }
+
         function injectTemplate(key) {
             const currentInstruction = document.getElementById('activeInstruction').value;
             document.getElementById('activeInstruction').value = templates[key] + currentInstruction;
+            logToTerminal(`Injected template macro [${key}]`);
         }
 
         function renderServices() {
@@ -331,49 +350,77 @@
                     <div class="service-desc">${srv.desc}</div>
                     <div class="action-bar">
                         <span class="quick-tag">READY</span>
-                        <button class="fire-btn" onclick="fireHarness(event, '${srv.url}')">EXECUTE</button>
+                        <button class="fire-btn" onclick="fireHarness(event, this, '${srv.name}', '${srv.url}')">EXECUTE</button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        function fireHarness(event, url) {
-            // Stop bubble actions
+        function fireHarness(event, buttonElement, serviceName, url) {
             event.stopPropagation();
+            
+            // 1. Add instant physical css feedback class
+            buttonElement.classList.add('clicked-state');
+            setTimeout(() => buttonElement.classList.remove('clicked-state'), 200);
+
+            counter++;
+            document.getElementById('fireCount').innerText = counter;
+
+            logToTerminal(`Initiated firing engine for target: ${serviceName}`);
 
             const context = document.getElementById('contextPayload').value;
             const instruction = document.getElementById('activeInstruction').value;
             
-            // Build Unified Stack Payload
             let completeStack = "";
             if (instruction) completeStack += instruction + "\n\n";
             if (context) completeStack += "=== CONTEXT DATA PAYLOAD ===\n" + context;
 
+            // 2. Clipboard Processing Step Execution
             if (completeStack.trim() !== "") {
-                // Primary Method: Modern Clipboard API
+                logToTerminal(`Compiling payload stack (${completeStack.length} chars)...`);
+                
                 navigator.clipboard.writeText(completeStack).then(() => {
-                    updateStatusTracker("COPIED & LAUNCHING...");
-                    window.open(url, '_blank');
+                    logToTerminal(`Clipboard write successful via standard API.`);
+                    launchTab(url, serviceName);
                 }).catch(err => {
-                    // Fallback Method: Classic textarea text-selection execution
-                    console.warn("Clipboard API blocked, running legacy execution string fallback...");
+                    logToTerminal(`Standard Clipboard API blocked. Invoking fallback architecture...`, true);
+                    
                     const helper = document.getElementById('clipboardHelper');
                     helper.value = completeStack;
                     helper.select();
-                    helper.setSelectionRange(0, 99999); // For mobile compatibility
+                    helper.setSelectionRange(0, 99999);
                     
                     try {
-                        document.execCommand('copy');
-                        updateStatusTracker("COPIED (FALLBACK) & LAUNCHING...");
-                        window.open(url, '_blank');
+                        const success = document.execCommand('copy');
+                        if (success) {
+                            logToTerminal(`Fallback clipboard write successful.`);
+                            launchTab(url, serviceName);
+                        } else {
+                            logToTerminal(`Fallback clipboard rejected selection.`, true);
+                            launchTab(url, serviceName);
+                        }
                     } catch (fallbackErr) {
-                        alert("Clipboard write failed. Please check browser tab permissions.");
+                        logToTerminal(`Critical: Clipboard completely blocked by runtime environments.`, true);
+                        launchTab(url, serviceName);
                     }
                 });
             } else {
-                // Open anyway even if boxes are blank
-                window.open(url, '_blank');
+                logToTerminal(`Payload container empty. Direct routing fallback engaged.`);
+                launchTab(url, serviceName);
+            }
+        }
+
+        function launchTab(url, serviceName) {
+            logToTerminal(`Attempting to request external browser tab for ${serviceName}...`);
+            const targetWindow = window.open(url, '_blank');
+            
+            if (!targetWindow || targetWindow.closed || typeof targetWindow.closed == 'undefined') {
+                logToTerminal(`ALERT: Tab creation BLOCKED by browser pop-up blocker! Allow popups for this local file!`, true);
+                alert(`Popup Blocked! Please check your URL address bar settings and allow popups for this page to open ${serviceName}.`);
+            } else {
+                logToTerminal(`Tab handoff completed successfully for ${serviceName}.`);
+                updateStatusTracker(`DISPATCHED ${serviceName.toUpperCase()}`);
             }
         }
 
@@ -384,10 +431,9 @@
             setTimeout(() => {
                 txt.innerText = "READY TO ORCHESTRATE";
                 txt.style.color = "#94a3b8";
-            }, 2000);
+            }, 2500);
         }
 
-        // Initialize application layout
         renderServices();
     </script>
 </body>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Mission Control</title>
+
+<style>
+
+:root{
+--bg:#0b1020;
+--panel:#141b2d;
+--panel2:#1c2540;
+--accent:#4f8cff;
+--text:#f5f7ff;
+--muted:#9ca7c5;
+--border:#2d3960;
+--success:#27c46b;
+}
+
+.light{
+--bg:#f5f7fb;
+--panel:#ffffff;
+--panel2:#eef2ff;
+--accent:#2563eb;
+--text:#101828;
+--muted:#667085;
+--border:#d0d5dd;
+}
+
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+}
+
+body{
+font-family:Inter,Segoe UI,sans-serif;
+background:var(--bg);
+color:var(--text);
+height:100vh;
+overflow:hidden;
+}
+
+header{
+height:64px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 20px;
+background:var(--panel);
+border-bottom:1px solid var(--border);
+}
+
+.logo{
+font-weight:700;
+font-size:20px;
+}
+
+.toolbar{
+display:flex;
+gap:10px;
+}
+
+button{
+border:none;
+cursor:pointer;
+padding:10px 14px;
+border-radius:10px;
+background:var(--accent);
+color:white;
+transition:.2s;
+}
+
+button:hover{
+transform:translateY(-2px);
+}
+
+.layout{
+display:grid;
+grid-template-columns:280px 1fr 340px;
+height:calc(100vh - 64px);
+}
+
+.sidebar{
+background:var(--panel);
+border-right:1px solid var(--border);
+overflow:auto;
+padding:15px;
+}
+
+.right{
+border-left:1px solid var(--border);
+}
+
+main{
+overflow:auto;
+padding:20px;
+}
+
+.panel{
+background:var(--panel);
+border:1px solid var(--border);
+padding:15px;
+border-radius:16px;
+margin-bottom:20px;
+}
+
+.panel h2{
+margin-bottom:12px;
+}
+
+input,textarea,select{
+width:100%;
+background:var(--panel2);
+border:1px solid var(--border);
+color:var(--text);
+padding:10px;
+border-radius:10px;
+margin-top:8px;
+margin-bottom:10px;
+}
+
+textarea{
+min-height:140px;
+resize:vertical;
+}
+
+.provider{
+background:var(--panel2);
+padding:12px;
+border-radius:12px;
+margin-bottom:10px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+transition:.2s;
+}
+
+.provider:hover{
+transform:translateY(-2px);
+}
+
+.provider a{
+color:var(--text);
+text-decoration:none;
+font-weight:600;
+}
+
+.card{
+background:var(--panel2);
+padding:10px;
+border-radius:10px;
+margin-bottom:10px;
+cursor:pointer;
+}
+
+.card:hover{
+outline:1px solid var(--accent);
+}
+
+.row{
+display:flex;
+gap:10px;
+}
+
+.row button{
+flex:1;
+}
+
+#toast{
+position:fixed;
+bottom:20px;
+right:20px;
+padding:12px 18px;
+background:var(--success);
+color:white;
+border-radius:12px;
+opacity:0;
+transition:.3s;
+}
+
+#commandPalette{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+width:600px;
+max-width:90%;
+background:var(--panel);
+border:1px solid var(--border);
+padding:20px;
+border-radius:20px;
+display:none;
+z-index:999;
+}
+
+#commandPalette input{
+margin:0;
+}
+
+.small{
+font-size:12px;
+color:var(--muted);
+}
+
+.harness-step{
+background:var(--panel2);
+padding:8px;
+border-radius:8px;
+margin-bottom:6px;
+}
+
+.provider-check{
+margin-right:8px;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+
+<div class="logo">
+🚀 AI Mission Control
+</div>
+
+<div class="toolbar">
+<button id="themeBtn">Theme</button>
+<button id="exportBtn">Export</button>
+<button id="importBtn">Import</button>
+<input type="file" id="importFile" hidden>
+</div>
+
+</header>
+
+<div class="layout">
+
+<aside class="sidebar">
+
+<h3>AI Providers</h3>
+<br>
+
+<div id="providers"></div>
+
+</aside>
+
+<main>
+
+<div class="panel">
+
+<h2>Prompt Builder</h2>
+
+<input id="promptTitle" placeholder="Prompt Title">
+
+<textarea id="promptText"
+placeholder="Enter prompt..."></textarea>
+
+<button id="savePrompt">
+Save Prompt
+</button>
+
+</div>
+
+<div class="panel">
+
+<h2>Context Block</h2>
+
+<textarea id="contextText"
+placeholder="Project context, notes, constraints..."></textarea>
+
+<button id="saveContext">
+Save Context
+</button>
+
+</div>
+
+<div class="panel">
+
+<h2>Harness Builder</h2>
+
+<input id="harnessName"
+placeholder="Harness Name">
+
+<input id="harnessStep"
+placeholder="Add Step">
+
+<div class="row">
+<button id="addStep">
+Add Step
+</button>
+<button id="saveHarness">
+Save Harness
+</button>
+</div>
+
+<br>
+
+<div id="stepList"></div>
+
+</div>
+
+<div class="panel">
+
+<h2>Assembled Prompt</h2>
+
+<textarea id="assembled"></textarea>
+
+<div class="row">
+<button id="assembleBtn">
+Assemble
+</button>
+
+<button id="copyBtn">
+Copy
+</button>
+
+<button id="launchBtn">
+Launch Selected
+</button>
+</div>
+
+</div>
+
+</main>
+
+<aside class="sidebar right">
+
+<h3>Saved Prompts</h3>
+<br>
+<div id="promptLibrary"></div>
+
+<hr><br>
+
+<h3>Contexts</h3>
+<br>
+<div id="contextLibrary"></div>
+
+<hr><br>
+
+<h3>Harnesses</h3>
+<br>
+<div id="harnessLibrary"></div>
+
+</aside>
+
+</div>
+
+<div id="toast"></div>
+
+<div id="commandPalette">
+<input placeholder="Search..." autofocus>
+</div>
+
+<script>
+
+const STORAGE="AI_MISSION_CONTROL";
+
+const providers=[
+{name:"ChatGPT",url:"https://chatgpt.com"},
+{name:"Gemini",url:"https://gemini.google.com"},
+{name:"Claude",url:"https://claude.ai"},
+{name:"Perplexity",url:"https://perplexity.ai"},
+{name:"Grok",url:"https://grok.com"},
+{name:"DeepSeek",url:"https://chat.deepseek.com"},
+{name:"Copilot",url:"https://copilot.microsoft.com"},
+{name:"Meta AI",url:"https://www.meta.ai"},
+{name:"YouChat",url:"https://you.com"},
+{name:"Poe",url:"https://poe.com"},
+{name:"Mistral",url:"https://chat.mistral.ai"},
+{name:"Groq",url:"https://chat.groq.com"},
+{name:"Cohere",url:"https://coral.cohere.com"},
+{name:"Hugging Face",url:"https://huggingface.co/chat"},
+{name:"Manus",url:"https://manus.im"},
+{name:"Genspark",url:"https://genspark.ai"},
+{name:"Lindy",url:"https://lindy.ai"}
+];
+
+let state={
+prompts:[],
+contexts:[],
+harnesses:[]
+};
+
+let currentSteps=[];
+
+load();
+
+renderProviders();
+renderLibraries();
+
+function renderProviders(){
+
+const el=document.getElementById("providers");
+
+el.innerHTML=providers.map(p=>`
+
+<div class="provider">
+<div>
+<input class="provider-check"
+type="checkbox"
+data-url="${p.url}">
+${p.name}
+</div>
+
+<a href="${p.url}"
+target="_blank">↗</a>
+
+</div>
+
+`).join("");
+
+}
+
+function save(){
+
+localStorage.setItem(
+STORAGE,
+JSON.stringify(state)
+);
+
+}
+
+function load(){
+
+const data=
+localStorage.getItem(STORAGE);
+
+if(data){
+state=JSON.parse(data);
+}
+
+}
+
+function toast(msg){
+
+const t=document.getElementById("toast");
+
+t.innerText=msg;
+t.style.opacity=1;
+
+setTimeout(()=>{
+t.style.opacity=0;
+},2000);
+
+}
+
+function renderLibraries(){
+
+document.getElementById("promptLibrary")
+.innerHTML=
+state.prompts.map(p=>`
+<div class="card">${p.title}</div>
+`).join("");
+
+document.getElementById("contextLibrary")
+.innerHTML=
+state.contexts.map(c=>`
+<div class="card">${c.text.slice(0,80)}</div>
+`).join("");
+
+document.getElementById("harnessLibrary")
+.innerHTML=
+state.harnesses.map(h=>`
+<div class="card">
+<strong>${h.name}</strong>
+<div class="small">
+${h.steps.length} steps
+</div>
+</div>
+`).join("");
+
+}
+
+savePrompt.onclick=()=>{
+
+state.prompts.push({
+title:promptTitle.value,
+text:promptText.value
+});
+
+save();
+renderLibraries();
+
+toast("Prompt Saved");
+
+};
+
+saveContext.onclick=()=>{
+
+state.contexts.push({
+text:contextText.value
+});
+
+save();
+renderLibraries();
+
+toast("Context Saved");
+
+};
+
+addStep.onclick=()=>{
+
+if(!harnessStep.value) return;
+
+currentSteps.push(harnessStep.value);
+
+renderSteps();
+
+harnessStep.value="";
+
+};
+
+function renderSteps(){
+
+stepList.innerHTML=
+currentSteps.map(x=>`
+<div class="harness-step">
+${x}
+</div>
+`).join("");
+
+}
+
+saveHarness.onclick=()=>{
+
+state.harnesses.push({
+name:harnessName.value,
+steps:[...currentSteps]
+});
+
+currentSteps=[];
+
+renderSteps();
+
+save();
+renderLibraries();
+
+toast("Harness Saved");
+
+};
+
+assembleBtn.onclick=()=>{
+
+assembled.value=
+contextText.value+
+"\n\n================\n\n"+
+promptText.value;
+
+};
+
+copyBtn.onclick=async()=>{
+
+await navigator.clipboard.writeText(
+assembled.value
+);
+
+toast("Copied");
+
+};
+
+launchBtn.onclick=()=>{
+
+navigator.clipboard.writeText(
+assembled.value
+);
+
+document
+.querySelectorAll(".provider-check:checked")
+.forEach(box=>{
+window.open(
+box.dataset.url,
+"_blank"
+);
+});
+
+toast("Prompt copied and providers opened");
+
+};
+
+themeBtn.onclick=()=>{
+document.body.classList.toggle("light");
+};
+
+exportBtn.onclick=()=>{
+
+const blob=
+new Blob(
+[JSON.stringify(state,null,2)],
+{type:"application/json"}
+);
+
+const a=document.createElement("a");
+
+a.href=
+URL.createObjectURL(blob);
+
+a.download="ai-mission-control.json";
+
+a.click();
+
+};
+
+importBtn.onclick=()=>{
+importFile.click();
+};
+
+importFile.onchange=e=>{
+
+const file=e.target.files[0];
+
+const reader=new FileReader();
+
+reader.onload=()=>{
+
+state=JSON.parse(reader.result);
+
+save();
+
+renderLibraries();
+
+toast("Imported");
+
+};
+
+reader.readAsText(file);
+
+};
+
+document.addEventListener("keydown",e=>{
+
+if(e.ctrlKey && e.key==="k"){
+
+e.preventDefault();
+
+const cp=
+document.getElementById(
+"commandPalette"
+);
+
+cp.style.display=
+cp.style.display==="block"
+? "none"
+: "block";
+
+}
+
+});
+
+</script>
+
+</body>
+</html>

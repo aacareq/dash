@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Orchestrator Dashboard | 2026</title>
+    <style>
+        :root {
+            --bg: #09090b;
+            --card-bg: #18181b;
+            --border: #27272a;
+            --text: #fafafa;
+            --text-dim: #a1a1aa;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.2);
+            --success: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        header {
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+
+        .meta-text {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            max-width: 600px;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px border var(--border);
+            z-index: 100;
+            padding: 0.5rem 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            gap: 1rem;
+            scrollbar-width: none;
+        }
+
+        nav button {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        nav button:hover {
+            color: var(--text);
+            background: var(--card-bg);
+        }
+
+        nav button.active {
+            color: var(--accent);
+            background: var(--accent-glow);
+        }
+
+        /* Search Bar */
+        .search-container {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 0 1rem;
+        }
+
+        #searchBar {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        #searchBar:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 1rem auto;
+            padding: 0 1rem 4rem;
+        }
+
+        .section-title {
+            margin: 2rem 0 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: transform 0.2s, border-color 0.2s;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            background: var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-dim);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 640px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>The Orchestrator’s Dashboard</h1>
+        <p class="meta-text">From Execution to Orchestration. Compounding human judgment with agentic systems.</p>
+    </header>
+
+    <nav id="navTabs">
+        <button class="active" data-tab="all">All Services</button>
+        <button data-tab="inference">Inference</button>
+        <button data-tab="agents">Agents & Workflow</button>
+        <button data-tab="coding">Coding</button>
+        <button data-tab="backend">Backend/Cloud</button>
+        <button data-tab="hosting">Hosting</button>
+        <button data-tab="creative">Creative</button>
+        <button data-tab="starter">SaaS Starters</button>
+    </nav>
+
+    <div class="search-container">
+        <input type="text" id="searchBar" placeholder="Search services (Press '/' to focus)..." autocomplete="off">
+    </div>
+
+    <main id="dashboardContent">
+        <!-- Sections will be injected here -->
+    </main>
+
+    <script>
+        const services = [
+            // DAILY ESSENTIALS
+            { name: "Gmail", cat: ["all"], desc: "Email and communication hub.", url: "https://mail.google.com/", tag: "Daily" },
+            { name: "Google Calendar", cat: ["all"], desc: "Time management and scheduling.", url: "https://calendar.google.com/", tag: "Daily" },
+            { name: "GitHub", cat: ["all"], desc: "Code hosting and project management.", url: "https://github.com/", tag: "Daily" },
+            { name: "Google Drive", cat: ["all"], desc: "Cloud storage and file management.", url: "https://drive.google.com/", tag: "Daily" },
+            { name: "Google Docs", cat: ["all"], desc: "Collaborative document editing.", url: "https://docs.google.com/", tag: "Daily" },
+            { name: "Google Keep", cat: ["all"], desc: "Quick notes and lists.", url: "https://keep.google.com/", tag: "Daily" },
+            
+            // INFERENCE
+            { name: "Google AI Studio", cat: ["inference", "coding"], desc: "500 req/day (Gemini 2.5 Flash). Most generous free API.", url: "https://aistudio.google.com/", tag: "Elite Free Tier" },
+            { name: "DeepSeek", cat: ["inference"], desc: "5M free signup tokens. Top-tier reasoning for code/math.", url: "https://chat.deepseek.com/", tag: "Generous" },
+            { name: "Groq", cat: ["inference"], desc: "Instant inference. Llama 3.3/Qwen at 500+ tok/s.", url: "https://groq.com/", tag: "Performance" },
+            { name: "Arena.ai", cat: ["inference"], desc: "High-performance inference platform.", url: "https://arena.ai", tag: "Platform" },
+            { name: "ChatGPT", cat: ["inference"], desc: "GPT-5.4 mini (unlimited), GPT-4o (limited).", url: "https://chatgpt.com/", tag: "Must-Have" },
+            { name: "Claude", cat: ["inference", "coding"], desc: "Best-in-class coding (Claude 4.6).", url: "https://claude.ai/", tag: "Essential" },
+            { name: "Perplexity", cat: ["inference"], desc: "AI Search with real-time citations. 5 Pro searches/4h.", url: "https://perplexity.ai", tag: "Research" },
+            { name: "Gemini", cat: ["inference"], desc: "Google's flagship multimodal model.", url: "https://gemini.google.com/", tag: "Multimodal" },
+            { name: "NotebookLM", cat: ["inference"], desc: "Personalized AI researcher based on your docs.", url: "https://notebooklm.google.com/", tag: "Research" },
+            { name: "Meta AI", cat: ["inference"], desc: "Meta's Llama-powered assistant.", url: "https://www.meta.ai/", tag: "Social AI" },
+            { name: "Poe", cat: ["inference"], desc: "Aggregate access to all major bots.", url: "https://poe.com/", tag: "Aggregator" },
+            { name: "Mistral", cat: ["inference"], desc: "Open-weight models with strong reasoning.", url: "https://mistral.ai/", tag: "EU Choice" },
+            { name: "Cohere", cat: ["inference"], desc: "Enterprise-grade RAG and search models.", url: "https://cohere.com/", tag: "RAG Focus" },
+            { name: "YouChat", cat: ["inference"], desc: "AI-powered search engine.", url: "https://you.com/", tag: "Search" },
+            { name: "Grok", cat: ["inference"], desc: "xAI's real-time information model.", url: "https://x.ai/", tag: "Real-time" },
+
+            // AGENTS
+            { name: "Manus AI", cat: ["agents"], desc: "Long-horizon agent. 300 daily credits for research/execution.", url: "https://manus.ai/", tag: "Agentic" },
+            { name: "Lindy.ai", cat: ["agents"], desc: "Automate operations, inbox, and sales workflows.", url: "https://lindy.ai/", tag: "Workflow" },
+            { name: "Genspark.ai", cat: ["agents"], desc: "AI-native search & content agent. 200 credits daily.", url: "https://genspark.ai/", tag: "Search Agent" },
+            { name: "Make.com", cat: ["agents"], desc: "Visual automation. 1,000 operations/month free.", url: "https://make.com/", tag: "Automation" },
+            { name: "Zapier Central", cat: ["agents"], desc: "Build AI agents that interact with 6,000+ apps.", url: "https://zapier.com/central", tag: "Ecosystem" },
+
+            // CODING
+            { name: "Bolt.new", cat: ["coding", "starter"], desc: "Vibe coding: Prompt to full-stack app in browser.", url: "https://bolt.new/", tag: "Revolutionary" },
+            { name: "Cursor", cat: ["coding"], desc: "The world's best AI code editor. Limited free tier.", url: "https://cursor.com/", tag: "Pro Tool" },
+            { name: "Lovable", cat: ["coding"], desc: "Build full-stack apps with natural language. 5 daily credits.", url: "https://lovable.dev/", tag: "Vibe Coding" },
+            { name: "v0 by Vercel", cat: ["coding"], desc: "Generative UI for React/Tailwind. Instant components.", url: "https://v0.dev/", tag: "Frontend" },
+            { name: "GitHub Copilot", cat: ["coding"], desc: "2,000 completions/mo free for individuals.", url: "https://github.com/features/copilot", tag: "Standard" },
+            { name: "Replit", cat: ["coding"], desc: "Cloud IDE with powerful agentic features.", url: "https://replit.com/", tag: "Cloud IDE" },
+            { name: "Windsurf", cat: ["coding"], desc: "Agent-native IDE by Codeium.", url: "https://codeium.com/windsurf", tag: "Fast" },
+
+            // BACKEND / PAAS
+            { name: "Cloudflare Workers", cat: ["backend", "hosting"], desc: "100k requests/day. Serverless at the edge.", url: "https://workers.cloudflare.com/", tag: "Elite Free" },
+            { name: "Supabase", cat: ["backend"], desc: "Postgres, Auth, Storage. 500MB DB free tier.", url: "https://supabase.com/", tag: "Best of Best" },
+            { name: "Neon", cat: ["backend"], desc: "Serverless Postgres with branching. 0.5 GiB storage.", url: "https://neon.tech/", tag: "Scalable" },
+            { name: "PlanetScale", cat: ["backend"], desc: "Serverless MySQL for massive scale.", url: "https://planetscale.com/", tag: "Database" },
+            { name: "MongoDB Atlas", cat: ["backend"], desc: "NoSQL Database as a service. 512MB free.", url: "https://www.mongodb.com/atlas", tag: "NoSQL" },
+            
+            // HOSTING
+            { name: "Cloudflare Pages", cat: ["hosting"], desc: "Unlimited static site hosting and bandwidth.", url: "https://pages.cloudflare.com/", tag: "No Gotchas" },
+            { name: "GitHub Pages", cat: ["hosting"], desc: "Unlimited static site hosting for GitHub repos.", url: "https://pages.github.com/", tag: "Integrated" },
+            { name: "Vercel", cat: ["hosting"], desc: "Best for Next.js and frontend deployment.", url: "https://vercel.com/", tag: "Frontend" },
+            { name: "Netlify", cat: ["hosting"], desc: "Powerful web automation and hosting.", url: "https://netlify.com/", tag: "Reliable" },
+
+            // CREATIVE
+            { name: "Hugging Face", cat: ["creative", "inference"], desc: "Hub for open-source AI models & spaces.", url: "https://huggingface.co/", tag: "Open-Source" },
+            { name: "Canva", cat: ["creative"], desc: "AI-powered design for everyone.", url: "https://canva.com/", tag: "Design" },
+            { name: "Runway", cat: ["creative"], desc: "Generative video and creative tools.", url: "https://runwayml.com/", tag: "Video" },
+            
+            // STARTERS
+            { name: "Taskade Genesis", cat: ["starter"], desc: "AI-powered SaaS starter templates.", url: "https://taskade.com/", tag: "SaaS Kit" },
+            { name: "NxCode", cat: ["starter"], desc: "Full-stack AI app builder with persistent credits.", url: "https://nxcode.io/", tag: "Builder" }
+        ];
+
+
+        const dashboardContent = document.getElementById('dashboardContent');
+        const navTabs = document.getElementById('navTabs');
+        const searchBar = document.getElementById('searchBar');
+
+        function renderServices(filter = 'all', query = '') {
+            dashboardContent.innerHTML = '';
+            
+            const filtered = services.filter(s => {
+                const matchesTab = filter === 'all' || s.cat.includes(filter);
+                const matchesSearch = s.name.toLowerCase().includes(query.toLowerCase()) || 
+                                    s.desc.toLowerCase().includes(query.toLowerCase());
+                return matchesTab && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                dashboardContent.innerHTML = '<p style="text-align:center; color:var(--text-dim); margin-top:3rem;">No services found matching your criteria.</p>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'grid fade-in';
+
+            filtered.forEach(s => {
+                const card = document.createElement('a');
+                card.href = s.url;
+                card.target = '_blank';
+                card.className = 'card';
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header">
+                            <span class="card-title">${s.name}</span>
+                            <span class="card-tag">${s.tag}</span>
+                        </div>
+                        <p class="card-desc">${s.desc}</p>
+                    </div>
+                    <div class="card-footer">
+                        Open Service ↗
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            dashboardContent.appendChild(grid);
+        }
+
+        // Tab Event Listeners
+        navTabs.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                renderServices(e.target.dataset.tab, searchBar.value);
+            }
+        });
+
+        // Search Event Listener
+        searchBar.addEventListener('input', (e) => {
+            const activeTab = document.querySelector('nav button.active').dataset.tab;
+            renderServices(activeTab, e.target.value);
+        });
+
+        // Keyboard Shortcut for Search
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/') {
+                if (document.activeElement !== searchBar) {
+                    e.preventDefault();
+                    searchBar.focus();
+                }
+            }
+        });
+
+        // Initial Render
+        renderServices();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a0a1b6a9ec3dc9db',t:'MTc4MTE5MjQxOA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

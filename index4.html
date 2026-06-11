@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Operator Control Dashboard</title>
+  <style>
+    :root {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --border-color: #30363d;
+      --text-primary: #c9d1d9;
+      --text-muted: #8b949e;
+      --text-accent: #58a6ff;
+      --neon-glow: rgba(88, 166, 255, 0.12);
+      --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-stack);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Layout Structure */
+    #sidebar {
+      width: 25%;
+      background-color: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+    
+    #main-content {
+      width: 75%;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    
+    .brand {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.5px;
+      color: var(--text-accent);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    /* Navigation Elements */
+    .tab-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    
+    .tab-btn {
+      width: 100%;
+      background: none;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 120ms ease;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .tab-btn:hover {
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    
+    .tab-btn.active {
+      background-color: var(--bg-primary);
+      border-color: var(--border-color);
+      color: var(--text-accent);
+      font-weight: 600;
+    }
+
+    /* Content Area */
+    .view-header { 
+      margin-bottom: 1.5rem; 
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+    
+    .view-title { 
+      font-size: 1.35rem; 
+      margin-bottom: 0.25rem; 
+      font-weight: 600; 
+    }
+    
+    .view-desc { 
+      color: var(--text-muted); 
+      font-size: 0.85rem; 
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      animation: tabFadeIn 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Service Cards */
+    .service-card {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+    }
+    
+    .service-card:hover, .service-card:focus-within {
+      transform: translateY(-2px) scale(1.015);
+      border-color: var(--text-accent);
+      box-shadow: 0 4px 12px var(--neon-glow);
+    }
+    
+    .card-meta { 
+      margin-bottom: 1rem; 
+    }
+    
+    .card-title { 
+      font-size: 1.05rem; 
+      margin-bottom: 0.5rem; 
+      display: flex; 
+      align-items: center; 
+      justify-content: space-between; 
+    }
+    
+    .card-desc { 
+      color: var(--text-muted); 
+      font-size: 0.85rem; 
+      line-height: 1.4; 
+      margin-bottom: 0.5rem; 
+    }
+    
+    .card-pricing { 
+      font-size: 0.725rem; 
+      color: var(--text-accent); 
+      font-weight: 500; 
+      background: rgba(88, 166, 255, 0.08); 
+      padding: 2px 6px; 
+      border-radius: 4px; 
+      display: inline-block; 
+    }
+    
+    .launch-btn {
+      align-self: flex-start;
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.45rem 0.75rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: all 120ms ease;
+    }
+    
+    .launch-btn:hover {
+      background-color: var(--text-accent);
+      color: var(--bg-primary);
+      border-color: var(--text-accent);
+    }
+
+    /* Responsive Mobile Overrides */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #sidebar { 
+        width: 100%; 
+        height: auto; 
+        border-right: none; 
+        border-bottom: 1px solid var(--border-color); 
+        padding: 1rem; 
+      }
+      .brand { margin-bottom: 0.75rem; border-bottom: none; padding-bottom: 0; }
+      .tab-nav { flex-direction: row; overflow-x: auto; padding-bottom: 0.25rem; }
+      .tab-btn { padding: 0.5rem 0.75rem; width: auto; }
+      #main-content { width: 100%; height: calc(100vh - 140px); padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside id="sidebar">
+    <div class="brand">Control Layer</div>
+    <nav>
+      <ul class="tab-nav" id="tab-list"></ul>
+    </nav>
+  </aside>
+
+  <main id="main-content">
+    <div class="view-header" id="view-header-target"></div>
+    <div class="card-grid" id="card-grid-target"></div>
+  </main>
+
+  <script>
+    const SERVICES_DATA = [
+      {
+        categoryId: "key-services",
+        categoryTitle: "Key Services",
+        services: [
+          { name: "Google AI Studio", url: "https://aistudio.google.com/", note: "API key prototyping & direct model parameter execution", tag: "Core" },
+          { name: "GitHub", url: "https://github.com/", note: "Source control orchestration and workflow history engine", tag: "Core" },
+          { name: "NotebookLM", url: "https://notebooklm.google.com/", note: "Localized source grounding, RAG research synthesis", tag: "RAG" },
+          { name: "Gmail", url: "https://mail.google.com/", note: "Asymmetric text communications and state updates", tag: "Daily" },
+          { name: "Google Calendar", url: "https://calendar.google.com/", note: "Temporal logistics scheduling and commitments", tag: "Daily" },
+          { name: "Google Drive", url: "https://drive.google.com/", note: "Distributed object storage storage lake", tag: "Storage" },
+          { name: "Google Docs", url: "https://docs.google.com/", note: "Context architecture construction and narrative framing", tag: "Doc" },
+          { name: "Google Keep", url: "https://keep.google.com/", note: "Ephemeral state captures, raw ideas, quick dumps", tag: "Doc" }
+        ]
+      },
+      {
+        categoryId: "inference-services",
+        categoryTitle: "Inference Engines",
+        services: [
+          { name: "Gemini", url: "https://gemini.google.com/", note: "Deep native context window framework", pricing: "Generous Free Tier Tier", rank: 1 },
+          { name: "DeepSeek", url: "https://www.deepseek.com/", note: "High-efficiency open specialized logical weights", pricing: "Disruptively Cheap / Free Credits", rank: 2 },
+          { name: "Perplexity", url: "https://www.perplexity.ai/", note: "Real-time query synthesis & epistemic web validation", pricing: "Robust Free Web Layer", rank: 3 },
+          { name: "Claude", url: "https://claude.ai/", note: "State-of-the-art software systems engineering artifact generation", pricing: "Usage-limited Free Tier", rank: 4 },
+          { name: "ChatGPT", url: "https://chatgpt.com/", note: "Generalist intuitive scaffolding & standard reasoning tasks", pricing: "Standard Free Tier", rank: 5 },
+          { name: "Groq", url: "https://groq.com/", note: "Ultra-low-latency LPU compute serving loops", pricing: "Free Rate-Limited Dev Tier", rank: 6 },
+          { name: "Hugging Face", url: "https://huggingface.co/", note: "Open weight model space sandbox repository", pricing: "Free Basic Inference / Spaces", rank: 7 },
+          { name: "Poe", url: "https://poe.com/", note: "Aggregated model testing grounds", pricing: "Daily Points Allocation", rank: 8 },
+          { name: "Mistral", url: "https://chat.mistral.ai/", note: "Sovereign platform alternative model variants", pricing: "Free Tier Component Access", rank: 9 },
+          { name: "Cohere", url: "https://cohere.com/", note: "Enterprise text representation, classification, and RAG architectures", pricing: "Free Developer Tier Key", rank: 10 },
+          { name: "Meta AI", url: "https://www.meta.ai/", note: "Llama core baseline context loop agent", pricing: "Free Global Access Tier", rank: 11 },
+          { name: "YouChat", url: "https://you.com/", note: "Alternate search synthesis node", pricing: "Limited Free Balance", rank: 12 },
+          { name: "Grok", url: "https://x.com/i/grok", note: "Real-time social data ingestion matrix access", pricing: "Requires Platform Tier Base", rank: 13 }
+        ]
+      },
+      {
+        categoryId: "agentic-workflows",
+        categoryTitle: "Agents & Workflows",
+        services: [
+          { name: "Manus AI", url: "https://manus.im/", note: "Autonomous multi-step long-horizon plan execution environment", pricing: "300 Daily Refresh Credits", rank: 1 },
+          { name: "Genspark", url: "https://www.genspark.ai/", note: "Parallel multi-agent research compiler and synthetic page generator", pricing: "200 Daily Credits + Unlimited Chat", rank: 2 },
+          { name: "Lindy.ai", url: "https://www.lindy.ai/", note: "Workflow automation logic engine mapping tasks to continuous software triggers", pricing: "400 Free Credits / Month", rank: 3 }
+        ]
+      },
+      {
+        categoryId: "ai-coding",
+        categoryTitle: "AI-Assisted Coding",
+        services: [
+          { name: "Cursor", url: "https://www.cursor.com/", note: "Integrated software factory environment shifting focus from syntax to orchestrating intent", pricing: "Free Base Usage Tier", rank: 1 },
+          { name: "Copilot (Open Source)", url: "https://github.com/features/copilot", note: "Distributed contextual syntax prediction and runtime orchestration support", pricing: "Open-source variations / Trials available", rank: 2 }
+        ]
+      },
+      {
+        categoryId: "paas-free",
+        categoryTitle: "PaaS Free Tiers",
+        services: [
+          { name: "Render", url: "https://render.com/", note: "Deploys web apps and backend API nodes automatically from Git pipelines", pricing: "Free Web Services & PostgreSQL limits", rank: 1 },
+          { name: "Railway", url: "https://railway.app/", note: "Declarative application infrastructure runtime for provisioning full software blocks", pricing: "Limited Trial Credits Base", rank: 2 },
+          { name: "Fly.io", url: "https://fly.io/", note: "Deploys custom containerized logic close to edge points via global micro-VMs", pricing: "Free Resource Allowances Below Usage Ceiling", rank: 3 }
+        ]
+      },
+      {
+        categoryId: "backend-serverless",
+        categoryTitle: "Backend & Serverless",
+        services: [
+          { name: "Cloudflare Workers", url: "https://workers.cloudflare.com/", note: "V8-engine edge scripting engine running lightweight APIs instantly", pricing: "100,000 Free Requests / Day", rank: 1 },
+          { name: "Supabase", url: "https://supabase.com/", note: "Managed infrastructure offering user databases, object storage, and vector nodes", pricing: "2 Free Projects, 500MB Database Tier", rank: 2 },
+          { name: "Neon", url: "https://neon.tech/", note: "Serverless Postgres with active environment branch cloning for safe data spikes", pricing: "Free Base Computing Hours & Shared Storage", rank: 3 }
+        ]
+      },
+      {
+        categoryId: "hosting-free",
+        categoryTitle: "Hosting Services",
+        services: [
+          { name: "Cloudflare Pages", url: "https://pages.cloudflare.com/", note: "Global distributed delivery web platform targeting optimized frontend structures", pricing: "Unlimited Bandwidth & Build Logs", rank: 1 },
+          { name: "GitHub Pages", url: "https://pages.github.com/", note: "Direct native pipeline for exposing static files from repository branch locations", pricing: "Free Structural Deployment", rank: 2 },
+          { name: "Vercel", url: "https://vercel.com/", note: "High performance serverless deployment hub built around Next.js application parameters", pricing: "Generous Hobby Tier for Personal Builds", rank: 3 }
+        ]
+      },
+      {
+        categoryId: "no-gotchas",
+        categoryTitle: "Hosting (No Gotchas)",
+        services: [
+          { name: "Cloudflare Pages & Workers", url: "https://cloudflare.com", note: "Hard limits protect accounts from unexpected billing anomalies during traffic surges", pricing: "Hard caps/graceful throttling instead of surprise bills", rank: 1 },
+          { name: "GitHub Pages", url: "https://pages.github.com/", note: "Static configuration layer completely safe from processing liability overruns", pricing: "Zero overage fees structurally possible", rank: 2 }
+        ]
+      },
+      {
+        categoryId: "creative-multimodal",
+        categoryTitle: "Creative Apps",
+        services: [
+          { name: "Figma", url: "https://www.figma.com/", note: "Vector system layouts and human control interface structural designs", pricing: "3 Free active design files, unlimited collaborators", rank: 1 },
+          { name: "Canva", url: "https://www.canva.com/", note: "Rapid programmatic visual composition engine for asset scaling pipelines", pricing: "Extensive Free structural assets & templates", rank: 2 }
+        ]
+      },
+      {
+        categoryId: "best-free-tiers",
+        categoryTitle: "Truly Generous Free Tiers",
+        services: [
+          { name: "Cloudflare Pages", url: "https://pages.cloudflare.com/", note: "Unmetered edge networking layer completely eliminating data transfer fees", pricing: "Unlimited bandwidth, highly protective environment", rank: 1 },
+          { name: "Cloudflare Workers", url: "https://workers.cloudflare.com/", note: "High execution request parameters allowing extensive serverless processing layers", pricing: "100,000 free operations executed per day", rank: 2 },
+          { name: "GitHub Pages", url: "https://pages.github.com/", note: "Zero-cost operational platform backing instant frontend concept verification", pricing: "Completely zero friction, directly bound to code", rank: 3 },
+          { name: "Supabase", url: "https://supabase.com/", note: "Bespoke database nodes complete with native vector calculation support lines", pricing: "2 database nodes with full operational capabilities", rank: 4 },
+          { name: "Neon", url: "https://neon.tech/", note: "Postgres branching for isolation during rapid architectural experimentation", pricing: "Free tier covering primary branch processing requirements", rank: 5 }
+        ]
+      },
+      {
+        categoryId: "saas-starter-kits",
+        categoryTitle: "SaaS Starter Kits (2026)",
+        services: [
+          { name: "Next.js AI Chatbot Starter", url: "https://github.com/vercel/ai-chatbot", note: "Vercel production-grade setup optimizing streaming model states and component injection", pricing: "Open-source MIT License architecture", rank: 1 },
+          { name: "Supabase SaaS Boilerplate", url: "https://github.com/supabase-community/supabase-nextjs-tailwind-stripe-template", note: "End-to-end framework resolving authentication states, transactional maps, and relational databases", pricing: "Open-source production-ready codebase", rank: 2 }
+        ]
+      }
+    ];
+
+    const tabList = document.getElementById('tab-list');
+    const gridTarget = document.getElementById('card-grid-target');
+    const headerTarget = document.getElementById('view-header-target');
+
+    function initializeDashboard() {
+      SERVICES_DATA.forEach((cat, index) => {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+        btn.textContent = cat.categoryTitle;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-selected', index === 0 ? 'true' : 'false');
+        btn.onclick = () => switchTab(cat.categoryId, btn);
+        li.appendChild(btn);
+        tabList.appendChild(li);
+      });
+      
+      if(SERVICES_DATA.length > 0) {
+        renderCategory(SERVICES_DATA[0].categoryId);
+      }
+    }
+
+    function switchTab(catId, targetBtn) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      targetBtn.classList.add('active');
+      targetBtn.setAttribute('aria-selected', 'true');
+      renderCategory(catId);
+    }
+
+    function renderCategory(catId) {
+      const activeData = SERVICES_DATA.find(c => c.categoryId === catId);
+      if(!activeData) return;
+
+      headerTarget.innerHTML = `
+        <h1 class="view-title">${activeData.categoryTitle}</h1>
+        <p class="view-desc">High-leverage operations orchestrated for optimal execution metrics.</p>
+      `;
+
+      gridTarget.innerHTML = '';
+      activeData.services.forEach(srv => {
+        const card = document.createElement('div');
+        card.className = 'service-card';
+        card.innerHTML = `
+          <div class="card-meta">
+            <div class="card-title">
+              <strong>${srv.name}</strong>
+              ${srv.tag ? `<span class="card-pricing" style="color:var(--text-primary); background:var(--border-color);">${srv.tag}</span>` : ''}
+            </div>
+            <p class="card-desc">${srv.note}</p>
+            ${srv.pricing ? `<span class="card-pricing">${srv.pricing}</span>` : ''}
+          </div>
+          <a href="${srv.url}" target="_blank" rel="noopener noreferrer" class="launch-btn">Execute Link ↗</a>
+        `;
+        gridTarget.appendChild(card);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initializeDashboard);
+  </script>
+</body>
+</html>

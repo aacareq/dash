@@ -178,16 +178,43 @@
       animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
     .section-title {
       font-size: 1.1rem;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 1.25rem;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+
+    .section-link {
+      font-size: 0.85rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+      padding: 4px 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .section-link:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
     }
 
     /* --- Quick Action Grid Layout --- */
@@ -311,6 +338,7 @@
       },
       inference: {
         title: "Inference Engines",
+        headerLink: { text: "🔗 Core Matrix", url: "https://aacareq.github.io/dash/inference.html" },
         items: [
           { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI Foundation System" },
           { name: "Gemini", url: "https://gemini.google.com", desc: "Google DeepMind Ecosystem" },
@@ -385,10 +413,15 @@
         sectWrapper.className = `dashboard-section sect-${key}`;
         sectWrapper.id = `group-${key}`;
 
-        sectWrapper.innerHTML = `
-          <div class="section-title">${section.title}</div>
-          <div class="grid" id="grid-${key}"></div>
-        `;
+        // Construct section header layout with conditional top link element insertion
+        let headerHTML = `<div class="section-header">
+          <div class="section-title">${section.title}</div>`;
+        if (section.headerLink) {
+          headerHTML += `<a href="${section.headerLink.url}" target="_blank" class="section-link">${section.headerLink.text}</a>`;
+        }
+        headerHTML += `</div><div class="grid" id="grid-${key}"></div>`;
+
+        sectWrapper.innerHTML = headerHTML;
         feed.appendChild(sectWrapper);
 
         const grid = document.getElementById(`grid-${key}`);

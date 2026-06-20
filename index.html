@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Command Center 2026</title>
+  <style>
+    :root {
+      --bg: #0b0914;
+      --sidebar-bg: #110f24;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-hover: rgba(255, 255, 255, 0.09);
+      --text: #f1f1f7;
+      --text-muted: #8a88a5;
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.2);
+      --border: rgba(255, 255, 255, 0.08);
+      --radius: 12px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .light {
+      --bg: #f4f5f9;
+      --sidebar-bg: #ffffff;
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-hover: rgba(0, 0, 0, 0.06);
+      --text: #1e1b4b;
+      --text-muted: #64748b;
+      --accent: #4f46e5;
+      --accent-glow: rgba(79, 70, 229, 0.15);
+      --border: rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; transition: background 0.2s, border 0.2s; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* --- Sidebar Navigation --- */
+    aside {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      z-index: 10;
+      padding: 1.5rem;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .brand span {
+      background: linear-gradient(135deg, var(--accent), #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex-grow: 1;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      color: var(--text);
+      background: var(--card-bg);
+    }
+
+    .nav-btn.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .nav-btn .count {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      background: rgba(0,0,0,0.2);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    /* --- Main Workspace --- */
+    main {
+      margin-left: 260px;
+      flex-grow: 1;
+      padding: 2.5rem;
+      max-width: 1400px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 2rem;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex-grow: 1;
+      max-width: 600px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 0.8rem 1.2rem 0.8rem 2.8rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-bar:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .search-wrapper::before {
+      content: "⚡";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.6;
+    }
+
+    /* --- Content Sections --- */
+    .dashboard-section {
+      margin-bottom: 3rem;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* --- Quick Action Grid Layout --- */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 110px;
+      position: relative;
+      overflow: hidden;
+      transform: translateY(0);
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: var(--card-hover);
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin: 0;
+    }
+
+    .card-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Section-specific accents */
+    .sect-daily .card:hover { --accent: #3b82f6; }
+    .sect-inference .card:hover { --accent: #10b981; }
+    .sect-agent .card:hover { --accent: #f59e0b; }
+    .sect-vibe .card:hover { --accent: #ec4899; }
+    .sect-freebie .card:hover { --accent: #8b5cf6; }
+
+    /* CSS Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive scaling */
+    @media (max-width: 768px) {
+      aside { width: 70px; padding: 1rem 0.5rem; align-items: center; }
+      aside .brand span, aside .nav-btn span, aside .theme-toggle span { display: none; }
+      main { margin-left: 70px; padding: 1.5rem; }
+      .nav-btn { justify-content: center; padding: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <aside>
+    <div class="brand">🚀 <span>CommandOS</span></div>
+    <nav class="nav-links">
+      <button class="nav-btn active" onclick="filterSection('all', this)">
+        <span>All Clusters</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('daily', this)">
+        <span>Daily Core</span> <span class="count" id="cnt-daily">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('inference', this)">
+        <span>Inference</span> <span class="count" id="cnt-inference">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('agent', this)">
+        <span>Agents</span> <span class="count" id="cnt-agent">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('vibe', this)">
+        <span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('freebie', this)">
+        <span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span>
+      </button>
+    </nav>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 <span>Theme</span></button>
+  </aside>
+
+  <main>
+    <header>
+      <div class="search-wrapper">
+        <input type="text" class="search-bar" id="global-search" placeholder="Type a service or resource to launch..." onkeyup="processSearch()" autocomplete="off">
+      </div>
+    </header>
+
+    <div id="workspace-feed">
+      </div>
+  </main>
+
+  <script>
+    // Config Architecture structured by Categories
+    const database = {
+      daily: {
+        title: "Key Daily Services",
+        items: [
+          { name: "Google", url: "https://google.com", desc: "Global Search Index" },
+          { name: "GitHub", url: "https://github.com", desc: "Version Control & Repositories" },
+          { name: "Gmail", url: "https://gmail.com", desc: "Communication Suite" },
+          { name: "Calendar", url: "https://calendar.google.com", desc: "Schedules & Aggregations" },
+          { name: "Drive", url: "https://drive.google.com", desc: "Cloud Asset Storage" },
+          { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Source-grounded AI Context Research" }
+        ]
+      },
+      inference: {
+        title: "Inference Engines",
+        items: [
+          { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI Foundation System" },
+          { name: "Gemini", url: "https://gemini.google.com", desc: "Google DeepMind Ecosystem" },
+          { name: "Claude", url: "https://claude.ai", desc: "Anthropic Safety & Core Reasoning" },
+          { name: "Perplexity", url: "https://perplexity.ai", desc: "Conversational Search Engine" },
+          { name: "Arena AI", url: "https://chat.lmsys.org", desc: "LLM Crowdsourced Benchmark Comparison" },
+          { name: "Grok", url: "https://grok.com", desc: "xAI Real-time System" },
+          { name: "DeepSeek", url: "https://chat.deepseek.com", desc: "Optimized Mixture-of-Experts Pipeline" },
+          { name: "Copilot", url: "https://copilot.microsoft.com", desc: "Microsoft Productivity Companion" },
+          { name: "Duck.ai", url: "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat", desc: "Privacy Preserving Alternative Access" },
+          { name: "GitHub Marketplace", url: "https://github.com/marketplace/models", desc: "Free Sandbox Inference Node Point" },
+          { name: "Meta AI", url: "https://meta.ai", desc: "Llama Ecosystem Web Matrix" },
+          { name: "YouChat", url: "https://you.com", desc: "Structured Multimodal Synthesizer" },
+          { name: "Poe", url: "https://poe.com", desc: "Quora Custom Context Wrapper Orchestrator" },
+          { name: "Mistral", url: "https://chat.mistral.ai", desc: "European Frontier Models Hub" },
+          { name: "Groq", url: "https://groq.com", desc: "Ultra low-latency LPU hardware engine" },
+          { name: "Cohere", url: "https://cohere.com", desc: "RAG & Enterprise NLP Tools" },
+          { name: "Hugging Face", url: "https://huggingface.co", desc: "AI ML Repository and Space Hub" },
+          { name: "Julius AI", url: "https://julius.ai", desc: "Advanced Statistical Data Analytics Agent" }
+        ]
+      },
+      agent: {
+        title: "Agent Services & Pipelines",
+        items: [
+          { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Autonomous Workflow Integrations" },
+          { name: "Browser-Use Cloud", url: "https://browser-use.com", desc: "Vision-based Browser Agent Infrastructure" },
+          { name: "Parallel AI", url: "https://parallel.ai", desc: "Parallel Task Agent Orchestration" },
+          { name: "Agent.ai", url: "https://agent.ai", desc: "Developer Hub for Multi-agent Networks" },
+          { name: "Manus AI", url: "https://manus.im", desc: "General-Purpose Digital Task Agent" },
+          { name: "Genspark.ai", url: "https://genspark.ai", desc: "Autonomous Search & Synthesis Agent" },
+          { name: "Lindy.ai", url: "https://lindy.ai", desc: "No-code Autonomous AI Employees" },
+          { name: "Zapier", url: "https://zapier.com", desc: "Enterprise Multi-step Integrations" },
+          { name: "Make", url: "https://make.com", desc: "Visual Workflow Automations" },
+          { name: "n8n", url: "https://n8n.io", desc: "Fair-code node-based workflow server" },
+          { name: "Gumloop", url: "https://gumloop.com", desc: "Data scraping & AI workflow execution" }
+        ]
+      },
+      vibe: {
+        title: "Vibe Coding & Prototyping",
+        items: [
+          { name: "v0 by Vercel", url: "https://v0.dev", desc: "Generative UI Interface Generator" },
+          { name: "Bolt.new", url: "https://bolt.new", desc: "Full Stack In-browser Dev Runtime environment" },
+          { name: "Lovable", url: "https://lovable.dev", desc: "Natural Language Full App Architectures" },
+          { name: "Replit", url: "https://replit.com", desc: "Instant Cloud Workspace Development Environment" }
+        ]
+      },
+      freebie: {
+        title: "Generous Infrastructure Free Tiers",
+        items: [
+          { name: "Cloudflare Pages", url: "https://pages.cloudflare.com", desc: "Global Edge Static Hosting App Node" },
+          { name: "Cloudflare Workers", url: "https://workers.cloudflare.com", desc: "Serverless Compute Functions on Edge" },
+          { name: "GitHub Pages", url: "https://pages.github.com", desc: "Static Website Pipeline Deploy Engine" },
+          { name: "Supabase", url: "https://supabase.com", desc: "Backend Open-Source PostgreSQL Wrapper Stack" },
+          { name: "Neon", url: "https://neon.tech", desc: "Serverless Autoscaling Postgres Clusters" },
+          { name: "PlanetScale", url: "https://planetscale.com", desc: "Serverless Database MySQL Alternative Platform" },
+          { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Cloud Document-driven Store Cluster Engine" }
+        ]
+      }
+    };
+
+    // Initializes Engine and generates item cards
+    function initDashboard() {
+      const feed = document.getElementById('workspace-feed');
+      feed.innerHTML = '';
+
+      for (const [key, section] of Object.entries(database)) {
+        // Update total dynamic counts on navigation bars
+        document.getElementById(`cnt-${key}`).innerText = section.items.length;
+
+        // Render sections structure
+        const sectWrapper = document.createElement('section');
+        sectWrapper.className = `dashboard-section sect-${key}`;
+        sectWrapper.id = `group-${key}`;
+
+        sectWrapper.innerHTML = `
+          <div class="section-title">${section.title}</div>
+          <div class="grid" id="grid-${key}"></div>
+        `;
+        feed.appendChild(sectWrapper);
+
+        const grid = document.getElementById(`grid-${key}`);
+        section.items.forEach(item => {
+          const card = document.createElement('a');
+          card.className = 'card';
+          card.href = item.url;
+          card.target = '_blank';
+          card.setAttribute('data-name', item.name.toLowerCase());
+          card.setAttribute('data-desc', item.desc.toLowerCase());
+
+          card.innerHTML = `
+            <div class="card-title">${item.name}</div>
+            <div class="card-meta">${item.desc}</div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+    }
+
+    // Snappy Dynamic Client-side Component Filtering
+    function filterSection(targetKey, element) {
+      // Toggle sidebar button selections
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      element.classList.add('active');
+
+      // Manipulate visual elements dynamically
+      const sections = document.querySelectorAll('.dashboard-section');
+      sections.forEach(sec => {
+        if (targetKey === 'all' || sec.classList.contains(`sect-${targetKey}`)) {
+          sec.style.display = 'block';
+          sec.style.animation = 'fadeIn 0.25s ease forwards';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    }
+
+    // High Performance Global Fuzzy Matches
+    function processSearch() {
+      const query = document.getElementById('global-search').value.toLowerCase();
+      const sections = document.querySelectorAll('.dashboard-section');
+
+      sections.forEach(sec => {
+        let visibleInSectionCount = 0;
+        const cards = sec.querySelectorAll('.card');
+
+        cards.forEach(card => {
+          const matchName = card.getAttribute('data-name').includes(query);
+          const matchDesc = card.getAttribute('data-desc').includes(query);
+
+          if (matchName || matchDesc) {
+            card.style.display = 'flex';
+            visibleInSectionCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Hide structural containers if inner search matches are null
+        sec.style.display = visibleInSectionCount > 0 ? 'block' : 'none';
+      });
+    }
+
+    // Theme Customizer Logic
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+    }
+
+    // Hotkey listener integration (Press '/' to refocus search instantly)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== document.getElementById('global-search')) {
+        e.preventDefault();
+        document.getElementById('global-search').focus();
+      }
+    });
+
+    // Boot engine instance
+    initDashboard();
+  </script>
+</body>
+</html>

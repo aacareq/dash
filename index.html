@@ -267,7 +267,20 @@
     .sect-inference .card:hover { --accent: #10b981; }
     .sect-agent .card:hover { --accent: #f59e0b; }
     .sect-vibe .card:hover { --accent: #ec4899; }
+    .sect-cli .card:hover { --accent: #06b6d4; }
     .sect-freebie .card:hover { --accent: #8b5cf6; }
+
+    .section-note {
+      color: var(--text-muted);
+      margin: -0.5rem 0 1rem;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .section-note strong {
+      color: var(--text);
+      font-weight: 600;
+    }
 
     /* CSS Animations */
     @keyframes fadeIn {
@@ -304,6 +317,9 @@
       </button>
       <button class="nav-btn" onclick="filterSection('vibe', this)">
         <span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('cli', this)">
+        <span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span>
       </button>
       <button class="nav-btn" onclick="filterSection('freebie', this)">
         <span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span>
@@ -389,6 +405,19 @@
           { name: "Replit", url: "https://replit.com", desc: "Instant Cloud Workspace Development Environment" }
         ]
       },
+      cli: {
+        title: "CLI Coding Tools",
+        note: `
+          <p>If your CLI tool is written in <strong>JavaScript/TypeScript (Node)</strong>: Go to <strong>StackBlitz</strong>.</p>
+          <p>If your CLI tool is written in <strong>any other language</strong> and lives in a repo: Go to <strong>GitHub Codespaces</strong>.</p>
+        `,
+        items: [
+          { name: "#1 GitHub Codespaces", url: "https://github.com/features/codespaces", desc: "Real Linux environment, closest to a laptop" },
+          { name: "#2 StackBlitz", url: "https://stackblitz.com", desc: "Fastest startup, fantastic for Node CLI tools" },
+          { name: "#3 Replit", url: "https://replit.com", desc: "Easiest for experimentation" },
+          { name: "#4 Google Colab", url: "https://colab.research.google.com", desc: "Python-focused CLI work" }
+        ]
+      },
       freebie: {
         title: "Generous Infrastructure Free Tiers",
         items: [
@@ -423,7 +452,11 @@
         if (section.headerLink) {
           headerHTML += `<a href="${section.headerLink.url}" target="_blank" class="section-link">${section.headerLink.text}</a>`;
         }
-        headerHTML += `</div><div class="grid" id="grid-${key}"></div>`;
+        headerHTML += `</div>`;
+        if (section.note) {
+          headerHTML += `<div class="section-note">${section.note}</div>`;
+        }
+        headerHTML += `<div class="grid" id="grid-${key}"></div>`;
 
         sectWrapper.innerHTML = headerHTML;
         feed.appendChild(sectWrapper);

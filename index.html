@@ -269,6 +269,7 @@
     .sect-vibe .card:hover { --accent: #ec4899; }
     .sect-cli .card:hover { --accent: #06b6d4; }
     .sect-freebie .card:hover { --accent: #8b5cf6; }
+    .sect-technews .card:hover { --accent: #f97316; }
 
     .section-note {
       color: var(--text-muted);
@@ -323,6 +324,9 @@
       </button>
       <button class="nav-btn" onclick="filterSection('freebie', this)">
         <span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('technews', this)">
+        <span>Tech News</span> <span class="count" id="cnt-technews">0</span>
       </button>
     </nav>
     <button class="theme-toggle" onclick="toggleTheme()">🌓 <span>Theme</span></button>
@@ -429,6 +433,14 @@
           { name: "Neon", url: "https://neon.tech", desc: "Serverless Autoscaling Postgres Clusters" },
           { name: "PlanetScale", url: "https://planetscale.com", desc: "Serverless Database MySQL Alternative Platform" },
           { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Cloud Document-driven Store Cluster Engine" }
+        ]
+      },
+      technews: {
+        title: "Tech News",
+        items: [
+          { name: "Hacker News", url: "https://news.ycombinator.com", desc: "RSS: https://news.ycombinator.com/rss" },
+          { name: "Techmeme", url: "https://www.techmeme.com", desc: "RSS: https://www.techmeme.com/feed.xml" },
+          { name: "Ars Technica", url: "https://arstechnica.com", desc: "RSS: https://feeds.arstechnica.com/arstechnica/index" }
         ]
       }
     };

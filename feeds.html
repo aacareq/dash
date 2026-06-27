@@ -372,7 +372,7 @@
       { name: 'Hacker News', siteUrl: 'https://news.ycombinator.com', feedUrl: 'https://news.ycombinator.com/rss' },
       { name: 'Techmeme', siteUrl: 'https://www.techmeme.com', feedUrl: 'https://www.techmeme.com/feed.xml' },
       { name: 'Ars Technica', siteUrl: 'https://arstechnica.com', feedUrl: 'https://feeds.arstechnica.com/arstechnica/index' },
-      { name: 'Slashdot', siteUrl: 'https://slashdot.org', feedUrl: 'http://rss.slashdot.org/Slashdot/slashdotMain' },
+      { name: 'Slashdot', siteUrl: 'https://slashdot.org', feedUrl: 'https://rss.slashdot.org/Slashdot/slashdotMain' },
       { name: 'Lobste.rs', siteUrl: 'https://lobste.rs', feedUrl: 'https://lobste.rs/rss' },
       { name: 'The Register', siteUrl: 'https://www.theregister.com', feedUrl: 'https://www.theregister.com/headlines.atom' },
       { name: 'Computerworld', siteUrl: 'https://www.computerworld.com', feedUrl: 'https://www.computerworld.com/index.rss' },
@@ -447,25 +447,67 @@
     }
 
     async function fetchFeedXml(feedUrl, forceRefresh) {
-      const cacheBust = forceRefresh ? `?ts=${Date.now()}` : '';
-      const urls = [
-        `${feedUrl}${cacheBust}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}${forceRefresh ? `&ts=${Date.now()}` : ''}`
-      ];
-
+      const proxiedRequests = buildFeedRequests(feedUrl, forceRefresh);
       let lastError;
-      for (const url of urls) {
+
+      for (const request of proxiedRequests) {
         try {
-          const response = await fetch(url, { cache: forceRefresh ? 'reload' : 'default' });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const text = await response.text();
-          if (!text.trim()) throw new Error('empty response');
-          return text;
+          const response = await fetch(request.url, { cache: forceRefresh ? 'reload' : 'default' });
+          if (!response.ok) throw new Error(`${request.label} returned HTTP ${response.status}`);
+          const body = await readFeedResponse(response, request.type);
+          if (!body.trim()) throw new Error(`${request.label} returned an empty response`);
+          return body;
         } catch (error) {
           lastError = error;
         }
       }
-      throw lastError || new Error('feed request failed');
+
+      throw new Error(`${lastError ? lastError.message : 'feed request failed'}. Browser RSS requests are often blocked by CORS; try a server-side proxy if every public proxy fails.`);
+    }
+
+    function buildFeedRequests(feedUrl, forceRefresh) {
+      const cacheKey = forceRefresh ? Date.now() : '';
+      const withCacheBust = addQueryParam(feedUrl, 'ts', cacheKey);
+      const encodedFeedUrl = encodeURIComponent(feedUrl);
+      const encodedCacheBustUrl = encodeURIComponent(withCacheBust);
+
+      return [
+        { label: 'Direct feed request', type: 'xml', url: withCacheBust },
+        { label: 'AllOrigins raw proxy', type: 'xml', url: `https://api.allorigins.win/raw?url=${encodedCacheBustUrl}` },
+        { label: 'AllOrigins JSON proxy', type: 'allOriginsJson', url: `https://api.allorigins.win/get?url=${encodedCacheBustUrl}` },
+        { label: 'RSS2JSON proxy', type: 'rss2json', url: `https://api.rss2json.com/v1/api.json?rss_url=${encodedFeedUrl}&count=${MAX_ITEMS_PER_FEED}${cacheKey ? `&ts=${cacheKey}` : ''}` }
+      ];
+    }
+
+    async function readFeedResponse(response, type) {
+      if (type === 'allOriginsJson') {
+        const data = await response.json();
+        return data.contents || '';
+      }
+      if (type === 'rss2json') {
+        const data = await response.json();
+        if (data.status && data.status !== 'ok') throw new Error(data.message || 'RSS2JSON could not read the feed');
+        return rss2JsonToXml(data);
+      }
+      return response.text();
+    }
+
+    function rss2JsonToXml(data) {
+      const items = (data.items || []).map(item => `
+        <item>
+          <title>${escapeHtml(item.title || '')}</title>
+          <link>${escapeHtml(item.link || '')}</link>
+          <pubDate>${escapeHtml(item.pubDate || '')}</pubDate>
+          <description>${escapeHtml(item.description || item.content || '')}</description>
+        </item>
+      `).join('');
+      return `<rss><channel>${items}</channel></rss>`;
+    }
+
+    function addQueryParam(url, key, value) {
+      if (!value) return url;
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}${encodeURIComponent(key)}=${encodeURIComponent(value)}`;
     }
 
     function parseFeed(xmlText) {

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tech News Feeds | Command Center 2026</title>
+  <style>
+    :root {
+      --bg: #0b0914;
+      --sidebar-bg: #110f24;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-hover: rgba(255, 255, 255, 0.09);
+      --text: #f1f1f7;
+      --text-muted: #8a88a5;
+      --accent: #f97316;
+      --accent-glow: rgba(249, 115, 22, 0.2);
+      --border: rgba(255, 255, 255, 0.08);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 12px;
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .light {
+      --bg: #f4f5f9;
+      --sidebar-bg: #ffffff;
+      --card-bg: rgba(0, 0, 0, 0.03);
+      --card-hover: rgba(0, 0, 0, 0.06);
+      --text: #1e1b4b;
+      --text-muted: #64748b;
+      --accent: #ea580c;
+      --accent-glow: rgba(234, 88, 12, 0.15);
+      --border: rgba(0, 0, 0, 0.08);
+    }
+
+    * { box-sizing: border-box; transition: background 0.2s, border 0.2s; }
+
+    body {
+      margin: 0;
+      font-family: var(--font);
+      background: radial-gradient(circle at top right, rgba(249, 115, 22, 0.12), transparent 32rem), var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    aside {
+      width: 260px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      z-index: 10;
+      padding: 1.5rem;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand span {
+      background: linear-gradient(135deg, var(--accent), #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      flex-grow: 1;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      text-align: left;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      color: var(--text);
+      background: var(--card-bg);
+    }
+
+    .nav-btn.active {
+      color: #fff;
+      background: var(--accent);
+      box-shadow: 0 4px 12px var(--accent-glow);
+    }
+
+    .nav-btn .count {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      background: rgba(0,0,0,0.2);
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.75rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    main {
+      margin-left: 260px;
+      flex-grow: 1;
+      padding: 2.5rem;
+      max-width: 1400px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      margin: 0 0 0.65rem;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 4rem);
+      letter-spacing: -0.06em;
+      line-height: 0.95;
+      margin: 0 0 1rem;
+    }
+
+    .intro {
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 760px;
+      margin: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1 1 320px;
+      max-width: 640px;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 0.8rem 1.2rem 0.8rem 2.8rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    .search-bar:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .search-wrapper::before {
+      content: "⚡";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.6;
+    }
+
+    .action-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0.8rem 1rem;
+    }
+
+    .action-btn:hover {
+      background: var(--card-hover);
+      border-color: var(--accent);
+    }
+
+    .feed-grid {
+      display: grid;
+      gap: 1.2rem;
+    }
+
+    .feed-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 4px);
+      overflow: hidden;
+      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .feed-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .feed-title {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .feed-title a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .feed-title a:hover { color: var(--accent); }
+
+    .feed-url {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      word-break: break-all;
+    }
+
+    .status {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.35rem 0.7rem;
+      white-space: nowrap;
+    }
+
+    .status.loading { color: var(--warning); }
+    .status.loaded { color: var(--success); }
+    .status.error { color: var(--danger); }
+
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .feed-item {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 180px;
+      padding: 1.2rem;
+      text-decoration: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .feed-item:hover {
+      background: var(--card-hover);
+    }
+
+    .feed-item h2 {
+      font-size: 1rem;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .meta {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+    }
+
+    .excerpt {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    .message {
+      color: var(--text-muted);
+      padding: 1.2rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      aside { width: 70px; padding: 1rem 0.5rem; align-items: center; }
+      aside .brand span, aside .nav-btn span, aside .theme-toggle span { display: none; }
+      main { margin-left: 70px; padding: 1.5rem; }
+      .nav-btn { justify-content: center; padding: 0.75rem; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <aside>
+    <a class="brand" href="index.html">🚀 <span>CommandOS-v1.1</span></a>
+    <nav class="nav-links" id="feed-nav">
+      <a class="nav-btn" href="index.html"><span>Dashboard</span></a>
+    </nav>
+    <button class="theme-toggle" onclick="toggleTheme()">🌓 <span>Theme</span></button>
+  </aside>
+
+  <main>
+    <header>
+      <div>
+        <p class="eyebrow">Asynchronous Tech Radar</p>
+        <h1>Live Feed Console</h1>
+        <p class="intro">RSS and Atom feeds load independently, so slow or blocked sources do not freeze the page. Items are grouped by site and cleaned before display to remove scripts, styles, markup, and non-content noise.</p>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="search-wrapper">
+        <input type="text" class="search-bar" id="feed-search" placeholder="Filter loaded stories by title, excerpt, or source..." oninput="filterItems()" autocomplete="off">
+      </div>
+      <button class="action-btn" type="button" onclick="loadFeeds(true)">↻ Refresh Feeds</button>
+    </div>
+
+    <div class="feed-grid" id="feed-grid"></div>
+  </main>
+
+  <script>
+    const feeds = [
+      { name: 'Hacker News', siteUrl: 'https://news.ycombinator.com', feedUrl: 'https://news.ycombinator.com/rss' },
+      { name: 'Techmeme', siteUrl: 'https://www.techmeme.com', feedUrl: 'https://www.techmeme.com/feed.xml' },
+      { name: 'Ars Technica', siteUrl: 'https://arstechnica.com', feedUrl: 'https://feeds.arstechnica.com/arstechnica/index' },
+      { name: 'Slashdot', siteUrl: 'https://slashdot.org', feedUrl: 'http://rss.slashdot.org/Slashdot/slashdotMain' },
+      { name: 'Lobste.rs', siteUrl: 'https://lobste.rs', feedUrl: 'https://lobste.rs/rss' },
+      { name: 'The Register', siteUrl: 'https://www.theregister.com', feedUrl: 'https://www.theregister.com/headlines.atom' },
+      { name: 'Computerworld', siteUrl: 'https://www.computerworld.com', feedUrl: 'https://www.computerworld.com/index.rss' },
+      { name: 'InfoWorld', siteUrl: 'https://www.infoworld.com', feedUrl: 'https://www.infoworld.com/index.rss' }
+    ];
+
+    const MAX_ITEMS_PER_FEED = 8;
+
+    function createShell(feed) {
+      const section = document.createElement('section');
+      section.className = 'feed-section';
+      section.id = `feed-${slugify(feed.name)}`;
+      section.dataset.source = feed.name.toLowerCase();
+      section.innerHTML = `
+        <div class="feed-header">
+          <div class="feed-title">
+            <a href="${feed.siteUrl}" target="_blank" rel="noopener">${feed.name}</a>
+            <span class="feed-url">${feed.feedUrl}</span>
+          </div>
+          <span class="status loading">Loading…</span>
+        </div>
+        <div class="items" aria-live="polite"><div class="message">Waiting for feed response…</div></div>
+      `;
+      return section;
+    }
+
+    async function loadFeeds(forceRefresh = false) {
+      const grid = document.getElementById('feed-grid');
+      const nav = document.getElementById('feed-nav');
+      grid.innerHTML = '';
+      nav.innerHTML = '<a class="nav-btn" href="index.html"><span>Dashboard</span></a>';
+
+      feeds.forEach(feed => {
+        grid.appendChild(createShell(feed));
+        const navLink = document.createElement('a');
+        navLink.className = 'nav-btn';
+        navLink.href = `#feed-${slugify(feed.name)}`;
+        navLink.innerHTML = `<span>${feed.name}</span><span class="count" id="count-${slugify(feed.name)}">0</span>`;
+        nav.appendChild(navLink);
+      });
+
+      await Promise.allSettled(feeds.map(feed => loadFeed(feed, forceRefresh)));
+    }
+
+    async function loadFeed(feed, forceRefresh) {
+      const section = document.getElementById(`feed-${slugify(feed.name)}`);
+      const status = section.querySelector('.status');
+      const itemsContainer = section.querySelector('.items');
+
+      try {
+        const xmlText = await fetchFeedXml(feed.feedUrl, forceRefresh);
+        const stories = parseFeed(xmlText).slice(0, MAX_ITEMS_PER_FEED);
+        itemsContainer.innerHTML = '';
+
+        if (!stories.length) {
+          itemsContainer.innerHTML = '<div class="message">No stories were found in this feed.</div>';
+        } else {
+          const fragment = document.createDocumentFragment();
+          stories.forEach(story => fragment.appendChild(renderStory(feed, story)));
+          itemsContainer.appendChild(fragment);
+        }
+
+        status.className = 'status loaded';
+        status.textContent = `${stories.length} loaded`;
+        document.getElementById(`count-${slugify(feed.name)}`).textContent = stories.length;
+        filterItems();
+      } catch (error) {
+        status.className = 'status error';
+        status.textContent = 'Unavailable';
+        itemsContainer.innerHTML = `<div class="message">Could not load this feed. ${cleanText(error.message)}</div>`;
+      }
+    }
+
+    async function fetchFeedXml(feedUrl, forceRefresh) {
+      const cacheBust = forceRefresh ? `?ts=${Date.now()}` : '';
+      const urls = [
+        `${feedUrl}${cacheBust}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(feedUrl)}${forceRefresh ? `&ts=${Date.now()}` : ''}`
+      ];
+
+      let lastError;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { cache: forceRefresh ? 'reload' : 'default' });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const text = await response.text();
+          if (!text.trim()) throw new Error('empty response');
+          return text;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error('feed request failed');
+    }
+
+    function parseFeed(xmlText) {
+      const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) throw new Error('invalid XML');
+
+      return [...doc.querySelectorAll('item, entry')].map(node => {
+        const title = textFrom(node, 'title') || 'Untitled story';
+        const link = linkFrom(node);
+        const date = textFrom(node, 'pubDate') || textFrom(node, 'updated') || textFrom(node, 'published');
+        const rawExcerpt = textFrom(node, 'description') || textFrom(node, 'summary') || textFrom(node, 'content\\:encoded') || textFrom(node, 'content');
+        return {
+          title: cleanText(title),
+          link,
+          date: formatDate(date),
+          excerpt: truncate(cleanText(rawExcerpt), 260)
+        };
+      }).filter(item => item.link || item.title);
+    }
+
+    function renderStory(feed, story) {
+      const link = document.createElement('a');
+      link.className = 'feed-item';
+      link.href = story.link || feed.siteUrl;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.dataset.search = `${feed.name} ${story.title} ${story.excerpt}`.toLowerCase();
+      link.innerHTML = `
+        <h2>${escapeHtml(story.title)}</h2>
+        <div class="meta">${escapeHtml(feed.name)}${story.date ? ` · ${escapeHtml(story.date)}` : ''}</div>
+        <p class="excerpt">${escapeHtml(story.excerpt || 'No excerpt provided by this feed.')}</p>
+      `;
+      return link;
+    }
+
+    function textFrom(node, selector) {
+      const found = node.querySelector(selector);
+      return found ? found.textContent : '';
+    }
+
+    function linkFrom(node) {
+      const directLink = textFrom(node, 'link');
+      if (directLink) return directLink;
+      const atomLink = [...node.querySelectorAll('link')].find(link => !link.getAttribute('rel') || link.getAttribute('rel') === 'alternate');
+      return atomLink ? atomLink.getAttribute('href') : '';
+    }
+
+    function cleanText(value) {
+      const template = document.createElement('template');
+      template.innerHTML = value || '';
+      template.content.querySelectorAll('script, style, noscript, iframe, object, embed, svg, canvas').forEach(node => node.remove());
+      return (template.content.textContent || value || '')
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
+        .replace(/\b(function|var|let|const)\s+[\s\S]*$/i, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function truncate(value, maxLength) {
+      if (!value || value.length <= maxLength) return value;
+      return `${value.slice(0, maxLength).replace(/\s+\S*$/, '')}…`;
+    }
+
+    function formatDate(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date);
+    }
+
+    function filterItems() {
+      const query = document.getElementById('feed-search').value.toLowerCase().trim();
+      document.querySelectorAll('.feed-section').forEach(section => {
+        let visible = 0;
+        section.querySelectorAll('.feed-item').forEach(item => {
+          const match = !query || item.dataset.search.includes(query);
+          item.style.display = match ? 'flex' : 'none';
+          if (match) visible++;
+        });
+        section.style.display = visible || !query ? 'block' : 'none';
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[char]));
+    }
+
+    function slugify(value) {
+      return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== document.getElementById('feed-search')) {
+        e.preventDefault();
+        document.getElementById('feed-search').focus();
+      }
+    });
+
+    loadFeeds();
+  </script>
+</body>
+</html>

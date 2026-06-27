@@ -261,6 +261,36 @@
 
     .feed-title a:hover { color: var(--accent); }
 
+    .feed-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
+
+    .feed-refresh {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 0.35rem 0.7rem;
+      white-space: nowrap;
+    }
+
+    .feed-refresh:hover:not(:disabled) {
+      background: var(--card-hover);
+      border-color: var(--accent);
+    }
+
+    .feed-refresh:disabled {
+      cursor: progress;
+      opacity: 0.62;
+    }
+
     .feed-url {
       color: var(--text-muted);
       font-size: 0.78rem;
@@ -380,6 +410,9 @@
     ];
 
     const MAX_ITEMS_PER_FEED = 8;
+    const REQUEST_TIMEOUT_MS = 9000;
+    const RETRY_DELAYS_MS = [0, 1200, 3200];
+    const feedState = new Map();
 
     function createShell(feed) {
       const section = document.createElement('section');
@@ -392,77 +425,151 @@
             <a href="${feed.siteUrl}" target="_blank" rel="noopener">${feed.name}</a>
             <span class="feed-url">${feed.feedUrl}</span>
           </div>
-          <span class="status loading">Loading…</span>
+          <div class="feed-actions">
+            <button class="feed-refresh" type="button" onclick="refreshFeed('${slugify(feed.name)}', true)">↻ Refresh</button>
+            <span class="status loading" aria-live="polite">Loading…</span>
+          </div>
         </div>
         <div class="items" aria-live="polite"><div class="message">Waiting for feed response…</div></div>
       `;
       return section;
     }
 
-    async function loadFeeds(forceRefresh = false) {
+    function loadFeeds(forceRefresh = false) {
       const grid = document.getElementById('feed-grid');
       const nav = document.getElementById('feed-nav');
-      grid.innerHTML = '';
-      nav.innerHTML = '<a class="nav-btn" href="index.html"><span>Dashboard</span></a>';
 
-      feeds.forEach(feed => {
-        grid.appendChild(createShell(feed));
-        const navLink = document.createElement('a');
-        navLink.className = 'nav-btn';
-        navLink.href = `#feed-${slugify(feed.name)}`;
-        navLink.innerHTML = `<span>${feed.name}</span><span class="count" id="count-${slugify(feed.name)}">0</span>`;
-        nav.appendChild(navLink);
-      });
+      if (!grid.children.length) {
+        nav.innerHTML = '<a class="nav-btn" href="index.html"><span>Dashboard</span></a>';
+        feeds.forEach(feed => {
+          grid.appendChild(createShell(feed));
+          const navLink = document.createElement('a');
+          navLink.className = 'nav-btn';
+          navLink.href = `#feed-${slugify(feed.name)}`;
+          navLink.innerHTML = `<span>${feed.name}</span><span class="count" id="count-${slugify(feed.name)}">0</span>`;
+          nav.appendChild(navLink);
+        });
+      }
 
-      await Promise.allSettled(feeds.map(feed => loadFeed(feed, forceRefresh)));
+      feeds.forEach(feed => refreshFeed(slugify(feed.name), forceRefresh));
     }
 
-    async function loadFeed(feed, forceRefresh) {
-      const section = document.getElementById(`feed-${slugify(feed.name)}`);
+    function refreshFeed(feedSlug, forceRefresh = true) {
+      const feed = feeds.find(item => slugify(item.name) === feedSlug);
+      if (!feed) return;
+      const token = Symbol(feedSlug);
+      feedState.set(feedSlug, { token });
+      loadFeed(feed, forceRefresh, token);
+    }
+
+    async function loadFeed(feed, forceRefresh, token) {
+      const feedSlug = slugify(feed.name);
+      const section = document.getElementById(`feed-${feedSlug}`);
       const status = section.querySelector('.status');
+      const refreshButton = section.querySelector('.feed-refresh');
       const itemsContainer = section.querySelector('.items');
+      const hasLoadedItems = Boolean(itemsContainer.querySelector('.feed-item'));
+
+      refreshButton.disabled = true;
+      status.className = 'status loading';
+      status.textContent = hasLoadedItems ? 'Refreshing…' : 'Loading…';
+      if (!hasLoadedItems) {
+        itemsContainer.innerHTML = '<div class="message">Waiting for feed response…</div>';
+      }
 
       try {
-        const xmlText = await fetchFeedXml(feed.feedUrl, forceRefresh);
-        const stories = parseFeed(xmlText).slice(0, MAX_ITEMS_PER_FEED);
-        itemsContainer.innerHTML = '';
+        const xmlText = await fetchFeedXml(feed.feedUrl, forceRefresh, message => {
+          if (isCurrentRequest(feedSlug, token)) status.textContent = message;
+        });
+        if (!isCurrentRequest(feedSlug, token)) return;
 
+        const stories = parseFeed(xmlText).slice(0, MAX_ITEMS_PER_FEED);
         if (!stories.length) {
-          itemsContainer.innerHTML = '<div class="message">No stories were found in this feed.</div>';
-        } else {
-          const fragment = document.createDocumentFragment();
-          stories.forEach(story => fragment.appendChild(renderStory(feed, story)));
-          itemsContainer.appendChild(fragment);
+          if (!hasLoadedItems) itemsContainer.innerHTML = '<div class="message">No stories were found in this feed.</div>';
+          status.className = hasLoadedItems ? 'status loaded' : 'status error';
+          status.textContent = hasLoadedItems ? 'No new items' : 'No stories';
+          return;
         }
+
+        itemsContainer.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        stories.forEach(story => fragment.appendChild(renderStory(feed, story)));
+        itemsContainer.appendChild(fragment);
 
         status.className = 'status loaded';
         status.textContent = `${stories.length} loaded`;
-        document.getElementById(`count-${slugify(feed.name)}`).textContent = stories.length;
+        document.getElementById(`count-${feedSlug}`).textContent = stories.length;
         filterItems();
       } catch (error) {
-        status.className = 'status error';
-        status.textContent = 'Unavailable';
-        itemsContainer.innerHTML = `<div class="message">Could not load this feed. ${cleanText(error.message)}</div>`;
+        if (!isCurrentRequest(feedSlug, token)) return;
+        status.className = hasLoadedItems ? 'status loaded' : 'status error';
+        status.textContent = hasLoadedItems ? 'Using cached items' : 'Unavailable';
+        const message = `Could not refresh this feed. ${cleanText(error.message)}`;
+        if (hasLoadedItems) {
+          let notice = itemsContainer.querySelector('.message.retry-notice');
+          if (!notice) {
+            notice = document.createElement('div');
+            notice.className = 'message retry-notice';
+            itemsContainer.prepend(notice);
+          }
+          notice.textContent = message;
+        } else {
+          itemsContainer.innerHTML = `<div class="message">${message}</div>`;
+        }
+      } finally {
+        if (isCurrentRequest(feedSlug, token)) refreshButton.disabled = false;
       }
     }
 
-    async function fetchFeedXml(feedUrl, forceRefresh) {
+    function isCurrentRequest(feedSlug, token) {
+      return feedState.get(feedSlug)?.token === token;
+    }
+
+    async function fetchFeedXml(feedUrl, forceRefresh, onProgress = () => {}) {
       const proxiedRequests = buildFeedRequests(feedUrl, forceRefresh);
       let lastError;
 
-      for (const request of proxiedRequests) {
-        try {
-          const response = await fetch(request.url, { cache: forceRefresh ? 'reload' : 'default' });
-          if (!response.ok) throw new Error(`${request.label} returned HTTP ${response.status}`);
-          const body = await readFeedResponse(response, request.type);
-          if (!body.trim()) throw new Error(`${request.label} returned an empty response`);
-          return body;
-        } catch (error) {
-          lastError = error;
+      for (let retryIndex = 0; retryIndex < RETRY_DELAYS_MS.length; retryIndex++) {
+        const delayMs = RETRY_DELAYS_MS[retryIndex];
+        if (delayMs) {
+          onProgress(`Retrying in ${Math.round(delayMs / 1000)}s…`);
+          await delay(delayMs);
+        }
+
+        for (const request of proxiedRequests) {
+          try {
+            onProgress(`${retryIndex ? `Retry ${retryIndex + 1}` : 'Trying'} ${request.label}…`);
+            const response = await fetchWithTimeout(request.url, {
+              cache: forceRefresh ? 'reload' : 'default'
+            });
+            if (!response.ok) throw new Error(`${request.label} returned HTTP ${response.status}`);
+            const body = await readFeedResponse(response, request.type);
+            if (!body.trim()) throw new Error(`${request.label} returned an empty response`);
+            return body;
+          } catch (error) {
+            lastError = error;
+          }
         }
       }
 
       throw new Error(`${lastError ? lastError.message : 'feed request failed'}. Browser RSS requests are often blocked by CORS; try a server-side proxy if every public proxy fails.`);
+    }
+
+    async function fetchWithTimeout(url, options = {}) {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } catch (error) {
+        if (error.name === 'AbortError') throw new Error('request timed out');
+        throw error;
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    }
+
+    function delay(ms) {
+      return new Promise(resolve => window.setTimeout(resolve, ms));
     }
 
     function buildFeedRequests(feedUrl, forceRefresh) {

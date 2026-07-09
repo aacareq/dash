@@ -270,6 +270,8 @@
     .sect-cli .card:hover { --accent: #06b6d4; }
     .sect-freebie .card:hover { --accent: #8b5cf6; }
     .sect-technews .card:hover { --accent: #f97316; }
+    .sect-socials .card:hover { --accent: #10b981; }
+    .sect-revenue .card:hover { --accent: #14b8a6; }
 
     .section-note {
       color: var(--text-muted);
@@ -300,7 +302,6 @@
 </head>
 <body>
 
-  <!-- Sticky Dynamic Navigation Sidebar -->
   <aside>
     <div class="brand">🚀 <span>CommandOS-v1.1</span></div>
     <nav class="nav-links">
@@ -328,11 +329,16 @@
       <button class="nav-btn" onclick="filterSection('technews', this)">
         <span>Tech News</span> <span class="count" id="cnt-technews">0</span>
       </button>
+      <button class="nav-btn" onclick="filterSection('socials', this)">
+        <span>Socials</span> <span class="count" id="cnt-socials">0</span>
+      </button>
+      <button class="nav-btn" onclick="filterSection('revenue', this)">
+        <span>Service Revenue</span> <span class="count" id="cnt-revenue">0</span>
+      </button>
     </nav>
     <button class="theme-toggle" onclick="toggleTheme()">🌓 <span>Theme</span></button>
   </aside>
 
-  <!-- Interactive Dashboard Feed Workspace -->
   <main>
     <header>
       <div class="search-wrapper">
@@ -341,8 +347,7 @@
     </header>
 
     <div id="workspace-feed">
-      <!-- Generated Modules Appended Here dynamically via JS -->
-    </div>
+      </div>
   </main>
 
   <script>
@@ -444,6 +449,35 @@
           { name: "Slashdot", url: "https://slashdot.org", desc: "RSS: http://rss.slashdot.org/Slashdot/slashdotMain" },
           { name: "Lobste.rs", url: "https://lobste.rs", desc: "RSS: https://lobste.rs/rss" },
           { name: "Live Feed Console", url: "feeds.html", desc: "Progressive RSS reader for Tech News sources" }
+        ]
+      },
+      socials: {
+        title: "Socials",
+        items: [
+          { name: "x.com", url: "https://x.com", desc: "Real-time Broadcast & Networking Network" },
+          { name: "LinkedIn", url: "https://linkedin.com", desc: "Professional Identity Ecosystem" },
+          { name: "Instagram", url: "https://instagram.com", desc: "Visual Media Content Sharing" },
+          { name: "YouTube", url: "https://youtube.com", desc: "Video Content Engine Matrix" },
+          { name: "Reddit", url: "https://reddit.com", desc: "Crowdsourced Community Index Forums" },
+          { name: "TikTok", url: "https://tiktok.com", desc: "Short-form Creative Video Hub" },
+          { name: "Threads", url: "https://threads.net", desc: "Text-centric Algorithmic Feed" },
+          { name: "Telegram", url: "https://telegram.org", desc: "Distributed Communication Network Nodes" },
+          { name: "WhatsApp", url: "https://whatsapp.com", desc: "End-to-End Encrypted Messaging Suite" },
+          { name: "WeChat", url: "https://wechat.com", desc: "Multipurpose Ecosystem Platform" },
+          { name: "Facebook", url: "https://facebook.com", desc: "Legacy Social Graph Hub Engine" }
+        ]
+      },
+      revenue: {
+        title: "Service Revenue",
+        items: [
+          { name: "LinkedIn", url: "https://linkedin.com", desc: "Enterprise Work Marketplace Pipelines" },
+          { name: "We Work Remotely", url: "https://weworkremotely.com", desc: "Global Remote Jobs Board" },
+          { name: "Hired.com", url: "https://hired.com", desc: "Automated Tech Candidate Marketplace" },
+          { name: "AngelList", url: "https://wellfound.com", desc: "Startup Work & Career Graph Network" },
+          { name: "Google Jobs", url: "https://careers.google.com", desc: "Aggregated Job Engine Index" },
+          { name: "www.indeed.com", url: "https://indeed.com", desc: "Global Enterprise Hiring Database" },
+          { name: "Dynamite Jobs", url: "https://dynamitejobs.com", desc: "Curated Remote Career Hub Platform" },
+          { name: "Dice", url: "https://dice.com", desc: "Dedicated Technological Talent Hub Marketplace" }
         ]
       }
     };

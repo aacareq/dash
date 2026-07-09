@@ -43,7 +43,7 @@
       overflow-x: hidden;
     }
 
-    /* --- Sidebar Navigation --- */
+    /* --- Sidebar Navigation (Desktop) --- */
     aside {
       width: 260px;
       background: var(--sidebar-bg);
@@ -93,6 +93,7 @@
       align-items: center;
       justify-content: space-between;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .nav-btn:hover {
@@ -131,6 +132,7 @@
       flex-grow: 1;
       padding: 2.5rem;
       max-width: 1400px;
+      width: calc(100% - 260px);
     }
 
     header {
@@ -291,12 +293,76 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Responsive scaling */
-    @media (max-width: 768px) {
-      aside { width: 70px; padding: 1rem 0.5rem; align-items: center; }
-      aside .brand span, aside .nav-btn span, aside .theme-toggle span { display: none; }
-      main { margin-left: 70px; padding: 1.5rem; }
-      .nav-btn { justify-content: center; padding: 0.75rem; }
+    /* --- Responsive scaling Overhaul --- */
+    @media (max-width: 992px) {
+      body {
+        flex-direction: column;
+      }
+      
+      /* Hide regular desktop sidebar container assets */
+      aside {
+        position: static;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .brand {
+        margin-bottom: 0;
+      }
+
+      /* Transform layout into a horizontal swipe navigation block */
+      .nav-links {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        background: var(--sidebar-bg);
+        border-top: 1px solid var(--border);
+        flex-direction: row;
+        padding: 0.6rem 1rem;
+        gap: 0.5rem;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        z-index: 100;
+      }
+
+      /* Hide scrollbars elegantly while preserving operational swipe features */
+      .nav-links::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-links {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .nav-btn {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.85rem;
+        gap: 0.4rem;
+      }
+
+      main {
+        margin-left: 0;
+        padding: 1.5rem;
+        width: 100%;
+        margin-bottom: 60px; /* Space out room on mobile viewports so bottom navigation doesn't clip content */
+      }
+      
+      .grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+      
+      .card {
+        height: 100px;
+        padding: 1rem;
+      }
     }
   </style>
 </head>

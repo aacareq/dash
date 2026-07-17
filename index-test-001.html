@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Center 2026</title>
+  <style>
+    body { font-family: sans-serif; background: #0b0914; color: #f1f1f7; padding: 20px; margin: 0; }
+    h1 { margin-top: 0; }
+    .search { width: 100%; padding: 10px; margin-bottom: 20px; background: #110f24; border: 1px solid #333; color: white; border-radius: 5px; box-sizing: border-box; }
+    .nav { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .nav-btn { padding: 8px 12px; background: #110f24; border: 1px solid #333; color: #fff; cursor: pointer; border-radius: 4px; }
+    .nav-btn.active { background: #6366f1; border-color: #6366f1; }
+    .section { display: none; }
+    .section.active { display: block; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .card { padding: 15px; background: #110f24; border: 1px solid #333; border-radius: 5px; text-decoration: none; color: #fff; }
+    .card strong { color: #6366f1; display: block; margin-bottom: 5px; }
+    .header-link { margin-bottom: 15px; display: block; color: #6366f1; }
+    .note { margin-bottom: 15px; font-size: 0.9em; color: #aaa; }
+  </style>
+</head>
+<body>
+
+  <h1>Command Center 2026</h1>
+  <input type="text" class="search" id="search" placeholder="Search items..." onkeyup="filter()">
+  <nav class="nav" id="nav"></nav>
+  <div id="container"></div>
+
+  <script>
+    const database = {
+      daily: { title: "Key Daily Services", items: [
+        { name: "Google", url: "https://google.com", desc: "Global Search Index" },
+        { name: "GitHub", url: "https://github.com", desc: "Version Control & Repositories" },
+        { name: "Gmail", url: "https://gmail.com", desc: "Communication Suite" },
+        { name: "Calendar", url: "https://calendar.google.com", desc: "Schedules & Aggregations" },
+        { name: "Drive", url: "https://drive.google.com", desc: "Cloud Asset Storage" },
+        { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Source-grounded AI Context Research" }
+      ]},
+      inference: { title: "Inference Engines", headerLink: { text: "🔗 Core Matrix", url: "https://aacareq.github.io/dash/inference.html" }, items: [
+        { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI Foundation System" },
+        { name: "Gemini", url: "https://gemini.google.com", desc: "Google DeepMind Ecosystem" },
+        { name: "Claude", url: "https://claude.ai", desc: "Anthropic Safety & Core Reasoning" },
+        { name: "Perplexity", url: "https://perplexity.ai", desc: "Conversational Search Engine" },
+        { name: "Arena AI", url: "https://arena.ai/", desc: "LLM Crowdsourced Benchmark Comparison" },
+        { name: "Grok", url: "https://grok.com", desc: "xAI Real-time System" },
+        { name: "DeepSeek", url: "https://chat.deepseek.com", desc: "Optimized Mixture-of-Experts Pipeline" },
+        { name: "Qwen", url: "https://chat.qwen.ai", desc: "Alibaba Frontier Multilingual Models" },
+        { name: "GLM-5.2", url: "https://z.ai", desc: "Agentic Foundation" },
+        { name: "MiniMax M3", url: "https://platform.minimaxi.com", desc: "Multimodal Foundation" },
+        { name: "Kimi K2/K3", url: "https://www.kimi.com", desc: "Reasoning Agent" },
+        { name: "Copilot", url: "https://copilot.microsoft.com", desc: "Microsoft Productivity Companion" },
+        { name: "Meta AI", url: "https://meta.ai", desc: "Llama Ecosystem Web Matrix" },
+        { name: "Duck.ai", url: "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat", desc: "Privacy Preserving Alternative Access" },
+        { name: "GitHub Marketplace", url: "https://github.com/marketplace/models", desc: "Free Sandbox Inference Node Point" },
+        { name: "YouChat", url: "https://you.com", desc: "Structured Multimodal Synthesizer" },
+        { name: "Poe", url: "https://poe.com", desc: "Quora Custom Context Wrapper Orchestrator" },
+        { name: "Mistral", url: "https://chat.mistral.ai", desc: "European Frontier Models Hub" },
+        { name: "Groq", url: "https://groq.com", desc: "Ultra low-latency LPU hardware engine" },
+        { name: "Cohere", url: "https://cohere.com", desc: "RAG & Enterprise NLP Tools" },
+        { name: "Hugging Face", url: "https://huggingface.co", desc: "AI ML Repository and Space Hub" },
+        { name: "SiliconFlow", url: "https://siliconflow.com", desc: "Open-source Model API" },
+        { name: "DeepInfra", url: "https://deepinfra.com", desc: "Serverless Inference API" },
+        { name: "Julius AI", url: "https://julius.ai", desc: "Advanced Statistical Data Analytics Agent" }
+      ]},
+      agent: { title: "Agent Services & Pipelines", items: [
+        { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Autonomous Workflow Integrations" },
+        { name: "Browser-Use Cloud", url: "https://browser-use.com", desc: "Vision-based Browser Agent Infrastructure" },
+        { name: "Browserbase", url: "https://gemini.browserbase.com/", desc: "Browser automation agent workspace" },
+        { name: "Parallel AI", url: "https://parallel.ai", desc: "Parallel Task Agent Orchestration" },
+        { name: "Agent.ai", url: "https://agent.ai", desc: "Developer Hub for Multi-agent Networks" },
+        { name: "Manus AI", url: "https://manus.im", desc: "General-Purpose Digital Task Agent" },
+        { name: "Genspark.ai", url: "https://genspark.ai", desc: "Autonomous Search & Synthesis Agent" },
+        { name: "Lindy.ai", url: "https://lindy.ai", desc: "No-code Autonomous AI Employees" },
+        { name: "Zapier", url: "https://zapier.com", desc: "Enterprise Multi-step Integrations" },
+        { name: "Make", url: "https://make.com", desc: "Visual Workflow Automations" },
+        { name: "n8n", url: "https://n8n.io", desc: "Fair-code node-based workflow server" },
+        { name: "Gumloop", url: "https://gumloop.com", desc: "Data scraping & AI workflow execution" }
+      ]},
+      vibe: { title: "Vibe Coding & Prototyping", items: [
+        { name: "v0 by Vercel", url: "https://v0.dev", desc: "Generative UI Interface Generator" },
+        { name: "Bolt.new", url: "https://bolt.new", desc: "Full Stack In-browser Dev Runtime environment" },
+        { name: "Lovable", url: "https://lovable.dev", desc: "Natural Language Full App Architectures" },
+        { name: "Google AI Studio", url: "https://aistudio.google.com", desc: "Model building + APIs" },
+        { name: "Replit", url: "https://replit.com", desc: "Instant Cloud Workspace Development Environment" }
+      ]},
+      cli: { title: "CLI Coding Tools", note: "<div class='note'><p>If your CLI tool is written in <strong>JavaScript/TypeScript (Node)</strong>: Go to <strong>StackBlitz</strong>.</p><p>If your CLI tool is written in <strong>any other language</strong> and lives in a repo: Go to <strong>GitHub Codespaces</strong>.</p></div>", items: [
+        { name: "#1 GitHub Codespaces", url: "https://github.com/features/codespaces", desc: "Real Linux environment, closest to a laptop" },
+        { name: "#2 StackBlitz", url: "https://stackblitz.com", desc: "Fastest startup, fantastic for Node CLI tools" },
+        { name: "#3 Replit", url: "https://replit.com", desc: "Easiest for experimentation" },
+        { name: "#4 Google Colab", url: "https://colab.research.google.com", desc: "Python-focused CLI work" }
+      ]},
+      freebie: { title: "Generous Infrastructure Free Tiers", items: [
+        { name: "Cloudflare Pages", url: "https://pages.cloudflare.com", desc: "Global Edge Static Hosting App Node" },
+        { name: "Cloudflare Workers", url: "https://workers.cloudflare.com", desc: "Serverless Compute Functions on Edge" },
+        { name: "GitHub Pages", url: "https://pages.github.com", desc: "Static Website Pipeline Deploy Engine" },
+        { name: "Supabase", url: "https://supabase.com", desc: "Backend Open-Source PostgreSQL Wrapper Stack" },
+        { name: "Neon", url: "https://neon.tech", desc: "Serverless Autoscaling Postgres Clusters" },
+        { name: "PlanetScale", url: "https://planetscale.com", desc: "Serverless Database MySQL Alternative Platform" },
+        { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Cloud Document-driven Store Cluster Engine" }
+      ]},
+      technews: { title: "Tech News", items: [
+        { name: "Hacker News", url: "https://news.ycombinator.com", desc: "RSS: https://news.ycombinator.com/rss" },
+        { name: "Techmeme", url: "https://www.techmeme.com", desc: "RSS: https://www.techmeme.com/feed.xml" },
+        { name: "Ars Technica", url: "https://arstechnica.com", desc: "RSS: https://feeds.arstechnica.com/arstechnica/index" },
+        { name: "Slashdot", url: "https://slashdot.org", desc: "RSS: http://rss.slashdot.org/Slashdot/slashdotMain" },
+        { name: "Lobste.rs", url: "https://lobste.rs", desc: "RSS: https://lobste.rs/rss" },
+        { name: "Live Feed Console", url: "feeds.html", desc: "Progressive RSS reader for Tech News sources" }
+      ]},
+      socials: { title: "Socials", items: [
+        { name: "x.com", url: "https://x.com", desc: "Real-time Broadcast & Networking Network" },
+        { name: "LinkedIn", url: "https://linkedin.com", desc: "Professional Identity Ecosystem" },
+        { name: "Instagram", url: "https://instagram.com", desc: "Visual Media Content Sharing" },
+        { name: "YouTube", url: "https://youtube.com", desc: "Video Content Engine Matrix" },
+        { name: "Reddit", url: "https://reddit.com", desc: "Crowdsourced Community Index Forums" },
+        { name: "TikTok", url: "https://tiktok.com", desc: "Short-form Creative Video Hub" },
+        { name: "Threads", url: "https://threads.net", desc: "Text-centric Algorithmic Feed" },
+        { name: "Telegram", url: "https://telegram.org", desc: "Distributed Communication Network Nodes" },
+        { name: "WhatsApp", url: "https://whatsapp.com", desc: "End-to-End Encrypted Messaging Suite" },
+        { name: "WeChat", url: "https://wechat.com", desc: "Multipurpose Ecosystem Platform" },
+        { name: "Facebook", url: "https://facebook.com", desc: "Legacy Social Graph Hub Engine" }
+      ]},
+      revenue: { title: "Service Revenue", items: [
+        { name: "LinkedIn", url: "https://linkedin.com", desc: "Enterprise Work Marketplace Pipelines" },
+        { name: "We Work Remotely", url: "https://weworkremotely.com", desc: "Global Remote Jobs Board" },
+        { name: "Hired.com", url: "https://hired.com", desc: "Automated Tech Candidate Marketplace" },
+        { name: "AngelList", url: "https://wellfound.com", desc: "Startup Work & Career Graph Network" },
+        { name: "Google Jobs", url: "https://careers.google.com", desc: "Aggregated Job Engine Index" },
+        { name: "www.indeed.com", url: "https://indeed.com", desc: "Global Enterprise Hiring Database" },
+        { name: "Dynamite Jobs", url: "https://dynamitejobs.com", desc: "Curated Remote Career Hub Platform" },
+        { name: "Dice", url: "https://dice.com", desc: "Dedicated Technological Talent Hub Marketplace" }
+      ]}
+    };
+
+    const nav = document.getElementById('nav');
+    const container = document.getElementById('container');
+
+    Object.keys(database).forEach((key, index) => {
+      const cat = database[key];
+      const btn = document.createElement('button');
+      btn.className = `nav-btn ${index === 0 ? 'active' : ''}`;
+      btn.innerText = cat.title;
+      btn.onclick = () => show(key, btn);
+      nav.appendChild(btn);
+
+      const section = document.createElement('div');
+      section.id = `sec-${key}`;
+      section.className = `section ${index === 0 ? 'active' : ''}`;
+      
+      if (cat.headerLink) {
+        section.innerHTML += `<a href="${cat.headerLink.url}" class="header-link">${cat.headerLink.text}</a>`;
+      }
+      if (cat.note) section.innerHTML += cat.note;
+
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+      cat.items.forEach(item => {
+        grid.innerHTML += `<a href="${item.url}" class="card" target="_blank"><strong>${item.name}</strong>${item.desc}</a>`;
+      });
+      section.appendChild(grid);
+      container.appendChild(section);
+    });
+
+    function show(key, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('sec-' + key).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function filter() {
+      const q = document.getElementById('search').value.toLowerCase();
+      document.querySelectorAll('.card').forEach(c => {
+        c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

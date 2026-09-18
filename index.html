@@ -266,6 +266,7 @@
 
     /* Section-specific accents */
     .sect-daily .card:hover { --accent: #3b82f6; }
+    .sect-zerocost .card:hover { --accent: #22d3ee; }
     .sect-inference .card:hover { --accent: #10b981; }
     .sect-agent .card:hover { --accent: #f59e0b; }
     .sect-vibe .card:hover { --accent: #ec4899; }
@@ -377,6 +378,9 @@
       <button class="nav-btn" onclick="filterSection('daily', this)">
         <span>Daily Core</span> <span class="count" id="cnt-daily">0</span>
       </button>
+      <button class="nav-btn" onclick="filterSection('zerocost', this)">
+        <span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span>
+      </button>
       <button class="nav-btn" onclick="filterSection('inference', this)">
         <span>Inference</span> <span class="count" id="cnt-inference">0</span>
       </button>
@@ -425,11 +429,21 @@
           { name: "Google", url: "https://google.com", desc: "Global Search Index" },
           { name: "GitHub", url: "https://github.com", desc: "Version Control & Repositories" },
           { name: "Gmail", url: "https://gmail.com", desc: "Communication Suite" },
-          { name: "Calendar", url: "https://calendar.google.com", desc: "Schedules & Aggregations" },
-          { name: "Drive", url: "https://drive.google.com", desc: "Cloud Asset Storage" },
           { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Source-grounded AI Context Research" },
           { name: "Proton VPN ChExt", url: "https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa", desc: "Chrome Extension — Fast & Secure VPN Tunnel" },
           { name: "GitHub Codespaces", url: "https://github.com/codespaces", desc: "Cloud-Powered Dev Environments" }
+        ]
+      },
+      zerocost: {
+        title: "Zero-Cost Inference APIs",
+        headerLink: { text: "⚡ Open Harness Hub", url: "zerocost.html" },
+        items: [
+          { name: "Groq Cloud API", url: "https://console.groq.com", desc: "Free LPU keys — OpenAI-compatible chat completions" },
+          { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Gemini API keys for AI Studio / generateContent" },
+          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Edge GPU inference on the Workers AI catalog" },
+          { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Free-tier routed models — suffix :free" },
+          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Free sandbox inference via GitHub Models" },
+          { name: "Harness Hub", url: "zerocost.html", desc: "BYOK workspaces, loops, DAG canvas & prompt library", internal: true }
         ]
       },
       inference: {
@@ -574,7 +588,8 @@
         let headerHTML = `<div class="section-header">
           <div class="section-title">${section.title}</div>`;
         if (section.headerLink) {
-          headerHTML += `<a href="${section.headerLink.url}" target="_blank" class="section-link">${section.headerLink.text}</a>`;
+          const blank = section.headerLink.url.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
+          headerHTML += `<a href="${section.headerLink.url}"${blank} class="section-link">${section.headerLink.text}</a>`;
         }
         headerHTML += `</div>`;
         if (section.note) {

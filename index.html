@@ -3,36 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0914" />
   <title>Command Center 2026</title>
   <style>
     :root {
       --bg: #0b0914;
       --sidebar-bg: #110f24;
-      --card-bg: rgba(255, 255, 255, 0.04);
-      --card-hover: rgba(255, 255, 255, 0.09);
+      --card-bg: rgba(255, 255, 255, 0.045);
+      --card-hover: rgba(255, 255, 255, 0.085);
       --text: #f1f1f7;
-      --text-muted: #8a88a5;
-      --accent: #6366f1;
-      --accent-glow: rgba(99, 102, 241, 0.2);
-      --border: rgba(255, 255, 255, 0.08);
-      --radius: 12px;
-      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --text-muted: #aaa8c0;
+      --accent: #818cf8;
+      --accent-glow: rgba(129, 140, 248, 0.24);
+      --border: rgba(255, 255, 255, 0.1);
+      --tag-bg: rgba(129, 140, 248, 0.13);
+      --radius: 14px;
+      --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .light {
       --bg: #f4f5f9;
       --sidebar-bg: #ffffff;
-      --card-bg: rgba(0, 0, 0, 0.03);
-      --card-hover: rgba(0, 0, 0, 0.06);
+      --card-bg: rgba(30, 27, 75, 0.035);
+      --card-hover: rgba(79, 70, 229, 0.08);
       --text: #1e1b4b;
-      --text-muted: #64748b;
+      --text-muted: #5f647c;
       --accent: #4f46e5;
-      --accent-glow: rgba(79, 70, 229, 0.15);
-      --border: rgba(0, 0, 0, 0.08);
+      --accent-glow: rgba(79, 70, 229, 0.18);
+      --border: rgba(30, 27, 75, 0.12);
+      --tag-bg: rgba(79, 70, 229, 0.1);
     }
 
-    * { box-sizing: border-box; transition: background 0.2s, border 0.2s; }
-
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: var(--font);
@@ -42,8 +45,15 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
+    button, input, a, summary { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
-    /* --- Sidebar Navigation (Desktop) --- */
+    /* Navigation */
     aside {
       width: 260px;
       background: var(--sidebar-bg);
@@ -51,632 +61,713 @@
       display: flex;
       flex-direction: column;
       position: fixed;
-      top: 0; bottom: 0; left: 0;
+      inset: 0 auto 0 0;
       z-index: 10;
       padding: 1.5rem;
     }
-
     .brand {
       font-size: 1.1rem;
-      font-weight: 700;
+      font-weight: 750;
       letter-spacing: -0.5px;
-      margin-bottom: 2rem;
+      margin-bottom: 0.6rem;
       display: flex;
       align-items: center;
       gap: 0.5rem;
     }
-
-    .brand span {
-      background: linear-gradient(135deg, var(--accent), #ec4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .nav-links {
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      flex-grow: 1;
-    }
-
+    .brand span { background: linear-gradient(135deg, var(--accent), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-note { color: var(--text-muted); font-size: 0.75rem; margin: 0 0 1.35rem; line-height: 1.4; }
+    .nav-links { display: flex; flex-direction: column; gap: 0.28rem; flex-grow: 1; overflow-y: auto; }
     .nav-btn {
-      background: none;
-      border: none;
+      background: transparent;
+      border: 1px solid transparent;
       color: var(--text-muted);
       text-align: left;
-      padding: 0.75rem 1rem;
-      font-size: 0.9rem;
-      font-weight: 500;
-      border-radius: var(--radius);
-      cursor: pointer;
+      padding: 0.68rem 0.8rem;
+      font-size: 0.87rem;
+      font-weight: 600;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.15s ease;
+      gap: 0.6rem;
       white-space: nowrap;
+      transition: color .15s ease, background .15s ease, border-color .15s ease;
     }
-
-    .nav-btn:hover {
-      color: var(--text);
-      background: var(--card-bg);
-    }
-
-    .nav-btn.active {
-      color: #fff;
-      background: var(--accent);
-      box-shadow: 0 4px 12px var(--accent-glow);
-    }
-
-    .nav-btn .count {
-      font-size: 0.75rem;
-      opacity: 0.7;
-      background: rgba(0,0,0,0.2);
-      padding: 2px 6px;
-      border-radius: 8px;
-    }
-
+    .nav-btn:hover { color: var(--text); background: var(--card-bg); }
+    .nav-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 4px 12px var(--accent-glow); }
+    .nav-btn .count { font-size: 0.72rem; opacity: .85; background: rgba(0, 0, 0, .2); padding: 2px 6px; border-radius: 8px; }
     .theme-toggle {
+      margin-top: 1rem;
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 0.75rem;
-      border-radius: var(--radius);
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 0.85rem;
+      padding: .7rem .75rem;
+      border-radius: 10px;
+      text-align: left;
+      font-weight: 650;
+      font-size: .84rem;
     }
+    .theme-toggle:hover { background: var(--card-hover); }
 
-    /* --- Main Workspace --- */
-    main {
-      margin-left: 260px;
-      flex-grow: 1;
-      padding: 2.5rem;
-      max-width: 1400px;
-      width: calc(100% - 260px);
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      gap: 2rem;
-    }
-
-    .search-wrapper {
-      position: relative;
-      flex-grow: 1;
-      max-width: 600px;
-    }
-
+    /* Main workspace */
+    main { margin-left: 260px; flex-grow: 1; padding: 2.5rem; max-width: 1500px; width: calc(100% - 260px); }
+    header { display: flex; justify-content: space-between; align-items: center; margin: 0 0 1.2rem; gap: 1rem; }
+    .search-wrapper { position: relative; width: min(100%, 720px); }
+    .search-wrapper::before { content: "⌕"; position: absolute; color: var(--text-muted); left: 1rem; top: 50%; transform: translateY(-53%); font-size: 1.25rem; pointer-events: none; }
     .search-bar {
-      width: 100%;
-      padding: 0.8rem 1.2rem 0.8rem 2.8rem;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 0.95rem;
-      outline: none;
+      width: 100%; padding: .9rem 6.5rem .9rem 2.8rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: .95rem;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
     }
+    .search-bar::placeholder { color: var(--text-muted); opacity: .8; }
+    .search-bar:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: var(--sidebar-bg); outline: none; }
+    .search-shortcut { position: absolute; right: .65rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; padding: .12rem .38rem; font-size: .72rem; pointer-events: none; }
+    .clear-search { position: absolute; right: 3.3rem; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--text-muted); display: none; padding: .25rem; font-size: .8rem; }
+    .clear-search:hover { color: var(--text); }
+    .search-meta { color: var(--text-muted); font-size: .82rem; min-height: 1.3rem; margin: -.35rem 0 1.35rem .1rem; }
 
-    .search-bar:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
+    /* Sections */
+    .dashboard-section { margin-bottom: 2.8rem; scroll-margin-top: 1rem; }
+    .dashboard-section.is-hidden, .subgroup.is-hidden, .card.is-filtered { display: none; }
+    .section-header { display: flex; justify-content: space-between; align-items: end; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap; }
+    .section-heading { min-width: 0; }
+    .section-title { font-size: 1.1rem; font-weight: 750; color: var(--text); text-transform: uppercase; letter-spacing: .55px; margin: 0; }
+    .section-summary { color: var(--text-muted); margin: .28rem 0 0; font-size: .86rem; line-height: 1.45; }
+    .section-link { font-size: .82rem; color: var(--accent); text-decoration: none; font-weight: 700; padding: .4rem .7rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; white-space: nowrap; }
+    .section-link:hover { background: var(--card-hover); border-color: var(--accent); }
+    .section-note { color: var(--text-muted); margin: -.3rem 0 1rem; line-height: 1.55; font-size: .9rem; padding: .8rem 1rem; border-left: 2px solid var(--accent); background: var(--card-bg); border-radius: 0 10px 10px 0; }
+    .section-note strong { color: var(--text); }
+    .section-toolbar { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .tag-filter { border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); border-radius: 99px; padding: .38rem .68rem; font-size: .76rem; font-weight: 650; }
+    .tag-filter:hover { color: var(--text); background: var(--tag-bg); border-color: var(--accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: .9rem; }
+    .subgroup { margin: 0 0 1.6rem; }
+    .subgroup-title { display: flex; align-items: center; gap: .55rem; margin: 0 0 .7rem; color: var(--text-muted); font-size: .85rem; font-weight: 750; text-transform: uppercase; letter-spacing: .45px; }
+    .subgroup-title::after { content: ""; height: 1px; flex: 1; background: var(--border); }
 
-    .search-wrapper::before {
-      content: "⚡";
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: 0.6;
-    }
-
-    /* --- Content Sections --- */
-    .dashboard-section {
-      margin-bottom: 3rem;
-      animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .section-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .section-link {
-      font-size: 0.85rem;
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 500;
-      padding: 4px 10px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-
-    .section-link:hover {
-      background: var(--card-hover);
-      border-color: var(--accent);
-    }
-
-    /* --- Quick Action Grid Layout --- */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem;
-    }
-
+    /* Cards */
     .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem;
-      text-decoration: none;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 110px;
-      position: relative;
-      overflow: hidden;
-      transform: translateY(0);
-      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.2s, box-shadow 0.2s;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; position: relative; display: flex; flex-direction: column; min-height: 196px;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
     }
+    .card:hover { transform: translateY(-3px); background: var(--card-hover); border-color: var(--accent); box-shadow: 0 9px 22px rgba(0,0,0,.18); }
+    .card-main { color: inherit; text-decoration: none; display: block; border-radius: 6px; }
+    .card-main:hover .card-title { color: var(--accent); }
+    .card-title { font-weight: 760; font-size: 1rem; margin: 0 0 .42rem; line-height: 1.25; transition: color .15s ease; }
+    .best-for { color: var(--accent); font-size: .76rem; font-weight: 750; line-height: 1.35; margin: 0 0 .38rem; }
+    .card-desc { color: var(--text-muted); font-size: .82rem; line-height: 1.45; margin: 0; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: .34rem; margin-top: .72rem; }
+    .tag { color: var(--text-muted); background: var(--tag-bg); border: 1px solid transparent; border-radius: 999px; padding: .18rem .43rem; font-size: .68rem; font-weight: 700; line-height: 1.2; }
+    .tag.button { cursor: pointer; }
+    .tag.button:hover { color: var(--text); border-color: var(--accent); }
+    .card-footer { margin-top: auto; padding-top: .8rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .card-actions { display: flex; align-items: center; gap: .28rem; }
+    .card-action, .card-details summary { color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 7px; padding: .31rem .45rem; font-size: .72rem; font-weight: 700; line-height: 1; }
+    .card-action:hover, .card-details summary:hover { color: var(--text); border-color: var(--accent); background: var(--tag-bg); }
+    .favorite.is-favorite { color: #fbbf24; border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.12); }
+    .card-details { position: static; }
+    .card-details summary { list-style: none; cursor: pointer; }
+    .card-details summary::-webkit-details-marker { display: none; }
+    .card-details[open] summary { color: var(--text); border-color: var(--accent); }
+    .detail-panel { position: absolute; z-index: 4; left: .7rem; right: .7rem; bottom: .7rem; padding: .8rem; background: var(--sidebar-bg); border: 1px solid var(--accent); box-shadow: 0 12px 25px rgba(0,0,0,.28); border-radius: 10px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+    .detail-panel strong { display: block; color: var(--text); margin-bottom: .2rem; }
+    .detail-url { overflow-wrap: anywhere; color: var(--accent); margin-top: .4rem; font-size: .7rem; }
+    .empty-state { padding: 1.25rem; color: var(--text-muted); background: var(--card-bg); border: 1px dashed var(--border); border-radius: var(--radius); font-size: .9rem; }
 
-    .card:hover {
-      transform: translateY(-4px);
-      background: var(--card-hover);
-      border-color: var(--accent);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
+    /* Workflow cards retain the familiar card language but surface next actions */
+    .workflow-card { min-height: 170px; }
+    .workflow-steps { color: var(--text-muted); font-size: .78rem; line-height: 1.45; margin: .55rem 0 0; }
+    .workflow-steps span { color: var(--text); font-weight: 700; }
+    .workflow-arrow { color: var(--accent); padding: 0 .16rem; }
+    .quick-task { min-height: 155px; }
+    .quick-task .card-title { font-size: .93rem; }
 
-    .card-title {
-      font-weight: 600;
-      font-size: 1.05rem;
-      margin: 0;
-    }
-
-    .card-meta {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Section-specific accents */
-    .sect-daily .card:hover { --accent: #3b82f6; }
-    .sect-zerocost .card:hover { --accent: #22d3ee; }
-    .sect-inference .card:hover { --accent: #10b981; }
-    .sect-agent .card:hover { --accent: #f59e0b; }
-    .sect-vibe .card:hover { --accent: #ec4899; }
-    .sect-cli .card:hover { --accent: #06b6d4; }
-    .sect-freebie .card:hover { --accent: #8b5cf6; }
-    .sect-technews .card:hover { --accent: #f97316; }
-    .sect-socials .card:hover { --accent: #10b981; }
-    .sect-revenue .card:hover { --accent: #14b8a6; }
-
-    .section-note {
-      color: var(--text-muted);
-      margin: -0.5rem 0 1rem;
-      line-height: 1.6;
-      font-size: 0.95rem;
-    }
-
-    .section-note strong {
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    /* CSS Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* --- Responsive scaling Overhaul --- */
     @media (max-width: 992px) {
-      body {
-        flex-direction: column;
-      }
-      
-      /* Hide regular desktop sidebar container assets */
-      aside {
-        position: static;
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        padding: 1rem 1.5rem;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .brand {
-        margin-bottom: 0;
-      }
-
-      /* Transform layout into a horizontal swipe navigation block */
-      .nav-links {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        top: auto;
-        background: var(--sidebar-bg);
-        border-top: 1px solid var(--border);
-        flex-direction: row;
-        padding: 0.6rem 1rem;
-        gap: 0.5rem;
-        overflow-x: auto;
-        scroll-behavior: smooth;
-        -webkit-overflow-scrolling: touch;
-        z-index: 100;
-      }
-
-      /* Hide scrollbars elegantly while preserving operational swipe features */
-      .nav-links::-webkit-scrollbar {
-        display: none;
-      }
-      .nav-links {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-
-      .nav-btn {
-        padding: 0.5rem 0.8rem;
-        font-size: 0.85rem;
-        gap: 0.4rem;
-      }
-
-      main {
-        margin-left: 0;
-        padding: 1.5rem;
-        width: 100%;
-        margin-bottom: 60px; /* Space out room on mobile viewports so bottom navigation doesn't clip content */
-      }
-      
-      .grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-      }
-      
-      .card {
-        height: 100px;
-        padding: 1rem;
-      }
+      body { flex-direction: column; }
+      aside { position: static; width: 100%; min-height: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; flex-direction: row; align-items: center; gap: 1rem; }
+      .brand { margin: 0; white-space: nowrap; }
+      .brand-note { display: none; }
+      .nav-links { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .55rem .75rem; background: var(--sidebar-bg); border-top: 1px solid var(--border); gap: .35rem; }
+      .nav-links::-webkit-scrollbar { display: none; }
+      .nav-links { scrollbar-width: none; }
+      .nav-btn { flex: 0 0 auto; padding: .52rem .68rem; font-size: .8rem; }
+      .theme-toggle { margin: 0 0 0 auto; white-space: nowrap; }
+      main { margin-left: 0; padding: 1.35rem; width: 100%; margin-bottom: 62px; }
+      .grid { grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); }
     }
+    @media (max-width: 560px) {
+      main { padding: 1rem; }
+      .brand { font-size: 1rem; }
+      .theme-toggle span { display: none; }
+      .grid { grid-template-columns: 1fr; }
+      .card { min-height: 175px; }
+      .section-title { font-size: 1rem; }
+      .search-bar { padding-right: 4.8rem; }
+      .search-shortcut { display: none; }
+      .clear-search { right: .55rem; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
   </style>
 </head>
 <body>
-
   <aside>
-    <div class="brand">🚀 <span>CommandOS-v1.3</span></div>
-    <nav class="nav-links">
-      <button class="nav-btn active" onclick="filterSection('all', this)">
-        <span>All Clusters</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('daily', this)">
-        <span>Daily Core</span> <span class="count" id="cnt-daily">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('zerocost', this)">
-        <span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('inference', this)">
-        <span>Inference</span> <span class="count" id="cnt-inference">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('agent', this)">
-        <span>Agents</span> <span class="count" id="cnt-agent">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('vibe', this)">
-        <span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('cli', this)">
-        <span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('freebie', this)">
-        <span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('technews', this)">
-        <span>Tech News</span> <span class="count" id="cnt-technews">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('socials', this)">
-        <span>Socials</span> <span class="count" id="cnt-socials">0</span>
-      </button>
-      <button class="nav-btn" onclick="filterSection('revenue', this)">
-        <span>Service Revenue</span> <span class="count" id="cnt-revenue">0</span>
-      </button>
+    <div>
+      <div class="brand">🚀 <span>CommandOS-v1.4</span></div>
+      <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
+    </div>
+    <nav class="nav-links" aria-label="Dashboard categories">
+      <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
+      <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
+      <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
+      <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
+      <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
+      <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
+      <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
+      <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
+      <button class="nav-btn" type="button" data-section="technews"><span>Tech News</span> <span class="count" id="cnt-technews">0</span></button>
+      <button class="nav-btn" type="button" data-section="socials"><span>Socials</span> <span class="count" id="cnt-socials">0</span></button>
+      <button class="nav-btn" type="button" data-section="revenue"><span>Service Revenue</span> <span class="count" id="cnt-revenue">0</span></button>
     </nav>
-    <button class="theme-toggle" onclick="toggleTheme()">🌓 <span>Theme</span></button>
+    <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle color theme">🌓 <span>Theme</span></button>
   </aside>
 
   <main>
     <header>
       <div class="search-wrapper">
-        <input type="text" class="search-bar" id="global-search" placeholder="Type a service or resource to launch..." onkeyup="processSearch()" autocomplete="off">
+        <label class="sr-only" for="global-search">Search tools, tasks, tags, and descriptions</label>
+        <input type="search" class="search-bar" id="global-search" placeholder="Search tools, tasks, or tags…" autocomplete="off" />
+        <button class="clear-search" id="clear-search" type="button" aria-label="Clear search">Clear</button>
+        <span class="search-shortcut">/</span>
       </div>
     </header>
-
-    <div id="workspace-feed">
-      </div>
+    <div id="search-meta" class="search-meta" aria-live="polite"></div>
+    <div id="workspace-feed"></div>
   </main>
 
   <script>
-    // Config Architecture structured by Categories
     const database = {
       daily: {
         title: "Key Daily Services",
+        summary: "Your familiar, high-frequency launch points.",
         items: [
-          { name: "Google", url: "https://google.com", desc: "Global Search Index" },
-          { name: "GitHub", url: "https://github.com", desc: "Version Control & Repositories" },
-          { name: "Gmail", url: "https://gmail.com", desc: "Communication Suite" },
-          { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Source-grounded AI Context Research" },
-          { name: "Proton VPN ChExt", url: "https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa", desc: "Chrome Extension — Fast & Secure VPN Tunnel" },
-          { name: "GitHub Codespaces", url: "https://github.com/codespaces", desc: "Cloud-Powered Dev Environments" }
+          { name: "Google", url: "https://google.com", desc: "Search the web, files, and reference material.", best: "Quick web research", tags: ["search", "research"] },
+          { name: "GitHub", url: "https://github.com", desc: "Manage repositories, pull requests, issues, and project work.", best: "Code and repository work", tags: ["coding", "repos", "collaboration"] },
+          { name: "Gmail", url: "https://gmail.com", desc: "Read, write, and organize email.", best: "Daily communication", tags: ["email", "communication"] },
+          { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Ask grounded questions across your own source material.", best: "Source-based research", tags: ["research", "long context", "documents"] },
+          { name: "Proton VPN ChExt", url: "https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa", desc: "Use a browser VPN connection when privacy or location controls matter.", best: "Private browsing", tags: ["privacy", "security"] },
+          { name: "GitHub Codespaces", url: "https://github.com/codespaces", desc: "Launch a cloud development environment directly from a repository.", best: "Cloud development", tags: ["coding", "cloud", "terminal"] }
         ]
       },
       zerocost: {
         title: "Zero-Cost Inference APIs",
-        headerLink: { text: "⚡ Open Harness Hub", url: "zerocost.html" },
+        summary: "Provider consoles and free-access model endpoints.",
+        headerLink: { text: "Open Harness Hub", url: "zerocost.html" },
         items: [
-          { name: "Groq Cloud API", url: "https://console.groq.com", desc: "Free LPU keys — OpenAI-compatible chat completions" },
-          { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Gemini API keys for AI Studio / generateContent" },
-          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Edge GPU inference on the Workers AI catalog" },
-          { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Free-tier routed models — suffix :free" },
-          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Free sandbox inference via GitHub Models" },
-          { name: "Harness Hub", url: "zerocost.html", desc: "BYOK workspaces, loops, DAG canvas & prompt library", internal: true }
+          { name: "Groq Cloud API", url: "https://console.groq.com", desc: "Create keys for very fast hosted model inference.", best: "Fast API experiments", tags: ["API", "fast", "free"] },
+          { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Create and manage Gemini API keys for Google AI Studio.", best: "Gemini API access", tags: ["API", "gemini", "free"], aliases: ["get gemini API keys", "gemini keys"] },
+          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Run AI models near users through Cloudflare's edge platform.", best: "Edge AI applications", tags: ["API", "edge", "cloudflare"] },
+          { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Browse routed free-tier models from one API-compatible catalog.", best: "Trying many models", tags: ["API", "free", "models"] },
+          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Experiment with hosted models in GitHub's developer workflow.", best: "Model tests with GitHub", tags: ["API", "free", "coding"], group: "Fast API inference" },
+          { name: "Harness Hub", url: "zerocost.html", desc: "Use BYOK workspaces, loops, a DAG canvas, and a prompt library.", best: "Prompt and workflow testing", tags: ["prompts", "workflows", "BYOK"], internal: true }
         ]
       },
       inference: {
         title: "Inference Engines",
-        headerLink: { text: "🔗 Core Matrix", url: "https://aacareq.github.io/dash/inference.html" },
+        summary: "Choose by task, then use tags to narrow the full model directory.",
+        headerLink: { text: "Open model guide", url: "inference.html" },
+        filters: ["coding", "web search", "long context", "multimodal", "fast", "free", "API"],
         items: [
-          { name: "ChatGPT", url: "https://chatgpt.com", desc: "OpenAI Foundation System" },
-          { name: "Gemini", url: "https://gemini.google.com", desc: "Google DeepMind Ecosystem" },
-          { name: "Claude", url: "https://claude.ai", desc: "Anthropic Safety & Core Reasoning" },
-          { name: "Perplexity", url: "https://perplexity.ai", desc: "Conversational Search Engine" },
-          { name: "Arena AI", url: "https://arena.ai/", desc: "LLM Crowdsourced Benchmark Comparison" },
-          { name: "Grok", url: "https://grok.com", desc: "xAI Real-time System" },
-          { name: "DeepSeek", url: "https://chat.deepseek.com", desc: "Optimized Mixture-of-Experts Pipeline" },
-          { name: "Qwen", url: "https://chat.qwen.ai", desc: "Alibaba Frontier Multilingual Models" },
-	  { name: "GLM-5.2", url: "https://z.ai", desc: "Agentic Foundation" },
-          { name: "MiniMax M3", url: "https://platform.minimaxi.com", desc: "Multimodal Foundation" },
-          { name: "Kimi K2/K3", url: "https://www.kimi.com", desc: "Reasoning Agent" },
-          { name: "Copilot", url: "https://copilot.microsoft.com", desc: "Microsoft Productivity Companion" },
-	  { name: "Meta AI", url: "https://meta.ai", desc: "Llama Ecosystem Web Matrix" },
-          { name: "Duck.ai", url: "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat", desc: "Privacy Preserving Alternative Access" },
-          { name: "GitHub Marketplace", url: "https://github.com/marketplace/models", desc: "Free Sandbox Inference Node Point" },
-          { name: "YouChat", url: "https://you.com", desc: "Structured Multimodal Synthesizer" },
-          { name: "Poe", url: "https://poe.com", desc: "Quora Custom Context Wrapper Orchestrator" },
-          { name: "Mistral", url: "https://chat.mistral.ai", desc: "European Frontier Models Hub" },
-          { name: "Groq", url: "https://groq.com", desc: "Ultra low-latency LPU hardware engine" },
-          { name: "Cohere", url: "https://cohere.com", desc: "RAG & Enterprise NLP Tools" },
-          { name: "Hugging Face", url: "https://huggingface.co", desc: "AI ML Repository and Space Hub" },
-          { name: "SiliconFlow", url: "https://siliconflow.com", desc: "Open-source Model API" },
-          { name: "DeepInfra", url: "https://deepinfra.com", desc: "Serverless Inference API" },
-          { name: "Julius AI", url: "https://julius.ai", desc: "Advanced Statistical Data Analytics Agent" }
+          { name: "ChatGPT", url: "https://chatgpt.com", desc: "A general AI assistant for writing, analysis, coding, and multimodal work.", best: "Everyday problem solving", tags: ["coding", "multimodal", "long context"], group: "General assistants" },
+          { name: "Gemini", url: "https://gemini.google.com", desc: "A general AI assistant for research, writing, code, and Google-connected work.", best: "Long-context, multimodal work", tags: ["coding", "multimodal", "long context"], group: "General assistants" },
+          { name: "Claude", url: "https://claude.ai", desc: "A general AI assistant for careful writing, analysis, document work, and coding.", best: "Prose and deep analysis", tags: ["coding", "long context", "writing"], group: "General assistants" },
+          { name: "Copilot", url: "https://copilot.microsoft.com", desc: "Microsoft's AI assistant for everyday questions and productivity tasks.", best: "Microsoft-centric work", tags: ["coding", "productivity", "multimodal"], group: "General assistants" },
+          { name: "Perplexity", url: "https://perplexity.ai", desc: "Search the web with cited, conversational answers.", best: "Fast web research", tags: ["web search", "research", "citations"], group: "Research & search" },
+          { name: "You.com", url: "https://you.com", desc: "Search and synthesize information with AI-assisted web research.", best: "Research with search", tags: ["web search", "research", "multimodal"], group: "Research & search" },
+          { name: "Duck.ai", url: "https://duckduckgo.com/?q=DuckDuckGo+AI+Chat&ia=chat", desc: "Use private AI chat from DuckDuckGo's search experience.", best: "Private web-assisted chat", tags: ["web search", "privacy", "free"], group: "Research & search" },
+          { name: "Arena AI", url: "https://arena.ai/", desc: "Compare model responses side by side and help evaluate them.", best: "Model comparison", tags: ["comparison", "models", "free"], group: "Model comparison" },
+          { name: "Groq", url: "https://groq.com", desc: "Access very fast hosted inference for supported open models.", best: "Low-latency inference", tags: ["API", "fast", "open models"], group: "Fast API inference" },
+          { name: "DeepInfra", url: "https://deepinfra.com", desc: "Run hosted open models through serverless inference APIs.", best: "Open-model API workloads", tags: ["API", "open models", "fast"], group: "Fast API inference" },
+          { name: "SiliconFlow", url: "https://siliconflow.com", desc: "Use hosted open-source models through an API platform.", best: "Open-model API access", tags: ["API", "open models", "fast"], group: "Fast API inference" },
+          { name: "GitHub Marketplace", url: "https://github.com/marketplace/models", desc: "Try hosted models from GitHub's model catalog.", best: "Developer model experiments", tags: ["API", "free", "coding"], group: "Fast API inference" },
+          { name: "Hugging Face", url: "https://huggingface.co", desc: "Discover open models, datasets, demos, and community tools.", best: "Open-model discovery", tags: ["open models", "models", "community"], group: "Open-model platforms" },
+          { name: "Mistral", url: "https://chat.mistral.ai", desc: "Use Mistral's assistants and models for writing, coding, and experimentation.", best: "European open-model access", tags: ["open models", "coding", "API"], group: "Open-model platforms" },
+          { name: "Qwen", url: "https://chat.qwen.ai", desc: "Use Alibaba's multilingual assistant and model platform.", best: "Multilingual AI work", tags: ["open models", "multilingual", "coding"], group: "Open-model platforms" },
+          { name: "DeepSeek", url: "https://chat.deepseek.com", desc: "Use an open-model assistant for reasoning and coding tasks.", best: "Reasoning and coding", tags: ["open models", "coding", "reasoning"], group: "Open-model platforms" },
+          { name: "Julius AI", url: "https://julius.ai", desc: "Analyze files and datasets through conversational data tools.", best: "Data analysis", tags: ["data", "analysis", "files"], group: "Data & analysis" },
+          { name: "Grok", url: "https://grok.com", desc: "Use xAI's general assistant for questions, writing, and current-topic discussion.", best: "Conversational exploration", tags: ["writing", "multimodal", "general"], group: "More assistants" },
+          { name: "GLM-5.2", url: "https://z.ai", desc: "Use Z.ai's agent-focused model tools and assistant.", best: "Agentic task exploration", tags: ["agents", "coding", "reasoning"], group: "More assistants" },
+          { name: "MiniMax M3", url: "https://platform.minimaxi.com", desc: "Explore MiniMax's multimodal models and platform tools.", best: "Multimodal model work", tags: ["multimodal", "API", "models"], group: "More assistants" },
+          { name: "Kimi K2/K3", url: "https://www.kimi.com", desc: "Use Kimi for long-document reasoning and agent-style tasks.", best: "Long document work", tags: ["long context", "reasoning", "agents"], group: "More assistants" },
+          { name: "Meta AI", url: "https://meta.ai", desc: "Use Meta's consumer assistant and an entry point to Llama models.", best: "Llama model access", tags: ["open models", "multimodal", "general"], group: "More assistants" },
+          { name: "Poe", url: "https://poe.com", desc: "Try multiple bots and build custom AI experiences in one place.", best: "Multi-model exploration", tags: ["models", "custom bots", "writing"], group: "More assistants" },
+          { name: "Cohere", url: "https://cohere.com", desc: "Build RAG, search, and enterprise language applications.", best: "RAG and enterprise NLP", tags: ["API", "RAG", "enterprise"], group: "More assistants" }
         ]
       },
       agent: {
         title: "Agent Services & Pipelines",
+        summary: "Find tools by the work you want to automate—not just by vendor.",
         items: [
-          { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Autonomous Workflow Integrations" },
-          { name: "Browser-Use Cloud", url: "https://browser-use.com", desc: "Vision-based Browser Agent Infrastructure" },
-          { name: "Browserbase", url: "https://gemini.browserbase.com/", desc: "Browser automation agent workspace" },
-          { name: "Parallel AI", url: "https://parallel.ai", desc: "Parallel Task Agent Orchestration" },
-          { name: "Agent.ai", url: "https://agent.ai", desc: "Developer Hub for Multi-agent Networks" },
-          { name: "Manus AI", url: "https://manus.im", desc: "General-Purpose Digital Task Agent" },
-          { name: "Genspark.ai", url: "https://genspark.ai", desc: "Autonomous Search & Synthesis Agent" },
-          { name: "Lindy.ai", url: "https://lindy.ai", desc: "No-code Autonomous AI Employees" },
-          { name: "Zapier", url: "https://zapier.com", desc: "Enterprise Multi-step Integrations" },
-          { name: "Make", url: "https://make.com", desc: "Visual Workflow Automations" },
-          { name: "n8n", url: "https://n8n.io", desc: "Fair-code node-based workflow server" },
-          { name: "Gumloop", url: "https://gumloop.com", desc: "Data scraping & AI workflow execution" }
+          { name: "Browser-Use Cloud", url: "https://browser-use.com", desc: "Build agents that can see and operate browser-based workflows.", best: "Browser task automation", tags: ["browser", "automation", "agents"], group: "Browser automation" },
+          { name: "Browserbase", url: "https://gemini.browserbase.com/", desc: "Run reliable cloud browsers for automated and agent-driven web tasks.", best: "Browser infrastructure", tags: ["browser", "automation", "cloud"], group: "Browser automation" },
+          { name: "Zapier", url: "https://zapier.com", desc: "Connect apps and automate repeatable business workflows without code.", best: "App-to-app automation", tags: ["automation", "no-code", "integrations"], group: "Workflow automation" },
+          { name: "Make", url: "https://make.com", desc: "Design visual, multi-step integrations and automations.", best: "Visual workflows", tags: ["automation", "no-code", "integrations"], group: "Workflow automation" },
+          { name: "n8n", url: "https://n8n.io", desc: "Build flexible node-based automations with self-hosting options.", best: "Custom or self-hosted flows", tags: ["automation", "workflows", "self-hosted"], group: "Workflow automation" },
+          { name: "Gumloop", url: "https://gumloop.com", desc: "Automate data collection, AI steps, and browser-connected work.", best: "AI-assisted workflows", tags: ["automation", "data", "no-code"], group: "Workflow automation" },
+          { name: "Manus AI", url: "https://manus.im", desc: "Assign broader digital tasks to a general-purpose AI agent.", best: "End-to-end task delegation", tags: ["agents", "research", "automation"], group: "General task agents" },
+          { name: "Genspark.ai", url: "https://genspark.ai", desc: "Delegate web research and synthesis tasks to an autonomous agent.", best: "Research and synthesis", tags: ["agents", "research", "web"], group: "General task agents" },
+          { name: "Lindy.ai", url: "https://lindy.ai", desc: "Create no-code AI employees for operational workflows.", best: "Operational assistants", tags: ["agents", "no-code", "email"], group: "General task agents" },
+          { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Connect tools and automate autonomous workflow steps.", best: "Workflow integrations", tags: ["agents", "automation", "integrations"], group: "General task agents" },
+          { name: "Agent.ai", url: "https://agent.ai", desc: "Explore and build reusable AI agents for business tasks.", best: "Agent discovery", tags: ["agents", "community", "workflows"], group: "General task agents" },
+          { name: "Parallel AI", url: "https://parallel.ai", desc: "Coordinate parallel agent tasks for broader research and execution.", best: "Parallel research tasks", tags: ["agents", "research", "parallel"], group: "Research & orchestration" }
         ]
       },
       vibe: {
         title: "Vibe Coding & Prototyping",
+        summary: "Start a prototype with the environment that fits the output you need.",
         items: [
-          { name: "v0 by Vercel", url: "https://v0.dev", desc: "Generative UI Interface Generator" },
-          { name: "Bolt.new", url: "https://bolt.new", desc: "Full Stack In-browser Dev Runtime environment" },
-          { name: "Lovable", url: "https://lovable.dev", desc: "Natural Language Full App Architectures" },
-          { name: "Google AI Studio", url: "https://aistudio.google.com", desc: "Model building + APIs" },
-          { name: "Replit", url: "https://replit.com", desc: "Instant Cloud Workspace Development Environment" }
+          { name: "v0 by Vercel", url: "https://v0.dev", desc: "Generate polished web interface concepts from plain-language prompts.", best: "UI and landing pages", tags: ["UI", "frontend", "prototyping"] },
+          { name: "Bolt.new", url: "https://bolt.new", desc: "Build and iterate on full-stack browser projects with AI help.", best: "Full-stack prototypes", tags: ["full-stack", "coding", "prototyping"] },
+          { name: "Lovable", url: "https://lovable.dev", desc: "Create app prototypes from requirements in natural language.", best: "Product prototypes", tags: ["full-stack", "no-code", "prototyping"] },
+          { name: "Google AI Studio", url: "https://aistudio.google.com", desc: "Prototype with Gemini models and test prompts or API integrations.", best: "Gemini experiments", tags: ["gemini", "API", "prototyping"] },
+          { name: "Replit", url: "https://replit.com", desc: "Create, run, and share code projects in a cloud workspace.", best: "Quick code experiments", tags: ["coding", "cloud", "prototyping"] }
         ]
       },
       cli: {
         title: "CLI Coding Tools",
-        note: `
-          <p>If your CLI tool is written in <strong>JavaScript/TypeScript (Node)</strong>: Go to <strong>StackBlitz</strong>.</p>
-          <p>If your CLI tool is written in <strong>any other language</strong> and lives in a repo: Go to <strong>GitHub Codespaces</strong>.</p>
-        `,
+        summary: "Choose an environment based on the language and workflow you need.",
+        note: "<strong>Quick chooser:</strong> use StackBlitz for Node/TypeScript CLIs; GitHub Codespaces for repo-based work in any language; Colab for Python experiments; and Replit for the fastest sandbox.",
         items: [
-          { name: "#1 GitHub Codespaces", url: "https://github.com/features/codespaces", desc: "Real Linux environment, closest to a laptop" },
-          { name: "#2 StackBlitz", url: "https://stackblitz.com", desc: "Fastest startup, fantastic for Node CLI tools" },
-          { name: "#3 Replit", url: "https://replit.com", desc: "Easiest for experimentation" },
-          { name: "#4 Google Colab", url: "https://colab.research.google.com", desc: "Python-focused CLI work" }
+          { name: "#1 GitHub Codespaces", url: "https://github.com/features/codespaces", desc: "A real Linux development environment that starts from your repository.", best: "Repo-based CLI work", tags: ["terminal", "coding", "cloud"] },
+          { name: "#2 StackBlitz", url: "https://stackblitz.com", desc: "A fast browser runtime for Node and TypeScript projects.", best: "Node and TypeScript CLIs", tags: ["Node", "TypeScript", "fast"] },
+          { name: "#3 Replit", url: "https://replit.com", desc: "A simple cloud workspace for testing ideas and sharing runnable projects.", best: "Fast experimentation", tags: ["coding", "cloud", "beginner"] },
+          { name: "#4 Google Colab", url: "https://colab.research.google.com", desc: "A notebook environment for Python, data, and compute experiments.", best: "Python experiments", tags: ["Python", "data", "notebooks"] }
         ]
       },
       freebie: {
         title: "Generous Infrastructure Free Tiers",
+        summary: "Choose hosting, edge compute, or a database by the infrastructure role you need.",
         items: [
-          { name: "Cloudflare Pages", url: "https://pages.cloudflare.com", desc: "Global Edge Static Hosting App Node" },
-          { name: "Cloudflare Workers", url: "https://workers.cloudflare.com", desc: "Serverless Compute Functions on Edge" },
-          { name: "GitHub Pages", url: "https://pages.github.com", desc: "Static Website Pipeline Deploy Engine" },
-          { name: "Supabase", url: "https://supabase.com", desc: "Backend Open-Source PostgreSQL Wrapper Stack" },
-          { name: "Neon", url: "https://neon.tech", desc: "Serverless Autoscaling Postgres Clusters" },
-          { name: "PlanetScale", url: "https://planetscale.com", desc: "Serverless Database MySQL Alternative Platform" },
-          { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Cloud Document-driven Store Cluster Engine" }
+          { name: "Cloudflare Pages", url: "https://pages.cloudflare.com", desc: "Deploy static sites and frontends to Cloudflare's global network.", best: "Static sites and frontends", tags: ["hosting", "static", "free"], group: "Static hosting" },
+          { name: "GitHub Pages", url: "https://pages.github.com", desc: "Publish static project sites directly from a GitHub repository.", best: "Repository documentation sites", tags: ["hosting", "static", "free"], group: "Static hosting" },
+          { name: "Cloudflare Workers", url: "https://workers.cloudflare.com", desc: "Run serverless functions and APIs at the edge.", best: "Edge APIs and Workers", tags: ["serverless", "edge", "cloudflare"], group: "Edge & serverless" },
+          { name: "Supabase", url: "https://supabase.com", desc: "Build with hosted Postgres, authentication, storage, and backend tools.", best: "App backends with Postgres", tags: ["database", "Postgres", "auth"], group: "Databases & backends" },
+          { name: "Neon", url: "https://neon.tech", desc: "Use a serverless Postgres database that scales with application activity.", best: "Serverless Postgres", tags: ["database", "Postgres", "serverless"], group: "Databases & backends" },
+          { name: "PlanetScale", url: "https://planetscale.com", desc: "Use a managed MySQL-compatible database platform.", best: "Managed MySQL", tags: ["database", "MySQL", "managed"], group: "Databases & backends" },
+          { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Use a managed cloud document database.", best: "Document data models", tags: ["database", "NoSQL", "managed"], group: "Databases & backends" }
         ]
       },
       technews: {
         title: "Tech News",
+        summary: "A compact launchpad for daily technical reading and feeds.",
         items: [
-          { name: "Hacker News", url: "https://news.ycombinator.com", desc: "RSS: https://news.ycombinator.com/rss" },
-          { name: "Techmeme", url: "https://www.techmeme.com", desc: "RSS: https://www.techmeme.com/feed.xml" },
-          { name: "Ars Technica", url: "https://arstechnica.com", desc: "RSS: https://feeds.arstechnica.com/arstechnica/index" },
-          { name: "Slashdot", url: "https://slashdot.org", desc: "RSS: http://rss.slashdot.org/Slashdot/slashdotMain" },
-          { name: "Lobste.rs", url: "https://lobste.rs", desc: "RSS: https://lobste.rs/rss" },
-          { name: "Live Feed Console", url: "feeds.html", desc: "Progressive RSS reader for Tech News sources" }
+          { name: "Hacker News", url: "https://news.ycombinator.com", desc: "Developer and startup discussion with a public RSS feed.", best: "Developer discussion", tags: ["news", "startups", "RSS"] },
+          { name: "Techmeme", url: "https://www.techmeme.com", desc: "A curated overview of the most discussed technology stories.", best: "Tech news overview", tags: ["news", "curated", "RSS"] },
+          { name: "Ars Technica", url: "https://arstechnica.com", desc: "In-depth technology, science, and policy reporting.", best: "Deep technical reporting", tags: ["news", "science", "RSS"] },
+          { name: "Slashdot", url: "https://slashdot.org", desc: "Community-curated technology news and discussion.", best: "Community tech news", tags: ["news", "community", "RSS"] },
+          { name: "Lobste.rs", url: "https://lobste.rs", desc: "A focused community news source for computing topics.", best: "Technical community links", tags: ["news", "community", "RSS"] },
+          { name: "Live Feed Console", url: "feeds.html", desc: "Read technology RSS sources from one progressive feed interface.", best: "One-place feed reading", tags: ["news", "RSS", "reader"], internal: true }
         ]
       },
       socials: {
         title: "Socials",
+        summary: "Communication, professional presence, publishing, and community channels.",
         items: [
-          { name: "x.com", url: "https://x.com", desc: "Real-time Broadcast & Networking Network" },
-          { name: "LinkedIn", url: "https://linkedin.com", desc: "Professional Identity Ecosystem" },
-          { name: "Instagram", url: "https://instagram.com", desc: "Visual Media Content Sharing" },
-          { name: "YouTube", url: "https://youtube.com", desc: "Video Content Engine Matrix" },
-          { name: "Reddit", url: "https://reddit.com", desc: "Crowdsourced Community Index Forums" },
-          { name: "TikTok", url: "https://tiktok.com", desc: "Short-form Creative Video Hub" },
-          { name: "Threads", url: "https://threads.net", desc: "Text-centric Algorithmic Feed" },
-          { name: "Telegram", url: "https://telegram.org", desc: "Distributed Communication Network Nodes" },
-          { name: "WhatsApp", url: "https://whatsapp.com", desc: "End-to-End Encrypted Messaging Suite" },
-          { name: "WeChat", url: "https://wechat.com", desc: "Multipurpose Ecosystem Platform" },
-          { name: "Facebook", url: "https://facebook.com", desc: "Legacy Social Graph Hub Engine" }
+          { name: "x.com", url: "https://x.com", desc: "Follow real-time conversations, people, and public updates.", best: "Real-time public conversation", tags: ["social", "publishing", "networking"] },
+          { name: "LinkedIn", url: "https://linkedin.com", desc: "Maintain your professional profile, network, and career presence.", best: "Professional networking", tags: ["professional", "networking", "jobs"] },
+          { name: "Instagram", url: "https://instagram.com", desc: "Publish and follow visual media and creator content.", best: "Visual publishing", tags: ["social", "visual", "publishing"] },
+          { name: "YouTube", url: "https://youtube.com", desc: "Watch, research, and publish long-form video content.", best: "Video research and publishing", tags: ["video", "research", "publishing"] },
+          { name: "Reddit", url: "https://reddit.com", desc: "Find niche communities, discussion, and firsthand recommendations.", best: "Community research", tags: ["community", "research", "social"] },
+          { name: "TikTok", url: "https://tiktok.com", desc: "Create and follow short-form video trends.", best: "Short-form publishing", tags: ["video", "publishing", "social"] },
+          { name: "Threads", url: "https://threads.net", desc: "Join text-focused public conversation and creator updates.", best: "Text publishing", tags: ["social", "publishing", "networking"] },
+          { name: "Telegram", url: "https://telegram.org", desc: "Message groups and channels across devices.", best: "Group messaging", tags: ["messaging", "community", "communication"] },
+          { name: "WhatsApp", url: "https://whatsapp.com", desc: "Send private messages and coordinate with contacts or groups.", best: "Private communication", tags: ["messaging", "communication", "private"] },
+          { name: "WeChat", url: "https://wechat.com", desc: "Access messaging and multi-purpose services in one ecosystem.", best: "Messaging and ecosystem access", tags: ["messaging", "social", "communication"] },
+          { name: "Facebook", url: "https://facebook.com", desc: "Connect through groups, events, and social communities.", best: "Groups and communities", tags: ["social", "community", "events"] }
         ]
       },
       revenue: {
         title: "Service Revenue",
+        summary: "Launch the places used to find work, clients, and remote opportunities.",
         items: [
-          { name: "LinkedIn", url: "https://linkedin.com", desc: "Enterprise Work Marketplace Pipelines" },
-          { name: "We Work Remotely", url: "https://weworkremotely.com", desc: "Global Remote Jobs Board" },
-          { name: "Hired.com", url: "https://hired.com", desc: "Automated Tech Candidate Marketplace" },
-          { name: "AngelList", url: "https://wellfound.com", desc: "Startup Work & Career Graph Network" },
-          { name: "Google Jobs", url: "https://careers.google.com", desc: "Aggregated Job Engine Index" },
-          { name: "www.indeed.com", url: "https://indeed.com", desc: "Global Enterprise Hiring Database" },
-          { name: "Dynamite Jobs", url: "https://dynamitejobs.com", desc: "Curated Remote Career Hub Platform" },
-          { name: "Dice", url: "https://dice.com", desc: "Dedicated Technological Talent Hub Marketplace" }
+          { name: "LinkedIn", url: "https://linkedin.com", desc: "Maintain a professional profile and search for roles or clients.", best: "Professional opportunities", tags: ["jobs", "networking", "professional"] },
+          { name: "We Work Remotely", url: "https://weworkremotely.com", desc: "Browse remote roles across technology and other disciplines.", best: "Remote job search", tags: ["jobs", "remote", "career"] },
+          { name: "Hired.com", url: "https://hired.com", desc: "Connect with employers through a technology candidate marketplace.", best: "Tech candidate matching", tags: ["jobs", "technology", "career"] },
+          { name: "AngelList", url: "https://wellfound.com", desc: "Explore startup roles, companies, and opportunities on Wellfound.", best: "Startup opportunities", tags: ["jobs", "startups", "career"] },
+          { name: "Google Jobs", url: "https://careers.google.com", desc: "Search careers and opportunities through Google's jobs surfaces.", best: "Broad role search", tags: ["jobs", "career", "search"] },
+          { name: "www.indeed.com", url: "https://indeed.com", desc: "Search a large database of employer job listings.", best: "High-volume job search", tags: ["jobs", "career", "search"] },
+          { name: "Dynamite Jobs", url: "https://dynamitejobs.com", desc: "Browse curated remote roles and distributed-company opportunities.", best: "Curated remote work", tags: ["jobs", "remote", "curated"] },
+          { name: "Dice", url: "https://dice.com", desc: "Find technology-focused job listings and talent opportunities.", best: "Technology roles", tags: ["jobs", "technology", "career"] }
         ]
       }
     };
 
-    // Initializes Engine and generates item cards
-    function initDashboard() {
-      const feed = document.getElementById('workspace-feed');
-      feed.innerHTML = '';
+    const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
+    const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark" };
+    const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const isExternal = url => /^https?:\/\//i.test(url);
 
-      for (const [key, section] of Object.entries(database)) {
-        // Update total dynamic counts on navigation bars
-        document.getElementById(`cnt-${key}`).innerText = section.items.length;
-
-        // Render sections structure
-        const sectWrapper = document.createElement('section');
-        sectWrapper.className = `dashboard-section sect-${key}`;
-        sectWrapper.id = `group-${key}`;
-
-        // Construct section header layout with conditional top link element insertion
-        let headerHTML = `<div class="section-header">
-          <div class="section-title">${section.title}</div>`;
-        if (section.headerLink) {
-          const blank = section.headerLink.url.startsWith('http') ? ' target="_blank" rel="noopener"' : '';
-          headerHTML += `<a href="${section.headerLink.url}"${blank} class="section-link">${section.headerLink.text}</a>`;
-        }
-        headerHTML += `</div>`;
-        if (section.note) {
-          headerHTML += `<div class="section-note">${section.note}</div>`;
-        }
-        headerHTML += `<div class="grid" id="grid-${key}"></div>`;
-
-        sectWrapper.innerHTML = headerHTML;
-        feed.appendChild(sectWrapper);
-
-        const grid = document.getElementById(`grid-${key}`);
-        section.items.forEach(item => {
-          const card = document.createElement('a');
-          card.className = 'card';
-          card.href = item.url;
-          card.target = '_blank';
-          card.setAttribute('data-name', item.name.toLowerCase());
-          card.setAttribute('data-desc', item.desc.toLowerCase());
-
-          card.innerHTML = `
-            <div class="card-title">${item.name}</div>
-            <div class="card-meta">${item.desc}</div>
-          `;
-          grid.appendChild(card);
-        });
+    function loadPreferences() {
+      try {
+        const storedFavorites = localStorage.getItem("commandos-favorites-v1");
+        state.favorites = new Set(storedFavorites ? JSON.parse(storedFavorites) : defaultFavorites);
+        state.theme = localStorage.getItem("commandos-theme") || "dark";
+      } catch (error) {
+        state.favorites = new Set(defaultFavorites);
       }
+      document.body.classList.toggle("light", state.theme === "light");
     }
 
-    // Snappy Dynamic Client-side Component Filtering
-    function filterSection(targetKey, element) {
-      // Toggle sidebar button selections
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      element.classList.add('active');
+    function saveFavorites() {
+      try { localStorage.setItem("commandos-favorites-v1", JSON.stringify([...state.favorites])); } catch (error) { /* Dashboard still works when storage is unavailable. */ }
+    }
 
-      // Manipulate visual elements dynamically
-      const sections = document.querySelectorAll('.dashboard-section');
-      sections.forEach(sec => {
-        if (targetKey === 'all' || sec.classList.contains(`sect-${targetKey}`)) {
-          sec.style.display = 'block';
-          sec.style.animation = 'fadeIn 0.25s ease forwards';
+    function getItemId(sectionKey, item) { return `${sectionKey}:${slugify(item.name)}`; }
+    function flattenItems() {
+      return Object.entries(database).flatMap(([sectionKey, section]) => section.items.map(item => ({ ...item, sectionKey, id: getItemId(sectionKey, item) })));
+    }
+
+    function makeTag(label) {
+      const tag = document.createElement("button");
+      tag.className = "tag button";
+      tag.type = "button";
+      tag.textContent = label;
+      tag.title = `Filter by ${label}`;
+      tag.addEventListener("click", () => setSearch(label));
+      return tag;
+    }
+
+    function makeCard(item, options = {}) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.dataset.id = item.id;
+      card.dataset.section = item.sectionKey;
+      card.dataset.group = (item.group || "").toLowerCase();
+      const searchable = [item.name, item.desc, item.best, ...(item.tags || []), ...(item.aliases || []), item.group || ""].join(" ").toLowerCase();
+      card.dataset.search = searchable;
+
+      const link = document.createElement("a");
+      link.className = "card-main";
+      link.href = item.url;
+      if (isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
+      link.setAttribute("aria-label", `Open ${item.name}${isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
+
+      const title = document.createElement("h3");
+      title.className = "card-title";
+      title.textContent = item.name;
+      const best = document.createElement("p");
+      best.className = "best-for";
+      best.textContent = `Best for: ${item.best || "quick access"}`;
+      const desc = document.createElement("p");
+      desc.className = "card-desc";
+      desc.textContent = item.desc;
+      link.append(title, best, desc);
+      card.appendChild(link);
+
+      if (item.tags?.length) {
+        const tags = document.createElement("div");
+        tags.className = "card-tags";
+        tags.setAttribute("aria-label", "Tags");
+        item.tags.forEach(tag => tags.appendChild(makeTag(tag)));
+        card.appendChild(tags);
+      }
+
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+
+      const favorite = document.createElement("button");
+      favorite.className = "card-action favorite";
+      favorite.type = "button";
+      favorite.dataset.favorite = item.id;
+      favorite.title = "Add to favorites";
+      updateFavoriteButton(favorite, item.id, item.name);
+      favorite.addEventListener("click", () => toggleFavorite(item.id));
+
+      const copy = document.createElement("button");
+      copy.className = "card-action";
+      copy.type = "button";
+      copy.textContent = "Copy";
+      copy.title = "Copy link";
+      copy.addEventListener("click", () => copyLink(item.url, copy));
+      actions.append(favorite, copy);
+
+      const details = document.createElement("details");
+      details.className = "card-details";
+      const summary = document.createElement("summary");
+      summary.textContent = "Details";
+      const panel = document.createElement("div");
+      panel.className = "detail-panel";
+      const detailTitle = document.createElement("strong");
+      detailTitle.textContent = item.best ? `Use ${item.name} when you need ${item.best.toLowerCase()}.` : `About ${item.name}`;
+      const detailText = document.createElement("span");
+      detailText.textContent = item.detail || item.desc;
+      const url = document.createElement("div");
+      url.className = "detail-url";
+      url.textContent = item.url;
+      panel.append(detailTitle, detailText, url);
+      details.append(summary, panel);
+      details.addEventListener("toggle", () => { if (details.open) closeOtherDetails(details); });
+      footer.append(actions, details);
+      card.appendChild(footer);
+      return card;
+    }
+
+    function closeOtherDetails(current) {
+      document.querySelectorAll(".card-details[open]").forEach(details => { if (details !== current) details.open = false; });
+    }
+
+    function updateFavoriteButton(button, id, name) {
+      const favored = state.favorites.has(id);
+      button.classList.toggle("is-favorite", favored);
+      button.textContent = favored ? "★ Saved" : "☆ Save";
+      button.title = favored ? `Remove ${name} from favorites` : `Add ${name} to favorites`;
+      button.setAttribute("aria-pressed", String(favored));
+    }
+
+    function toggleFavorite(id) {
+      state.favorites.has(id) ? state.favorites.delete(id) : state.favorites.add(id);
+      saveFavorites();
+      renderDashboard();
+      applyFilters();
+    }
+
+    async function copyLink(url, button) {
+      const original = button.textContent;
+      try {
+        await navigator.clipboard.writeText(new URL(url, window.location.href).href);
+        button.textContent = "Copied";
+      } catch (error) {
+        button.textContent = "Copy failed";
+      }
+      window.setTimeout(() => { button.textContent = original; }, 1300);
+    }
+
+    function makeSectionHeader(title, summary, link) {
+      const header = document.createElement("div");
+      header.className = "section-header";
+      const heading = document.createElement("div");
+      heading.className = "section-heading";
+      const h2 = document.createElement("h2");
+      h2.className = "section-title";
+      h2.textContent = title;
+      heading.appendChild(h2);
+      if (summary) { const text = document.createElement("p"); text.className = "section-summary"; text.textContent = summary; heading.appendChild(text); }
+      header.appendChild(heading);
+      if (link) {
+        const a = document.createElement("a");
+        a.className = "section-link";
+        a.textContent = link.text;
+        a.href = link.url;
+        if (isExternal(link.url)) { a.target = "_blank"; a.rel = "noopener noreferrer"; }
+        header.appendChild(a);
+      }
+      return header;
+    }
+
+    function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
+
+    function renderHomeSections(feed, allItems) {
+      // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude).
+      const favorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
+      const favoriteSection = document.createElement("section");
+      favoriteSection.className = "dashboard-section home-section";
+      favoriteSection.dataset.home = "true";
+      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points. Use ☆ Save on any card to change this list."));
+      const favoriteGrid = document.createElement("div");
+      favoriteGrid.className = "grid";
+      if (favorites.length) renderCards(favorites, favoriteGrid);
+      else favoriteGrid.innerHTML = '<div class="empty-state">No favorites saved yet. Use the ☆ Save button on any service card.</div>';
+      favoriteSection.appendChild(favoriteGrid);
+      feed.appendChild(favoriteSection);
+
+      const workflows = [
+        { title: "Start coding session", desc: "Open your repository, launch a workspace, then bring in an AI assistant.", steps: ["GitHub", "Codespaces", "ChatGPT"], url: "https://github.com", tags: ["coding", "daily"] },
+        { title: "Research a topic", desc: "Search with citations, ground work in sources, then synthesize with Gemini.", steps: ["Perplexity", "NotebookLM", "Gemini"], url: "https://perplexity.ai", tags: ["research", "writing"] },
+        { title: "Deploy a project", desc: "Start from the repo, publish the frontend, then add edge compute as needed.", steps: ["GitHub", "Cloudflare Pages", "Workers"], url: "https://pages.cloudflare.com", tags: ["deploy", "cloudflare"] }
+      ];
+      const workflowSection = document.createElement("section");
+      workflowSection.className = "dashboard-section home-section";
+      workflowSection.dataset.home = "true";
+      workflowSection.appendChild(makeSectionHeader("Workflows", "Task-first launch sequences for common work."));
+      const workflowGrid = document.createElement("div");
+      workflowGrid.className = "grid";
+      workflows.forEach(flow => workflowGrid.appendChild(makeWorkflowCard(flow)));
+      workflowSection.appendChild(workflowGrid);
+      feed.appendChild(workflowSection);
+
+      const tasks = [
+        { title: "Write prose", best: "Draft and revise clear writing", desc: "Open Claude for structured drafting, editing, and long-form analysis.", url: "https://claude.ai", tags: ["writing", "prose", "inference"] },
+        { title: "Write sci-fact-fic", best: "Creative speculative writing", desc: "Open Gemini to explore science-grounded ideas, scenes, and variations.", url: "https://gemini.google.com", tags: ["writing", "creative", "inference"] },
+        { title: "Code a Cloudflare Worker", best: "Edge API and automation work", desc: "Open Cloudflare Workers to create and deploy serverless edge code.", url: "https://workers.cloudflare.com", tags: ["coding", "cloudflare", "edge"] },
+        { title: "Get Gemini API keys", best: "Gemini API setup", desc: "Open AI Studio's API-key page to create or manage Gemini credentials.", url: "https://aistudio.google.com/apikey", tags: ["gemini", "API", "setup"] }
+      ];
+      const taskSection = document.createElement("section");
+      taskSection.className = "dashboard-section home-section";
+      taskSection.dataset.home = "true";
+      taskSection.appendChild(makeSectionHeader("Inference tasks", "Start from the outcome you want, not the provider name."));
+      const taskGrid = document.createElement("div");
+      taskGrid.className = "grid";
+      tasks.forEach(task => taskGrid.appendChild(makeTaskCard(task)));
+      taskSection.appendChild(taskGrid);
+      feed.appendChild(taskSection);
+    }
+
+    function appendQuickCardActions(card, url) {
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+      const copy = document.createElement("button");
+      copy.className = "card-action";
+      copy.type = "button";
+      copy.textContent = "Copy";
+      copy.title = "Copy launch link";
+      copy.addEventListener("click", () => copyLink(url, copy));
+      actions.appendChild(copy);
+      footer.appendChild(actions);
+      card.appendChild(footer);
+    }
+
+    function makeWorkflowCard(flow) {
+      const card = document.createElement("article");
+      card.className = "card workflow-card";
+      card.dataset.search = [flow.title, flow.desc, ...flow.steps, ...flow.tags].join(" ").toLowerCase();
+      const link = document.createElement("a");
+      link.className = "card-main"; link.href = flow.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      link.innerHTML = `<h3 class="card-title"></h3><p class="best-for">Workflow</p><p class="card-desc"></p>`;
+      link.querySelector(".card-title").textContent = flow.title;
+      link.querySelector(".card-desc").textContent = flow.desc;
+      const steps = document.createElement("p");
+      steps.className = "workflow-steps";
+      flow.steps.forEach((step, index) => { const item = document.createElement("span"); item.textContent = step; steps.appendChild(item); if (index < flow.steps.length - 1) { const arrow = document.createElement("span"); arrow.className = "workflow-arrow"; arrow.textContent = "→"; steps.appendChild(arrow); } });
+      link.appendChild(steps); card.appendChild(link);
+      const tags = document.createElement("div"); tags.className = "card-tags"; flow.tags.forEach(tag => tags.appendChild(makeTag(tag))); card.appendChild(tags);
+      return card;
+    }
+
+    function makeTaskCard(task) {
+      const card = document.createElement("article");
+      card.className = "card quick-task";
+      card.dataset.search = [task.title, task.best, task.desc, ...task.tags].join(" ").toLowerCase();
+      const link = document.createElement("a");
+      link.className = "card-main"; link.href = task.url; link.target = "_blank"; link.rel = "noopener noreferrer";
+      link.innerHTML = `<h3 class="card-title"></h3><p class="best-for"></p><p class="card-desc"></p>`;
+      link.querySelector(".card-title").textContent = task.title;
+      link.querySelector(".best-for").textContent = `Best for: ${task.best}`;
+      link.querySelector(".card-desc").textContent = task.desc;
+      card.appendChild(link);
+      const tags = document.createElement("div"); tags.className = "card-tags"; task.tags.forEach(tag => tags.appendChild(makeTag(tag))); card.appendChild(tags);
+      appendQuickCardActions(card, task.url);
+      return card;
+    }
+
+    function renderDashboard() {
+      const feed = document.getElementById("workspace-feed");
+      feed.replaceChildren();
+      const allItems = flattenItems();
+      if (state.activeSection === "all") renderHomeSections(feed, allItems);
+
+      Object.entries(database).forEach(([key, section]) => {
+        const sectionElement = document.createElement("section");
+        sectionElement.className = "dashboard-section";
+        sectionElement.id = `group-${key}`;
+        sectionElement.dataset.key = key;
+        sectionElement.appendChild(makeSectionHeader(section.title, section.summary, section.headerLink));
+
+        if (section.note) { const note = document.createElement("div"); note.className = "section-note"; note.innerHTML = section.note; sectionElement.appendChild(note); }
+        if (section.filters?.length) {
+          const toolbar = document.createElement("div"); toolbar.className = "section-toolbar"; toolbar.setAttribute("aria-label", "Inference tags");
+          section.filters.forEach(tag => { const button = document.createElement("button"); button.className = "tag-filter"; button.type = "button"; button.textContent = tag; button.addEventListener("click", () => setSearch(tag)); toolbar.appendChild(button); });
+          sectionElement.appendChild(toolbar);
+          sectionElement.appendChild(document.createElement("div")).style.height = ".8rem";
+        }
+
+        const groups = [...new Set(section.items.map(item => item.group).filter(Boolean))];
+        const preparedItems = section.items.map(item => ({ ...item, id: getItemId(key, item), sectionKey: key }));
+        if (groups.length) {
+          groups.forEach(groupName => {
+            const subgroup = document.createElement("div"); subgroup.className = "subgroup"; subgroup.dataset.group = groupName;
+            const heading = document.createElement("h3"); heading.className = "subgroup-title"; heading.textContent = groupName; subgroup.appendChild(heading);
+            const grid = document.createElement("div"); grid.className = "grid";
+            renderCards(preparedItems.filter(item => item.group === groupName), grid);
+            subgroup.appendChild(grid); sectionElement.appendChild(subgroup);
+          });
+          const ungrouped = preparedItems.filter(item => !item.group);
+          if (ungrouped.length) { const grid = document.createElement("div"); grid.className = "grid"; renderCards(ungrouped, grid); sectionElement.appendChild(grid); }
         } else {
-          sec.style.display = 'none';
+          const grid = document.createElement("div"); grid.className = "grid"; renderCards(preparedItems, grid); sectionElement.appendChild(grid);
         }
+        feed.appendChild(sectionElement);
+      });
+
+      Object.keys(database).forEach(key => { const count = document.getElementById(`cnt-${key}`); if (count) count.textContent = database[key].items.length; });
+    }
+
+    function matchesQuery(element, query) { return !query || (element.dataset.search || "").includes(query); }
+    function applyFilters() {
+      const normalizedQuery = state.query.trim().toLowerCase();
+      let resultCount = 0;
+      document.querySelectorAll(".home-section").forEach(section => {
+        const allowed = state.activeSection === "all";
+        let matches = 0;
+        section.querySelectorAll(".card").forEach(card => { const match = allowed && matchesQuery(card, normalizedQuery); card.classList.toggle("is-filtered", !match); if (match) matches++; });
+        section.classList.toggle("is-hidden", !allowed || matches === 0);
+        resultCount += matches;
+      });
+
+      document.querySelectorAll(".dashboard-section[data-key]").forEach(section => {
+        const allowed = state.activeSection === "all" || section.dataset.key === state.activeSection;
+        let sectionMatches = 0;
+        section.querySelectorAll(".card").forEach(card => { const match = allowed && matchesQuery(card, normalizedQuery); card.classList.toggle("is-filtered", !match); if (match) sectionMatches++; });
+        section.querySelectorAll(".subgroup").forEach(group => { group.classList.toggle("is-hidden", !group.querySelector(".card:not(.is-filtered)")); });
+        section.classList.toggle("is-hidden", !allowed || sectionMatches === 0);
+        resultCount += sectionMatches;
+      });
+
+      const meta = document.getElementById("search-meta");
+      const clear = document.getElementById("clear-search");
+      clear.style.display = state.query ? "block" : "none";
+      if (state.query) meta.textContent = `${resultCount} ${resultCount === 1 ? "result" : "results"} for “${state.query}”${state.activeSection !== "all" ? " in this cluster" : ""}.`;
+      else if (state.activeSection !== "all") meta.textContent = `${resultCount} tools in ${database[state.activeSection].title}.`;
+      else meta.textContent = "Tip: search by tool, outcome, or a tag such as “coding”, “API”, or “web search”.";
+    }
+
+    function selectSection(key, button) {
+      state.activeSection = key;
+      document.querySelectorAll(".nav-btn").forEach(navButton => { const active = navButton === button; navButton.classList.toggle("active", active); if (active) navButton.setAttribute("aria-current", "page"); else navButton.removeAttribute("aria-current"); });
+      renderDashboard();
+      applyFilters();
+      document.querySelector("main").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function setSearch(query) {
+      const input = document.getElementById("global-search");
+      input.value = query;
+      state.query = query;
+      applyFilters();
+      input.focus();
+    }
+
+    function initialize() {
+      loadPreferences();
+      renderDashboard();
+      applyFilters();
+      const search = document.getElementById("global-search");
+      search.addEventListener("input", event => { state.query = event.target.value; applyFilters(); });
+      document.getElementById("clear-search").addEventListener("click", () => setSearch(""));
+      document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click", () => selectSection(button.dataset.section, button)));
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+        state.theme = document.body.classList.toggle("light") ? "light" : "dark";
+        try { localStorage.setItem("commandos-theme", state.theme); } catch (error) { /* preference is optional */ }
+      });
+      window.addEventListener("keydown", event => {
+        const input = document.getElementById("global-search");
+        if (event.key === "/" && document.activeElement !== input && !event.metaKey && !event.ctrlKey && !event.altKey) { event.preventDefault(); input.focus(); }
+        if (event.key === "Escape" && document.activeElement === input && state.query) { setSearch(""); }
       });
     }
 
-    // High Performance Global Fuzzy Matches
-    function processSearch() {
-      const query = document.getElementById('global-search').value.toLowerCase();
-      const sections = document.querySelectorAll('.dashboard-section');
-
-      sections.forEach(sec => {
-        let visibleInSectionCount = 0;
-        const cards = sec.querySelectorAll('.card');
-
-        cards.forEach(card => {
-          const matchName = card.getAttribute('data-name').includes(query);
-          const matchDesc = card.getAttribute('data-desc').includes(query);
-
-          if (matchName || matchDesc) {
-            card.style.display = 'flex';
-            visibleInSectionCount++;
-          } else {
-            card.style.display = 'none';
-          }
-        });
-
-        // Hide structural containers if inner search matches are null
-        sec.style.display = visibleInSectionCount > 0 ? 'block' : 'none';
-      });
-    }
-
-    // Theme Customizer Logic
-    function toggleTheme() {
-      document.body.classList.toggle('light');
-    }
-
-    // Hotkey listener integration (Press '/' to refocus search instantly)
-    window.addEventListener('keydown', (e) => {
-      if (e.key === '/' && document.activeElement !== document.getElementById('global-search')) {
-        e.preventDefault();
-        document.getElementById('global-search').focus();
-      }
-    });
-
-    // Boot engine instance
-    initDashboard();
+    initialize();
   </script>
 </body>
 </html>

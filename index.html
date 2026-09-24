@@ -76,8 +76,47 @@
     }
     .brand span { background: linear-gradient(135deg, var(--accent), #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .brand-note { color: var(--text-muted); font-size: 0.75rem; margin: 0 0 1.35rem; line-height: 1.4; }
-    .nav-links { display: flex; flex-direction: column; gap: 0.28rem; flex-grow: 1; overflow-y: auto; }
+    /*
+      Sidebar navigation scroller. The thumb is a brand gradient that stays hidden until the list is hovered,
+      focused, or scrolled: the registered --thumb-reveal percentage (inherited by the scrollbar pseudo-elements)
+      animates the gradient's opacity via color-mix(). Edge fades (driven by JS classes) hint that more
+      categories are available above or below.
+    */
+    @property --fade-start { syntax: "<length>"; inherits: false; initial-value: 0px; }
+    @property --fade-end { syntax: "<length>"; inherits: false; initial-value: 0px; }
+    @property --thumb-reveal { syntax: "<percentage>"; inherits: true; initial-value: 0%; }
+    .nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+      flex-grow: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      margin-right: -9px; /* lets the reserved scrollbar gutter sit in the sidebar padding so buttons stay aligned */
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-start), #000 calc(100% - var(--fade-end)), transparent 100%);
+      transition: --thumb-reveal .35s ease, --fade-start .25s ease, --fade-end .25s ease;
+    }
+    .nav-links.can-scroll-start { --fade-start: 28px; }
+    .nav-links.can-scroll-end { --fade-end: 28px; }
+    .nav-links:hover, .nav-links:focus-within, .nav-links.is-scrolling { --thumb-reveal: 100%; }
+    .nav-links::-webkit-scrollbar { width: 9px; }
+    .nav-links::-webkit-scrollbar-track { background: transparent; margin: 4px 0; }
+    .nav-links::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 99px;
+      background: linear-gradient(180deg, var(--accent), #ec4899) padding-box; /* fallback: always-visible gradient */
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) var(--thumb-reveal, 0%), transparent), color-mix(in srgb, #ec4899 var(--thumb-reveal, 0%), transparent)) padding-box;
+    }
+    .nav-links::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #a5b4fc, #f472b6) padding-box; }
+    @supports not selector(::-webkit-scrollbar) {
+      .nav-links { scrollbar-width: thin; scrollbar-color: transparent transparent; transition: scrollbar-color .35s ease, --fade-start .25s ease, --fade-end .25s ease; }
+      .nav-links:hover, .nav-links:focus-within, .nav-links.is-scrolling { scrollbar-color: var(--accent) transparent; }
+    }
     .nav-btn {
+      position: relative;
       background: transparent;
       border: 1px solid transparent;
       color: var(--text-muted);
@@ -91,13 +130,52 @@
       justify-content: space-between;
       gap: 0.6rem;
       white-space: nowrap;
-      transition: color .15s ease, background .15s ease, border-color .15s ease;
+      transition: color .2s ease, background-color .2s ease, border-color .2s ease, box-shadow .25s ease;
+      animation: nav-in .42s cubic-bezier(.2, .7, .2, 1) backwards;
+      animation-delay: calc(var(--i, 0) * 28ms);
     }
+    .nav-btn::before {
+      content: "";
+      position: absolute;
+      left: 3px;
+      top: 24%;
+      bottom: 24%;
+      width: 3px;
+      border-radius: 3px;
+      background: linear-gradient(180deg, var(--accent), #ec4899);
+      transform: scaleY(0);
+      transition: transform .22s ease;
+    }
+    .nav-btn > span:first-child { transition: transform .22s ease; }
     .nav-btn:hover { color: var(--text); background: var(--card-bg); }
-    .nav-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 4px 12px var(--accent-glow); }
+    .nav-btn:hover::before { transform: scaleY(.55); }
+    .nav-btn:hover > span:first-child, .nav-btn.active > span:first-child { transform: translateX(4px); }
+    .nav-btn.active { color: #fff; background: var(--accent); border-color: var(--accent); box-shadow: 0 4px 14px var(--accent-glow); }
+    .nav-btn.active::before { transform: scaleY(1); background: #fff; }
+    .nav-btn:focus-visible { outline-offset: -3px; } /* keep the focus ring inside the scroll container */
+    .nav-btn.active:focus-visible { outline-color: #fff; }
     .nav-btn .count { font-size: 0.72rem; opacity: .85; background: rgba(0, 0, 0, .2); padding: 2px 6px; border-radius: 8px; }
+    @keyframes nav-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+
+    .sidebar-footer { display: grid; gap: .5rem; margin-top: 1rem; }
+    .prev-dashboard {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: .8rem;
+      font-weight: 650;
+      padding: .66rem .65rem;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      transition: color .2s ease, border-color .2s ease, background-color .2s ease;
+    }
+    .prev-dashboard:hover { color: var(--text); border-color: var(--accent); background: var(--card-bg); }
+    .prev-icon { display: inline-block; transition: transform .2s ease; }
+    .prev-dashboard:hover .prev-icon { transform: translateX(-3px); }
+    .prev-version { margin-left: auto; color: var(--accent); background: var(--tag-bg); border-radius: 99px; padding: .08rem .38rem; font-size: .66rem; font-weight: 750; }
     .theme-toggle {
-      margin-top: 1rem;
       background: var(--card-bg);
       border: 1px solid var(--border);
       color: var(--text);
@@ -168,7 +246,7 @@
     .card-details summary { list-style: none; cursor: pointer; }
     .card-details summary::-webkit-details-marker { display: none; }
     .card-details[open] summary { color: var(--text); border-color: var(--accent); }
-    .detail-panel { position: absolute; z-index: 4; left: .7rem; right: .7rem; bottom: .7rem; padding: .8rem; background: var(--sidebar-bg); border: 1px solid var(--accent); box-shadow: 0 12px 25px rgba(0,0,0,.28); border-radius: 10px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+    .detail-panel { position: absolute; z-index: 4; left: .7rem; right: .7rem; bottom: 2.85rem; /* sits above the footer so its toggle stays clickable */ padding: .8rem; background: var(--sidebar-bg); border: 1px solid var(--accent); box-shadow: 0 12px 25px rgba(0,0,0,.28); border-radius: 10px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
     .detail-panel strong { display: block; color: var(--text); margin-bottom: .2rem; }
     .detail-url { overflow-wrap: anywhere; color: var(--accent); margin-top: .4rem; font-size: .7rem; }
     .empty-state { padding: 1.25rem; color: var(--text-muted); background: var(--card-bg); border: 1px dashed var(--border); border-radius: var(--radius); font-size: .9rem; }
@@ -177,20 +255,57 @@
     .workflow-card { min-height: 170px; }
     .workflow-steps { color: var(--text-muted); font-size: .78rem; line-height: 1.45; margin: .55rem 0 0; }
     .workflow-steps span { color: var(--text); font-weight: 700; }
-    .workflow-arrow { color: var(--accent); padding: 0 .16rem; }
+    .workflow-steps .workflow-arrow { color: var(--accent); padding: 0 .16rem; }
+    .workflow-steps a { color: var(--accent); font-weight: 700; text-decoration: none; border-bottom: 1px dashed currentColor; }
+    .workflow-steps a:hover { color: var(--text); }
+    .detail-panel ol { margin: .4rem 0 0; padding-left: 1.1rem; }
+    .detail-panel li + li { margin-top: .25rem; }
+    .detail-code { display: block; margin-top: .55rem; padding: .45rem .55rem; border-radius: 7px; background: var(--tag-bg); color: var(--text); font: .7rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+    .workflow-card .detail-panel { max-height: min(420px, 70vh); overflow: auto; }
     .quick-task { min-height: 155px; }
     .quick-task .card-title { font-size: .93rem; }
+
+    /* Search launchers: type once, then open the same query on any source card in the section */
+    .query-panel { margin: 0 0 1rem; padding: .85rem .95rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); }
+    .query-label { display: block; margin: 0 0 .5rem; color: var(--text-muted); font-size: .74rem; font-weight: 750; letter-spacing: .45px; text-transform: uppercase; }
+    .query-row { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .query-input {
+      flex: 1 1 260px; min-width: 0; padding: .72rem .9rem; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 10px; font-size: .9rem;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .query-input::placeholder { color: var(--text-muted); opacity: .8; }
+    .query-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); outline: none; }
+    .query-go {
+      display: inline-flex; align-items: center; justify-content: center; padding: .72rem 1rem; border-radius: 10px; background: var(--accent); color: #fff;
+      font-size: .84rem; font-weight: 750; text-decoration: none; white-space: nowrap; transition: filter .15s ease, transform .15s ease;
+    }
+    .query-go:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .query-hint { margin: .5rem 0 0; color: var(--text-muted); font-size: .76rem; line-height: 1.45; }
+    .query-preview { display: none; margin: .5rem 0 0; color: var(--text); font-size: .74rem; font-weight: 700; overflow-wrap: anywhere; }
+    .card.has-query { border-color: var(--accent-glow); }
+    .card.has-query .query-preview { display: block; }
+
+    /* Section changes fade the new cluster in instead of snapping */
+    @keyframes section-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .feed-enter > .dashboard-section { animation: section-in .34s ease backwards; }
+    .feed-enter > .dashboard-section:nth-child(2) { animation-delay: .04s; }
+    .feed-enter > .dashboard-section:nth-child(3) { animation-delay: .08s; }
+    .feed-enter > .dashboard-section:nth-child(n+4) { animation-delay: .12s; }
 
     @media (max-width: 992px) {
       body { flex-direction: column; }
       aside { position: static; width: 100%; min-height: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; flex-direction: row; align-items: center; gap: 1rem; }
       .brand { margin: 0; white-space: nowrap; }
       .brand-note { display: none; }
-      .nav-links { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .55rem .75rem; background: var(--sidebar-bg); border-top: 1px solid var(--border); gap: .35rem; }
+      .nav-links { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .55rem .75rem; margin: 0; background: var(--sidebar-bg); border-top: 1px solid var(--border); gap: .35rem; scrollbar-gutter: auto; -webkit-mask-image: none; mask-image: none; }
       .nav-links::-webkit-scrollbar { display: none; }
       .nav-links { scrollbar-width: none; }
       .nav-btn { flex: 0 0 auto; padding: .52rem .68rem; font-size: .8rem; }
-      .theme-toggle { margin: 0 0 0 auto; white-space: nowrap; }
+      .sidebar-footer { display: flex; align-items: center; gap: .5rem; margin: 0 0 0 auto; }
+      .prev-dashboard { white-space: nowrap; }
+      .prev-label { display: none; }
+      .prev-version { margin-left: 0; }
+      .theme-toggle { margin: 0; white-space: nowrap; }
       main { margin-left: 0; padding: 1.35rem; width: 100%; margin-bottom: 62px; }
       .grid { grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); }
     }
@@ -204,30 +319,36 @@
       .search-bar { padding-right: 4.8rem; }
       .search-shortcut { display: none; }
       .clear-search { right: .55rem; }
+      .query-go { flex: 1 1 100%; }
     }
-    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
   </style>
 </head>
 <body>
   <aside>
     <div>
-      <div class="brand">🚀 <span>CommandOS-v1.4</span></div>
+      <div class="brand">🚀 <span>CommandOS-v1.5</span></div>
       <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
     </div>
     <nav class="nav-links" aria-label="Dashboard categories">
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
-      <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
+      <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
       <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
       <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
       <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
       <button class="nav-btn" type="button" data-section="technews"><span>Tech News</span> <span class="count" id="cnt-technews">0</span></button>
+      <button class="nav-btn" type="button" data-section="research"><span>Trending &amp; Research</span> <span class="count" id="cnt-research">0</span></button>
       <button class="nav-btn" type="button" data-section="socials"><span>Socials</span> <span class="count" id="cnt-socials">0</span></button>
+      <button class="nav-btn" type="button" data-section="searchsocials"><span>Search Socials</span> <span class="count" id="cnt-searchsocials">0</span></button>
       <button class="nav-btn" type="button" data-section="revenue"><span>Service Revenue</span> <span class="count" id="cnt-revenue">0</span></button>
     </nav>
-    <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle color theme">🌓 <span>Theme</span></button>
+    <div class="sidebar-footer">
+      <a class="prev-dashboard" href="index-previous.html" aria-label="Open the previous dashboard (CommandOS v1.3)" title="Open the previous dashboard layout (CommandOS v1.3)"><span class="prev-icon" aria-hidden="true">↩</span><span class="prev-label">Previous dashboard</span><span class="prev-version" aria-hidden="true">v1.3</span></a>
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle color theme">🌓 <span>Theme</span></button>
+    </div>
   </aside>
 
   <main>
@@ -244,6 +365,9 @@
   </main>
 
   <script>
+    // Rolling dates keep time-boxed searches (e.g. "repos created this week") current on every load.
+    const isoDaysAgo = days => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+
     const database = {
       daily: {
         title: "Key Daily Services",
@@ -255,19 +379,6 @@
           { name: "NotebookLM", url: "https://notebooklm.google.com", desc: "Ask grounded questions across your own source material.", best: "Source-based research", tags: ["research", "long context", "documents"] },
           { name: "Proton VPN ChExt", url: "https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa", desc: "Use a browser VPN connection when privacy or location controls matter.", best: "Private browsing", tags: ["privacy", "security"] },
           { name: "GitHub Codespaces", url: "https://github.com/codespaces", desc: "Launch a cloud development environment directly from a repository.", best: "Cloud development", tags: ["coding", "cloud", "terminal"] }
-        ]
-      },
-      zerocost: {
-        title: "Zero-Cost Inference APIs",
-        summary: "Provider consoles and free-access model endpoints.",
-        headerLink: { text: "Open Harness Hub", url: "zerocost.html" },
-        items: [
-          { name: "Groq Cloud API", url: "https://console.groq.com", desc: "Create keys for very fast hosted model inference.", best: "Fast API experiments", tags: ["API", "fast", "free"] },
-          { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Create and manage Gemini API keys for Google AI Studio.", best: "Gemini API access", tags: ["API", "gemini", "free"], aliases: ["get gemini API keys", "gemini keys"] },
-          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Run AI models near users through Cloudflare's edge platform.", best: "Edge AI applications", tags: ["API", "edge", "cloudflare"] },
-          { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Browse routed free-tier models from one API-compatible catalog.", best: "Trying many models", tags: ["API", "free", "models"] },
-          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Experiment with hosted models in GitHub's developer workflow.", best: "Model tests with GitHub", tags: ["API", "free", "coding"], group: "Fast API inference" },
-          { name: "Harness Hub", url: "zerocost.html", desc: "Use BYOK workspaces, loops, a DAG canvas, and a prompt library.", best: "Prompt and workflow testing", tags: ["prompts", "workflows", "BYOK"], internal: true }
         ]
       },
       inference: {
@@ -300,6 +411,19 @@
           { name: "Meta AI", url: "https://meta.ai", desc: "Use Meta's consumer assistant and an entry point to Llama models.", best: "Llama model access", tags: ["open models", "multimodal", "general"], group: "More assistants" },
           { name: "Poe", url: "https://poe.com", desc: "Try multiple bots and build custom AI experiences in one place.", best: "Multi-model exploration", tags: ["models", "custom bots", "writing"], group: "More assistants" },
           { name: "Cohere", url: "https://cohere.com", desc: "Build RAG, search, and enterprise language applications.", best: "RAG and enterprise NLP", tags: ["API", "RAG", "enterprise"], group: "More assistants" }
+        ]
+      },
+      zerocost: {
+        title: "Zero-Cost Inference APIs",
+        summary: "Provider consoles and free-access model endpoints.",
+        headerLink: { text: "Open Harness Hub", url: "zerocost.html" },
+        items: [
+          { name: "Groq Cloud API", url: "https://console.groq.com/keys", desc: "Create keys for very fast hosted model inference.", best: "Fast API experiments", tags: ["API", "fast", "free"], aliases: ["get groq API keys", "groq keys", "GROQ_API_KEY"] },
+          { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Create and manage Gemini API keys for Google AI Studio.", best: "Gemini API access", tags: ["API", "gemini", "free"], aliases: ["get gemini API keys", "gemini keys"] },
+          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Run AI models near users through Cloudflare's edge platform.", best: "Edge AI applications", tags: ["API", "edge", "cloudflare"] },
+          { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Browse routed free-tier models from one API-compatible catalog.", best: "Trying many models", tags: ["API", "free", "models"] },
+          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Experiment with hosted models in GitHub's developer workflow.", best: "Model tests with GitHub", tags: ["API", "free", "coding"], group: "Fast API inference" },
+          { name: "Harness Hub", url: "zerocost.html", desc: "Use BYOK workspaces, loops, a DAG canvas, and a prompt library.", best: "Prompt and workflow testing", tags: ["prompts", "workflows", "BYOK"], internal: true }
         ]
       },
       agent: {
@@ -367,6 +491,37 @@
           { name: "Live Feed Console", url: "feeds.html", desc: "Read technology RSS sources from one progressive feed interface.", best: "One-place feed reading", tags: ["news", "RSS", "reader"], internal: true }
         ]
       },
+      research: {
+        title: "GitHub Trending & Research",
+        summary: "Spot fast-rising repositories, then follow the papers, models, and leaderboards behind them.",
+        headerLink: { text: "Open GitHub Trending", url: "https://github.com/trending" },
+        filters: ["trending", "papers", "arXiv", "models", "leaderboards"],
+        searchBox: {
+          group: "Search research",
+          label: "Search repos, papers & models",
+          placeholder: "e.g. speculative decoding or llama.cpp",
+          hint: "Press Enter to search GitHub. Every “Search …” card below updates with your query."
+        },
+        items: [
+          { name: "GitHub Trending", url: "https://github.com/trending", desc: "Repositories gaining the most stars today, across every language.", best: "Today's breakout repositories", tags: ["trending", "GitHub", "daily"], group: "GitHub Trending" },
+          { name: "Trending This Week", url: "https://github.com/trending?since=weekly", desc: "Projects with sustained star growth over the past seven days.", best: "Weekly momentum", tags: ["trending", "GitHub", "weekly"], group: "GitHub Trending" },
+          { name: "Trending Python", url: "https://github.com/trending/python?since=daily", desc: "Today's rising Python projects—often AI, data, and agent tooling.", best: "AI and data tooling", tags: ["trending", "Python", "AI"], group: "GitHub Trending" },
+          { name: "Trending TypeScript", url: "https://github.com/trending/typescript?since=daily", desc: "Today's rising TypeScript projects for web apps, agents, and developer tools.", best: "Web and agent frameworks", tags: ["trending", "TypeScript", "web"], group: "GitHub Trending" },
+          { name: "New Repos by Stars (7 days)", url: `https://github.com/search?q=${encodeURIComponent(`created:>${isoDaysAgo(7)}`)}&type=repositories&s=stars&o=desc`, desc: "Repositories created in the last week, most-starred first—fresh launches before they trend.", best: "Brand-new launches", tags: ["trending", "GitHub", "new"], group: "GitHub Trending", detail: "A rolling GitHub search: repositories created in the last 7 days, sorted by stars. The date window refreshes each time the dashboard loads." },
+          { name: "Search GitHub Repos", url: "https://github.com/search?type=repositories", template: "https://github.com/search?q={q}&type=repositories&s=stars&o=desc", desc: "Find implementations and tools for your query, most-starred first.", best: "Finding implementations", tags: ["search", "GitHub", "code"], group: "Search research" },
+          { name: "Search arXiv", url: "https://arxiv.org/search/", template: "https://arxiv.org/search/?query={q}&searchtype=all", desc: "Search preprints across computer science, math, physics, and more.", best: "Primary-source preprints", tags: ["search", "arXiv", "papers"], group: "Search research" },
+          { name: "Search Hugging Face Papers", url: "https://huggingface.co/papers", template: "https://huggingface.co/papers?q={q}", desc: "Find AI papers linked to code, models, datasets, and community discussion.", best: "Papers with models and code", tags: ["search", "papers", "models"], group: "Search research" },
+          { name: "Search Semantic Scholar", url: "https://www.semanticscholar.org", template: "https://www.semanticscholar.org/search?q={q}", desc: "Literature search with citation graphs, TLDRs, and related work.", best: "Following citation trails", tags: ["search", "papers", "citations"], group: "Search research" },
+          { name: "Search Google Scholar", url: "https://scholar.google.com", template: "https://scholar.google.com/scholar?q={q}", desc: "Broad academic search across papers, theses, books, and patents.", best: "Broad academic coverage", tags: ["search", "papers", "citations"], group: "Search research" },
+          { name: "Hugging Face Trending Papers", url: "https://huggingface.co/papers/trending", desc: "The AI papers the community is reading now, with linked code and models.", best: "What AI researchers are reading", tags: ["papers", "trending", "AI"], group: "Papers & preprints" },
+          { name: "arXiv cs.AI — New", url: "https://arxiv.org/list/cs.AI/new", desc: "Today's new artificial-intelligence preprints.", best: "Daily AI preprints", tags: ["arXiv", "papers", "AI"], group: "Papers & preprints" },
+          { name: "arXiv cs.CL — New", url: "https://arxiv.org/list/cs.CL/new", desc: "Today's computation-and-language preprints—where most LLM papers land.", best: "Daily LLM and NLP papers", tags: ["arXiv", "papers", "LLM"], group: "Papers & preprints" },
+          { name: "arXiv cs.LG — New", url: "https://arxiv.org/list/cs.LG/new", desc: "Today's new machine-learning preprints.", best: "Daily ML papers", tags: ["arXiv", "papers", "ML"], group: "Papers & preprints" },
+          { name: "Hugging Face Trending Models", url: "https://huggingface.co/models?sort=trending", desc: "Open models gaining the most downloads and likes right now.", best: "Open-model momentum", tags: ["models", "trending", "open models"], group: "Models & leaderboards" },
+          { name: "Arena Leaderboard", url: "https://arena.ai/leaderboard", desc: "Crowd-sourced rankings for text, coding, agent, image, and video models.", best: "Head-to-head model rankings", tags: ["leaderboards", "models", "comparison"], group: "Models & leaderboards" },
+          { name: "Artificial Analysis", url: "https://artificialanalysis.ai", desc: "Independent benchmarks comparing model quality, speed, and price.", best: "Quality, speed, and price trade-offs", tags: ["leaderboards", "benchmarks", "models"], group: "Models & leaderboards" }
+        ]
+      },
       socials: {
         title: "Socials",
         summary: "Communication, professional presence, publishing, and community channels.",
@@ -382,6 +537,27 @@
           { name: "WhatsApp", url: "https://whatsapp.com", desc: "Send private messages and coordinate with contacts or groups.", best: "Private communication", tags: ["messaging", "communication", "private"] },
           { name: "WeChat", url: "https://wechat.com", desc: "Access messaging and multi-purpose services in one ecosystem.", best: "Messaging and ecosystem access", tags: ["messaging", "social", "communication"] },
           { name: "Facebook", url: "https://facebook.com", desc: "Connect through groups, events, and social communities.", best: "Groups and communities", tags: ["social", "community", "events"] }
+        ]
+      },
+      searchsocials: {
+        title: "Search Socials",
+        summary: "Type a topic, @handle, or #hashtag once, then open the same search on any platform.",
+        searchBox: {
+          label: "Search social platforms",
+          placeholder: "e.g. #buildinpublic, @github, local LLMs",
+          hint: "Press Enter to search X. Every platform card below updates with your query."
+        },
+        items: [
+          { name: "Search X", url: "https://x.com/explore", template: "https://x.com/search?q={q}&src=typed_query&f=live", desc: "Latest posts, people, and live reactions for your query.", best: "Real-time reactions", tags: ["social search", "live", "news"] },
+          { name: "Search Reddit", url: "https://www.reddit.com", template: "https://www.reddit.com/search/?q={q}", desc: "Threads, communities, and firsthand experiences.", best: "Firsthand opinions", tags: ["social search", "community", "research"] },
+          { name: "Search YouTube", url: "https://www.youtube.com", template: "https://www.youtube.com/results?search_query={q}", desc: "Videos, tutorials, talks, and product reviews.", best: "Tutorials and talks", tags: ["social search", "video", "tutorials"] },
+          { name: "Search TikTok", url: "https://www.tiktok.com/explore", template: "https://www.tiktok.com/search?q={q}", desc: "Short-form videos, creators, and emerging trends.", best: "Trend discovery", tags: ["social search", "video", "trends"] },
+          { name: "Search Instagram", url: "https://www.instagram.com/explore/", template: "https://www.instagram.com/explore/search/keyword/?q={q}", desc: "Posts, reels, and creators for a keyword or hashtag.", best: "Visual trends", tags: ["social search", "visual", "creators"] },
+          { name: "Search Threads", url: "https://www.threads.com/search", template: "https://www.threads.com/search?q={q}&serp_type=default", desc: "Text posts and creator conversations.", best: "Creator conversation", tags: ["social search", "conversation", "creators"] },
+          { name: "Search Bluesky", url: "https://bsky.app/search", template: "https://bsky.app/search?q={q}", desc: "Posts and people across the open Bluesky network.", best: "Open-network posts", tags: ["social search", "conversation", "open network"] },
+          { name: "Search LinkedIn", url: "https://www.linkedin.com", template: "https://www.linkedin.com/search/results/all/?keywords={q}", desc: "Professional posts, people, companies, and jobs.", best: "Professional perspectives", tags: ["social search", "professional", "networking"] },
+          { name: "Search Facebook", url: "https://www.facebook.com", template: "https://www.facebook.com/search/top/?q={q}", desc: "Groups, pages, events, and public posts.", best: "Groups and events", tags: ["social search", "community", "events"] },
+          { name: "Search Hacker News", url: "https://hn.algolia.com", template: "https://hn.algolia.com/?q={q}", desc: "Developer discussion, launches, and comment threads.", best: "Developer discussion", tags: ["social search", "developers", "community"] }
         ]
       },
       revenue: {
@@ -401,9 +577,13 @@
     };
 
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
-    const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark" };
+    const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const isExternal = url => /^https?:\/\//i.test(url);
+    const isTypingTarget = element => Boolean(element) && (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
+    // Search shortcuts: items with a `template` swap {q} for the section's query; with no query they open `url`.
+    const fillTemplate = (template, fallback, query) => (query ? template.replaceAll("{q}", encodeURIComponent(query)) : fallback);
+    const templatedItems = key => database[key].items.filter(item => item.template);
 
     function loadPreferences() {
       try {
@@ -443,6 +623,11 @@
       card.dataset.group = (item.group || "").toLowerCase();
       const searchable = [item.name, item.desc, item.best, ...(item.tags || []), ...(item.aliases || []), item.group || ""].join(" ").toLowerCase();
       card.dataset.search = searchable;
+      if (item.template) {
+        card.dataset.template = item.template;
+        card.dataset.fallback = item.url;
+        card.dataset.name = item.name;
+      }
 
       const link = document.createElement("a");
       link.className = "card-main";
@@ -460,6 +645,11 @@
       desc.className = "card-desc";
       desc.textContent = item.desc;
       link.append(title, best, desc);
+      if (item.template) {
+        const preview = document.createElement("p");
+        preview.className = "query-preview";
+        link.appendChild(preview);
+      }
       card.appendChild(link);
 
       if (item.tags?.length) {
@@ -488,7 +678,7 @@
       copy.type = "button";
       copy.textContent = "Copy";
       copy.title = "Copy link";
-      copy.addEventListener("click", () => copyLink(item.url, copy));
+      copy.addEventListener("click", () => copyLink(link.href, copy)); // current href, so search cards copy the live query URL
       actions.append(favorite, copy);
 
       const details = document.createElement("details");
@@ -531,16 +721,30 @@
       applyFilters();
     }
 
-    async function copyLink(url, button) {
-      const original = button.textContent;
+    async function copyText(text, button) {
+      const label = button.dataset.label || (button.dataset.label = button.textContent);
+      let copied = false;
       try {
-        await navigator.clipboard.writeText(new URL(url, window.location.href).href);
-        button.textContent = "Copied";
+        await navigator.clipboard.writeText(text);
+        copied = true;
       } catch (error) {
-        button.textContent = "Copy failed";
+        // Fallback for contexts without the async Clipboard API (for example, pages opened from file://).
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.setAttribute("readonly", "");
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        try { copied = document.execCommand("copy"); } catch (fallbackError) { copied = false; }
+        area.remove();
+        button.focus();
       }
-      window.setTimeout(() => { button.textContent = original; }, 1300);
+      button.textContent = copied ? "Copied" : "Copy failed";
+      window.setTimeout(() => { button.textContent = label; }, 1300);
     }
+
+    function copyLink(url, button) { return copyText(new URL(url, window.location.href).href, button); }
 
     function makeSectionHeader(title, summary, link) {
       const header = document.createElement("div");
@@ -583,7 +787,28 @@
       const workflows = [
         { title: "Start coding session", desc: "Open your repository, launch a workspace, then bring in an AI assistant.", steps: ["GitHub", "Codespaces", "ChatGPT"], url: "https://github.com", tags: ["coding", "daily"] },
         { title: "Research a topic", desc: "Search with citations, ground work in sources, then synthesize with Gemini.", steps: ["Perplexity", "NotebookLM", "Gemini"], url: "https://perplexity.ai", tags: ["research", "writing"] },
-        { title: "Deploy a project", desc: "Start from the repo, publish the frontend, then add edge compute as needed.", steps: ["GitHub", "Cloudflare Pages", "Workers"], url: "https://pages.cloudflare.com", tags: ["deploy", "cloudflare"] }
+        { title: "Deploy a project", desc: "Start from the repo, publish the frontend, then add edge compute as needed.", steps: ["GitHub", "Cloudflare Pages", "Workers"], url: "https://pages.cloudflare.com", tags: ["deploy", "cloudflare"] },
+        {
+          title: "Get Groq API keys",
+          desc: "Sign in to GroqCloud, create a key, store it as GROQ_API_KEY, then confirm it works.",
+          steps: [
+            { label: "Sign in", url: "https://console.groq.com/login" },
+            { label: "Create key", url: "https://console.groq.com/keys" },
+            { label: "Save GROQ_API_KEY" },
+            { label: "Test", url: "https://console.groq.com/playground" }
+          ],
+          url: "https://console.groq.com/keys",
+          tags: ["groq", "API", "setup"],
+          aliases: ["groq keys", "api key", "GROQ_API_KEY", "fast inference"],
+          snippet: 'curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"',
+          guide: [
+            "Sign in (or sign up free) at console.groq.com.",
+            "API Keys → Create API Key; name it for where it runs, e.g. local-dev.",
+            "Copy it now—Groq shows each key only once.",
+            "Save it as GROQ_API_KEY in a git-ignored .env or a secret manager.",
+            "Verify with the curl check below, or try a prompt in the Playground."
+          ]
+        }
       ];
       const workflowSection = document.createElement("section");
       workflowSection.className = "dashboard-section home-section";
@@ -631,18 +856,126 @@
     function makeWorkflowCard(flow) {
       const card = document.createElement("article");
       card.className = "card workflow-card";
-      card.dataset.search = [flow.title, flow.desc, ...flow.steps, ...flow.tags].join(" ").toLowerCase();
+      const stepLabel = step => (typeof step === "string" ? step : step.label);
+      card.dataset.search = [flow.title, flow.desc, ...flow.steps.map(stepLabel), ...flow.tags, ...(flow.aliases || [])].join(" ").toLowerCase();
       const link = document.createElement("a");
       link.className = "card-main"; link.href = flow.url; link.target = "_blank"; link.rel = "noopener noreferrer";
       link.innerHTML = `<h3 class="card-title"></h3><p class="best-for">Workflow</p><p class="card-desc"></p>`;
       link.querySelector(".card-title").textContent = flow.title;
       link.querySelector(".card-desc").textContent = flow.desc;
+      card.appendChild(link);
+      // Steps that have their own URL render outside the main link (links can't nest) so each step opens directly.
+      const hasStepLinks = flow.steps.some(step => typeof step === "object" && step.url);
       const steps = document.createElement("p");
       steps.className = "workflow-steps";
-      flow.steps.forEach((step, index) => { const item = document.createElement("span"); item.textContent = step; steps.appendChild(item); if (index < flow.steps.length - 1) { const arrow = document.createElement("span"); arrow.className = "workflow-arrow"; arrow.textContent = "→"; steps.appendChild(arrow); } });
-      link.appendChild(steps); card.appendChild(link);
+      flow.steps.forEach((step, index) => {
+        const url = typeof step === "object" ? step.url : "";
+        const item = document.createElement(url ? "a" : "span");
+        item.textContent = stepLabel(step);
+        if (url) { item.href = url; item.target = "_blank"; item.rel = "noopener noreferrer"; item.title = `${stepLabel(step)} (opens in a new tab)`; }
+        steps.appendChild(item);
+        if (index < flow.steps.length - 1) { const arrow = document.createElement("span"); arrow.className = "workflow-arrow"; arrow.textContent = "→"; arrow.setAttribute("aria-hidden", "true"); steps.appendChild(arrow); }
+      });
+      (hasStepLinks ? card : link).appendChild(steps);
       const tags = document.createElement("div"); tags.className = "card-tags"; flow.tags.forEach(tag => tags.appendChild(makeTag(tag))); card.appendChild(tags);
+      if (flow.snippet || flow.guide?.length) card.appendChild(makeWorkflowFooter(flow));
       return card;
+    }
+
+    function makeWorkflowFooter(flow) {
+      const footer = document.createElement("div");
+      footer.className = "card-footer";
+      const actions = document.createElement("div");
+      actions.className = "card-actions";
+      const copy = document.createElement("button");
+      copy.className = "card-action"; copy.type = "button"; copy.textContent = "Copy"; copy.title = "Copy link";
+      copy.addEventListener("click", () => copyLink(flow.url, copy));
+      actions.appendChild(copy);
+      if (flow.snippet) {
+        const snippet = document.createElement("button");
+        snippet.className = "card-action"; snippet.type = "button"; snippet.textContent = "Copy curl"; snippet.title = "Copy a curl command that verifies the key";
+        snippet.addEventListener("click", () => copyText(flow.snippet, snippet));
+        actions.appendChild(snippet);
+      }
+      footer.appendChild(actions);
+      if (flow.guide?.length) {
+        const details = document.createElement("details");
+        details.className = "card-details";
+        const summary = document.createElement("summary");
+        summary.textContent = "Steps";
+        const panel = document.createElement("div");
+        panel.className = "detail-panel";
+        const heading = document.createElement("strong");
+        heading.textContent = flow.title;
+        const list = document.createElement("ol");
+        flow.guide.forEach(text => { const li = document.createElement("li"); li.textContent = text; list.appendChild(li); });
+        panel.append(heading, list);
+        if (flow.snippet) { const code = document.createElement("code"); code.className = "detail-code"; code.textContent = flow.snippet; panel.appendChild(code); }
+        details.append(summary, panel);
+        details.addEventListener("toggle", () => { if (details.open) closeOtherDetails(details); });
+        footer.appendChild(details);
+      }
+      return footer;
+    }
+
+    function makeQueryPanel(key, section) {
+      const config = section.searchBox;
+      const panel = document.createElement("div");
+      panel.className = "query-panel";
+      panel.setAttribute("role", "search");
+      const label = document.createElement("label");
+      label.className = "query-label";
+      label.htmlFor = `query-${key}`;
+      label.textContent = config.label;
+      const row = document.createElement("div");
+      row.className = "query-row";
+      const input = document.createElement("input");
+      input.id = `query-${key}`;
+      input.className = "query-input";
+      input.type = "search";
+      input.autocomplete = "off";
+      input.spellcheck = false;
+      input.placeholder = config.placeholder;
+      input.value = state.sectionQueries[key] || "";
+      input.setAttribute("enterkeyhint", "search");
+      const go = document.createElement("a");
+      go.className = "query-go";
+      go.target = "_blank";
+      go.rel = "noopener noreferrer";
+      go.dataset.queryGo = key;
+      row.append(input, go);
+      const hint = document.createElement("p");
+      hint.className = "query-hint";
+      hint.textContent = config.hint;
+      panel.append(label, row, hint);
+      input.addEventListener("input", () => { state.sectionQueries[key] = input.value; updateTemplatedCards(key); });
+      input.addEventListener("keydown", event => {
+        if (event.key === "Enter" && input.value.trim()) { event.preventDefault(); go.click(); }
+        if (event.key === "Escape" && input.value) { event.preventDefault(); input.value = ""; state.sectionQueries[key] = ""; updateTemplatedCards(key); }
+      });
+      return panel;
+    }
+
+    function updateTemplatedCards(key) {
+      const query = (state.sectionQueries[key] || "").trim();
+      document.querySelectorAll(`.card[data-template][data-section="${key}"]`).forEach(card => {
+        const href = fillTemplate(card.dataset.template, card.dataset.fallback, query);
+        const link = card.querySelector(".card-main");
+        link.href = href;
+        link.setAttribute("aria-label", query ? `${card.dataset.name} for “${query}” (opens in a new tab)` : `Open ${card.dataset.name} in a new tab`);
+        card.classList.toggle("has-query", Boolean(query));
+        const preview = card.querySelector(".query-preview");
+        if (preview) preview.textContent = query ? `→ Searches “${query}”` : "";
+        const detailUrl = card.querySelector(".detail-url");
+        if (detailUrl) detailUrl.textContent = href;
+      });
+      const go = document.querySelector(`[data-query-go="${key}"]`);
+      const primary = templatedItems(key)[0];
+      if (go && primary) {
+        go.href = fillTemplate(primary.template, primary.url, query);
+        go.textContent = `${primary.name} ↗`;
+        go.setAttribute("aria-label", query ? `${primary.name} for “${query}” (opens in a new tab)` : `Open ${primary.name} (opens in a new tab)`);
+      }
     }
 
     function makeTaskCard(task) {
@@ -676,11 +1009,13 @@
 
         if (section.note) { const note = document.createElement("div"); note.className = "section-note"; note.innerHTML = section.note; sectionElement.appendChild(note); }
         if (section.filters?.length) {
-          const toolbar = document.createElement("div"); toolbar.className = "section-toolbar"; toolbar.setAttribute("aria-label", "Inference tags");
+          const toolbar = document.createElement("div"); toolbar.className = "section-toolbar"; toolbar.setAttribute("aria-label", `${section.title} tags`);
           section.filters.forEach(tag => { const button = document.createElement("button"); button.className = "tag-filter"; button.type = "button"; button.textContent = tag; button.addEventListener("click", () => setSearch(tag)); toolbar.appendChild(button); });
           sectionElement.appendChild(toolbar);
           sectionElement.appendChild(document.createElement("div")).style.height = ".8rem";
         }
+        // A search box sits above the cards it drives: inside its named subgroup, or at the top of the section.
+        if (section.searchBox && !section.searchBox.group) sectionElement.appendChild(makeQueryPanel(key, section));
 
         const groups = [...new Set(section.items.map(item => item.group).filter(Boolean))];
         const preparedItems = section.items.map(item => ({ ...item, id: getItemId(key, item), sectionKey: key }));
@@ -688,6 +1023,7 @@
           groups.forEach(groupName => {
             const subgroup = document.createElement("div"); subgroup.className = "subgroup"; subgroup.dataset.group = groupName;
             const heading = document.createElement("h3"); heading.className = "subgroup-title"; heading.textContent = groupName; subgroup.appendChild(heading);
+            if (section.searchBox?.group === groupName) subgroup.appendChild(makeQueryPanel(key, section));
             const grid = document.createElement("div"); grid.className = "grid";
             renderCards(preparedItems.filter(item => item.group === groupName), grid);
             subgroup.appendChild(grid); sectionElement.appendChild(subgroup);
@@ -701,6 +1037,8 @@
       });
 
       Object.keys(database).forEach(key => { const count = document.getElementById(`cnt-${key}`); if (count) count.textContent = database[key].items.length; });
+      // Re-apply any typed search-shortcut queries (also covers saved search cards shown in Favorites).
+      Object.keys(database).forEach(key => { if (database[key].searchBox) updateTemplatedCards(key); });
     }
 
     function matchesQuery(element, query) { return !query || (element.dataset.search || "").includes(query); }
@@ -737,7 +1075,53 @@
       document.querySelectorAll(".nav-btn").forEach(navButton => { const active = navButton === button; navButton.classList.toggle("active", active); if (active) navButton.setAttribute("aria-current", "page"); else navButton.removeAttribute("aria-current"); });
       renderDashboard();
       applyFilters();
+      playFeedTransition();
+      keepNavButtonVisible(button);
       document.querySelector("main").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    let feedTransitionTimer;
+    function playFeedTransition() {
+      const feed = document.getElementById("workspace-feed");
+      feed.classList.remove("feed-enter");
+      void feed.offsetWidth; // restart the entrance animation
+      feed.classList.add("feed-enter");
+      window.clearTimeout(feedTransitionTimer);
+      // Drop the class afterwards so later re-renders (such as saving a favorite) don't replay the animation.
+      feedTransitionTimer = window.setTimeout(() => feed.classList.remove("feed-enter"), 650);
+    }
+
+    function keepNavButtonVisible(button) {
+      const nav = button.closest(".nav-links");
+      if (!nav) return;
+      const navBox = nav.getBoundingClientRect();
+      const box = button.getBoundingClientRect();
+      if (box.left < navBox.left) nav.scrollLeft -= navBox.left - box.left + 12;
+      else if (box.right > navBox.right) nav.scrollLeft += box.right - navBox.right + 12;
+      if (box.top < navBox.top) nav.scrollTop -= navBox.top - box.top + 12;
+      else if (box.bottom > navBox.bottom) nav.scrollTop += box.bottom - navBox.bottom + 12;
+    }
+
+    function initNavEffects() {
+      const nav = document.querySelector(".nav-links");
+      let scrollTimer;
+      const updateEdgeFades = () => {
+        const horizontal = getComputedStyle(nav).flexDirection === "row";
+        const position = horizontal ? nav.scrollLeft : nav.scrollTop;
+        const max = horizontal ? nav.scrollWidth - nav.clientWidth : nav.scrollHeight - nav.clientHeight;
+        nav.classList.toggle("can-scroll-start", position > 2);
+        nav.classList.toggle("can-scroll-end", max - position > 2);
+      };
+      nav.querySelectorAll(".nav-btn").forEach((button, index) => button.style.setProperty("--i", index));
+      nav.addEventListener("scroll", () => {
+        nav.classList.add("is-scrolling");
+        window.clearTimeout(scrollTimer);
+        scrollTimer = window.setTimeout(() => nav.classList.remove("is-scrolling"), 900);
+        updateEdgeFades();
+      }, { passive: true });
+      if ("ResizeObserver" in window) new ResizeObserver(updateEdgeFades).observe(nav);
+      else window.addEventListener("resize", updateEdgeFades);
+      updateEdgeFades();
     }
 
     function setSearch(query) {
@@ -752,6 +1136,8 @@
       loadPreferences();
       renderDashboard();
       applyFilters();
+      initNavEffects();
+      playFeedTransition();
       const search = document.getElementById("global-search");
       search.addEventListener("input", event => { state.query = event.target.value; applyFilters(); });
       document.getElementById("clear-search").addEventListener("click", () => setSearch(""));
@@ -762,9 +1148,16 @@
       });
       window.addEventListener("keydown", event => {
         const input = document.getElementById("global-search");
-        if (event.key === "/" && document.activeElement !== input && !event.metaKey && !event.ctrlKey && !event.altKey) { event.preventDefault(); input.focus(); }
+        // "/" jumps to search unless the user is already typing somewhere (including the search-shortcut boxes).
+        if (event.key === "/" && !isTypingTarget(document.activeElement) && !event.metaKey && !event.ctrlKey && !event.altKey) { event.preventDefault(); input.focus(); }
         if (event.key === "Escape" && document.activeElement === input && state.query) { setSearch(""); }
+        if (event.key === "Escape") {
+          const open = document.querySelector(".card-details[open]");
+          if (open) { const hadFocus = open.contains(document.activeElement); open.open = false; if (hadFocus) open.querySelector("summary").focus(); }
+        }
       });
+      // Clicking anywhere outside an open Details/Steps panel closes it.
+      document.addEventListener("click", event => { if (!event.target.closest(".card-details")) closeOtherDetails(null); });
     }
 
     initialize();

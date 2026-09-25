@@ -336,6 +336,7 @@
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
+      <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
       <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
       <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
@@ -442,6 +443,17 @@
           { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Connect tools and automate autonomous workflow steps.", best: "Workflow integrations", tags: ["agents", "automation", "integrations"], group: "General task agents" },
           { name: "Agent.ai", url: "https://agent.ai", desc: "Explore and build reusable AI agents for business tasks.", best: "Agent discovery", tags: ["agents", "community", "workflows"], group: "General task agents" },
           { name: "Parallel AI", url: "https://parallel.ai", desc: "Coordinate parallel agent tasks for broader research and execution.", best: "Parallel research tasks", tags: ["agents", "research", "parallel"], group: "Research & orchestration" }
+        ]
+      },
+      codingagents: {
+        title: "Coding Agents",
+        summary: "Hand a repository task to an autonomous coding agent and review the result.",
+        items: [
+          { name: "Arena Agent", url: "https://arena.ai/agent/", desc: "Run coding agents against your repo and compare how different models handle the task.", best: "Model-compared repo work", tags: ["agents", "coding", "comparison"] },
+          { name: "Jules", url: "https://jules.google.com/", desc: "Google's asynchronous coding agent that works on GitHub repositories and opens PRs.", best: "Async GitHub tasks", tags: ["agents", "coding", "gemini"] },
+          { name: "Devin", url: "https://app.devin.ai/", desc: "Cognition's autonomous software engineer for multi-step engineering tasks.", best: "End-to-end engineering tasks", tags: ["agents", "coding", "automation"] },
+          { name: "Codex", url: "https://chatgpt.com/codex", desc: "OpenAI's cloud coding agent inside ChatGPT (available on ChatGPT Free).", best: "ChatGPT Free / Codex", tags: ["agents", "coding", "free"] },
+          { name: "Replit Agent", url: "https://replit.com", desc: "Build, run, and deploy apps from a prompt with Replit's in-workspace agent.", best: "Prompt-to-deployed app", tags: ["agents", "coding", "cloud"] }
         ]
       },
       vibe: {
@@ -787,9 +799,26 @@
       const workflows = [
         { title: "Start coding session", desc: "Open your repository, launch a workspace, then bring in an AI assistant.", steps: ["GitHub", "Codespaces", "ChatGPT"], url: "https://github.com", tags: ["coding", "daily"] },
         { title: "Research a topic", desc: "Search with citations, ground work in sources, then synthesize with Gemini.", steps: ["Perplexity", "NotebookLM", "Gemini"], url: "https://perplexity.ai", tags: ["research", "writing"] },
-        { title: "Deploy a project", desc: "Start from the repo, publish the frontend, then add edge compute as needed.", steps: ["GitHub", "Cloudflare Pages", "Workers"], url: "https://pages.cloudflare.com", tags: ["deploy", "cloudflare"] },
+        { title: "Deploy a project", desc: "Start from the repo, publish the frontend, then add edge compute as needed.", steps: ["GitHub", "Cloudflare Pages", "Workers"], url: "https://pages.cloudflare.com", tags: ["deploy", "cloudflare"] }
+      ];
+      const workflowSection = document.createElement("section");
+      workflowSection.className = "dashboard-section home-section";
+      workflowSection.dataset.home = "true";
+      workflowSection.appendChild(makeSectionHeader("Workflows", "Task-first launch sequences for common work."));
+      const workflowGrid = document.createElement("div");
+      workflowGrid.className = "grid";
+      workflows.forEach(flow => workflowGrid.appendChild(makeWorkflowCard(flow)));
+      workflowSection.appendChild(workflowGrid);
+      feed.appendChild(workflowSection);
+
+      const tasks = [
+        { title: "Write prose", best: "Draft and revise clear writing", desc: "Open Claude for structured drafting, editing, and long-form analysis.", url: "https://claude.ai", tags: ["writing", "prose", "inference"] },
+        { title: "Write sci-fact-fic", best: "Creative speculative writing", desc: "Open Gemini to explore science-grounded ideas, scenes, and variations.", url: "https://gemini.google.com", tags: ["writing", "creative", "inference"] },
+        { title: "Code a Cloudflare Worker", best: "Edge API and automation work", desc: "Open Cloudflare Workers to create and deploy serverless edge code.", url: "https://workers.cloudflare.com", tags: ["coding", "cloudflare", "edge"] },
+        { title: "Get Gemini API keys", best: "Gemini API setup", desc: "Open AI Studio's API-key page to create or manage Gemini credentials.", url: "https://aistudio.google.com/apikey", tags: ["gemini", "API", "setup"] },
         {
           title: "Get Groq API keys",
+          best: "Groq API setup",
           desc: "Sign in to GroqCloud, create a key, store it as GROQ_API_KEY, then confirm it works.",
           steps: [
             { label: "Sign in", url: "https://console.groq.com/login" },
@@ -810,29 +839,13 @@
           ]
         }
       ];
-      const workflowSection = document.createElement("section");
-      workflowSection.className = "dashboard-section home-section";
-      workflowSection.dataset.home = "true";
-      workflowSection.appendChild(makeSectionHeader("Workflows", "Task-first launch sequences for common work."));
-      const workflowGrid = document.createElement("div");
-      workflowGrid.className = "grid";
-      workflows.forEach(flow => workflowGrid.appendChild(makeWorkflowCard(flow)));
-      workflowSection.appendChild(workflowGrid);
-      feed.appendChild(workflowSection);
-
-      const tasks = [
-        { title: "Write prose", best: "Draft and revise clear writing", desc: "Open Claude for structured drafting, editing, and long-form analysis.", url: "https://claude.ai", tags: ["writing", "prose", "inference"] },
-        { title: "Write sci-fact-fic", best: "Creative speculative writing", desc: "Open Gemini to explore science-grounded ideas, scenes, and variations.", url: "https://gemini.google.com", tags: ["writing", "creative", "inference"] },
-        { title: "Code a Cloudflare Worker", best: "Edge API and automation work", desc: "Open Cloudflare Workers to create and deploy serverless edge code.", url: "https://workers.cloudflare.com", tags: ["coding", "cloudflare", "edge"] },
-        { title: "Get Gemini API keys", best: "Gemini API setup", desc: "Open AI Studio's API-key page to create or manage Gemini credentials.", url: "https://aistudio.google.com/apikey", tags: ["gemini", "API", "setup"] }
-      ];
       const taskSection = document.createElement("section");
       taskSection.className = "dashboard-section home-section";
       taskSection.dataset.home = "true";
       taskSection.appendChild(makeSectionHeader("Inference tasks", "Start from the outcome you want, not the provider name."));
       const taskGrid = document.createElement("div");
       taskGrid.className = "grid";
-      tasks.forEach(task => taskGrid.appendChild(makeTaskCard(task)));
+      tasks.forEach(task => taskGrid.appendChild(task.steps ? makeWorkflowCard(task) : makeTaskCard(task)));
       taskSection.appendChild(taskGrid);
       feed.appendChild(taskSection);
     }

@@ -265,6 +265,14 @@
     .quick-task { min-height: 155px; }
     .quick-task .card-title { font-size: .93rem; }
 
+    /* Bookmarklet cards: a javascript: link you can click to run, or drag onto the browser's bookmarks bar */
+    .card.bookmarklet { border-style: dashed; border-color: var(--accent-glow); }
+    .card.bookmarklet:hover { border-style: solid; }
+    .bookmarklet-badge {
+      width: fit-content; margin: 0 0 .55rem; padding: .2rem .5rem; border-radius: 999px;
+      background: var(--tag-bg); color: var(--accent); font-size: .66rem; font-weight: 750; letter-spacing: .4px; text-transform: uppercase;
+    }
+
     /* Search launchers: type once, then open the same query on any source card in the section */
     .query-panel { margin: 0 0 1rem; padding: .85rem .95rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); }
     .query-label { display: block; margin: 0 0 .5rem; color: var(--text-muted); font-size: .74rem; font-weight: 750; letter-spacing: .45px; text-transform: uppercase; }
@@ -589,6 +597,38 @@
     };
 
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
+    /*
+      Pinned favorites: bookmarklets that always sit at the front of the Favorites grid, independently of the
+      saved list, because each one launches a whole workflow in a single click. They live outside `database`
+      (no cluster of their own) and carry a `javascript:` URL, so the card link both runs the bookmarklet and
+      can be dragged onto the browser's bookmarks bar.
+    */
+    const pinnedFavorites = [
+      {
+        id: "bookmarklets:coding-agents",
+        sectionKey: "bookmarklets",
+        name: "Coding Agents",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/','https://jules.google.com/','https://chatgpt.com/codex/cloud'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub, Arena Agent, Jules, and Codex Cloud side by side.",
+        best: "Starting a coding-agent session",
+        tags: ["bookmarklet", "agents", "coding"],
+        aliases: ["coding agents bookmarklet", "open every coding agent"],
+        detail: "Opens four tabs: GitHub, Arena Agent, Jules, and Codex Cloud. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      },
+      {
+        id: "bookmarklets:free-inference-keys",
+        sectionKey: "bookmarklets",
+        name: "Free Inference Keys",
+        url: "javascript:(function(){['https://console.groq.com/keys','https://aistudio.google.com/api-keys'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens the Groq and Google AI Studio key consoles together.",
+        best: "Collecting free inference API keys",
+        tags: ["bookmarklet", "API", "free"],
+        aliases: ["free inference keys bookmarklet", "groq and gemini keys"],
+        detail: "Opens two tabs: the Groq Cloud API-key console and Google AI Studio API keys. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      }
+    ];
     const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const isExternal = url => /^https?:\/\//i.test(url);
@@ -641,11 +681,22 @@
         card.dataset.name = item.name;
       }
 
+      if (item.bookmarklet) {
+        // Dashed edge + badge signal a runnable shortcut rather than a plain destination link.
+        card.classList.add("bookmarklet");
+        const badge = document.createElement("p");
+        badge.className = "bookmarklet-badge";
+        badge.textContent = "⚡ Bookmarklet";
+        badge.title = "Click the card to run it, or drag the card onto your bookmarks bar.";
+        card.appendChild(badge);
+      }
+
       const link = document.createElement("a");
       link.className = "card-main";
       link.href = item.url;
       if (isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-      link.setAttribute("aria-label", `Open ${item.name}${isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
+      const action = item.bookmarklet ? "Run" : "Open";
+      link.setAttribute("aria-label", `${action} ${item.name}${isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
 
       const title = document.createElement("h3");
       title.className = "card-title";
@@ -783,12 +834,15 @@
     function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
 
     function renderHomeSections(feed, allItems) {
-      // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude).
-      const favorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
+      // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
+      // with the pinned bookmarklets held at the front so they survive any change to the saved list.
+      const savedFavorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
+      const pinned = pinnedFavorites.filter(item => !savedFavorites.some(saved => saved.id === item.id));
+      const favorites = [...pinned, ...savedFavorites];
       const favoriteSection = document.createElement("section");
       favoriteSection.className = "dashboard-section home-section";
       favoriteSection.dataset.home = "true";
-      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points. Use ☆ Save on any card to change this list."));
+      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points, plus pinned bookmarklets. Use ☆ Save on any card to change your list."));
       const favoriteGrid = document.createElement("div");
       favoriteGrid.className = "grid";
       if (favorites.length) renderCards(favorites, favoriteGrid);

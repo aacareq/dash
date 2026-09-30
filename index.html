@@ -342,9 +342,9 @@
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
+      <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
-      <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
       <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
       <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
@@ -422,6 +422,20 @@
           { name: "Cohere", url: "https://cohere.com", desc: "Build RAG, search, and enterprise language applications.", best: "RAG and enterprise NLP", tags: ["API", "RAG", "enterprise"], group: "More assistants" }
         ]
       },
+      codingagents: {
+        title: "Coding Agents",
+        summary: "Hand a repository task to an autonomous coding agent and review the result.",
+        items: [
+          { name: "Arena Agent", url: "https://arena.ai/agent/", desc: "Run coding agents against your repo and compare how different models handle the task.", best: "Model-compared repo work", tags: ["agents", "coding", "comparison"] },
+          { name: "Jules", url: "https://jules.google.com/", desc: "Google's asynchronous coding agent that works on GitHub repositories and opens PRs.", best: "Async GitHub tasks", tags: ["agents", "coding", "gemini"] },
+          { name: "Devin", url: "https://app.devin.ai/", desc: "Cognition's autonomous software engineer for multi-step engineering tasks.", best: "End-to-end engineering tasks", tags: ["agents", "coding", "automation"] },
+          { name: "Codex", url: "https://chatgpt.com/codex", desc: "OpenAI's cloud coding agent inside ChatGPT (available on ChatGPT Free).", best: "ChatGPT Free / Codex", tags: ["agents", "coding", "free"] },
+          { name: "Replit Agent", url: "https://replit.com", desc: "Build, run, and deploy apps from a prompt with Replit's in-workspace agent.", best: "Prompt-to-deployed app", tags: ["agents", "coding", "cloud"] },
+          { name: "OpenHands Cloud", url: "https://app.all-hands.dev/", desc: "All Hands AI's open-source autonomous coding agent in the cloud.", best: "Open-source cloud coding agent", tags: ["agents", "coding", "open-source"], aliases: ["openhands", "all hands ai", "opendevin", "open hands"] },
+          { name: "Bolt.new", url: "https://bolt.new", desc: "Build and iterate on full-stack browser projects with AI help.", best: "Full-stack prototypes", tags: ["agents", "coding", "prototyping"] },
+          { name: "Lovable", url: "https://lovable.dev", desc: "Create app prototypes from requirements in natural language.", best: "Product prototypes", tags: ["agents", "coding", "prototyping"] }
+        ]
+      },
       zerocost: {
         title: "Zero-Cost Inference APIs",
         summary: "Provider consoles and free-access model endpoints.",
@@ -451,17 +465,6 @@
           { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Connect tools and automate autonomous workflow steps.", best: "Workflow integrations", tags: ["agents", "automation", "integrations"], group: "General task agents" },
           { name: "Agent.ai", url: "https://agent.ai", desc: "Explore and build reusable AI agents for business tasks.", best: "Agent discovery", tags: ["agents", "community", "workflows"], group: "General task agents" },
           { name: "Parallel AI", url: "https://parallel.ai", desc: "Coordinate parallel agent tasks for broader research and execution.", best: "Parallel research tasks", tags: ["agents", "research", "parallel"], group: "Research & orchestration" }
-        ]
-      },
-      codingagents: {
-        title: "Coding Agents",
-        summary: "Hand a repository task to an autonomous coding agent and review the result.",
-        items: [
-          { name: "Arena Agent", url: "https://arena.ai/agent/", desc: "Run coding agents against your repo and compare how different models handle the task.", best: "Model-compared repo work", tags: ["agents", "coding", "comparison"] },
-          { name: "Jules", url: "https://jules.google.com/", desc: "Google's asynchronous coding agent that works on GitHub repositories and opens PRs.", best: "Async GitHub tasks", tags: ["agents", "coding", "gemini"] },
-          { name: "Devin", url: "https://app.devin.ai/", desc: "Cognition's autonomous software engineer for multi-step engineering tasks.", best: "End-to-end engineering tasks", tags: ["agents", "coding", "automation"] },
-          { name: "Codex", url: "https://chatgpt.com/codex", desc: "OpenAI's cloud coding agent inside ChatGPT (available on ChatGPT Free).", best: "ChatGPT Free / Codex", tags: ["agents", "coding", "free"] },
-          { name: "Replit Agent", url: "https://replit.com", desc: "Build, run, and deploy apps from a prompt with Replit's in-workspace agent.", best: "Prompt-to-deployed app", tags: ["agents", "coding", "cloud"] }
         ]
       },
       vibe: {
@@ -608,12 +611,12 @@
         id: "bookmarklets:coding-agents",
         sectionKey: "bookmarklets",
         name: "Coding Agents",
-        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/','https://jules.google.com/','https://chatgpt.com/codex/cloud'].forEach(url=>window.open(url,'_blank'));})()",
-        desc: "One click opens GitHub, Arena Agent, Jules, and Codex Cloud side by side.",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/','https://jules.google.com/','https://chatgpt.com/codex/cloud','https://app.all-hands.dev/'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud side by side.",
         best: "Starting a coding-agent session",
         tags: ["bookmarklet", "agents", "coding"],
         aliases: ["coding agents bookmarklet", "open every coding agent"],
-        detail: "Opens four tabs: GitHub, Arena Agent, Jules, and Codex Cloud. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        detail: "Opens five tabs: GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
         bookmarklet: true
       },
       {

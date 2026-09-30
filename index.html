@@ -201,7 +201,46 @@
     .search-shortcut { position: absolute; right: .65rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; padding: .12rem .38rem; font-size: .72rem; pointer-events: none; }
     .clear-search { position: absolute; right: 3.3rem; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--text-muted); display: none; padding: .25rem; font-size: .8rem; }
     .clear-search:hover { color: var(--text); }
+    .mobile-nav-toggle { display: none; }
     .search-meta { color: var(--text-muted); font-size: .82rem; min-height: 1.3rem; margin: -.35rem 0 1.35rem .1rem; }
+
+    /* Config Actions */
+    .config-actions { display: flex; gap: .4rem; }
+    .config-btn {
+      flex: 1; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-muted); padding: .5rem; border-radius: 8px; font-weight: 650; font-size: .76rem; text-align: center; transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+    }
+    .config-btn:hover { color: var(--text); border-color: var(--accent); background: var(--card-hover); }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; max-width: 360px;
+    }
+    .toast {
+      background: var(--sidebar-bg); border: 1px solid var(--accent); color: var(--text); padding: .85rem 1.25rem; border-radius: 12px; font-size: .88rem; font-weight: 600; box-shadow: 0 12px 30px rgba(0,0,0,0.5); pointer-events: auto; animation: toast-in .25s cubic-bezier(.16,1,.3,1) backwards;
+    }
+    @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    /* Custom Tool Modal & Buttons */
+    .btn-add-custom {
+      background: var(--tag-bg); color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius); padding: .6rem 1rem; font-weight: 700; font-size: .85rem; transition: background .15s ease, transform .15s ease; white-space: nowrap;
+    }
+    .btn-add-custom:hover { background: var(--card-hover); transform: translateY(-1px); }
+    .modal {
+      border: 0; padding: 0; background: transparent; max-width: 500px; width: 90vw; border-radius: var(--radius);
+    }
+    .modal::backdrop { background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(4px); }
+    .modal-card {
+      background: var(--sidebar-bg); border: 1px solid var(--border); padding: 1.5rem; border-radius: var(--radius); color: var(--text); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    }
+    .modal-title { margin: 0; font-size: 1.15rem; font-weight: 750; }
+    .form-label { display: flex; flex-direction: column; gap: .35rem; font-size: .82rem; font-weight: 650; color: var(--text-muted); }
+    .form-input { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: .6rem .8rem; color: var(--text); font-size: .88rem; }
+    .form-input:focus { border-color: var(--accent); outline: none; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: .5rem; }
+    .modal-btn { padding: .55rem 1rem; border-radius: 8px; font-size: .84rem; font-weight: 700; border: 1px solid transparent; }
+    .modal-btn.cancel { background: transparent; color: var(--text-muted); border-color: var(--border); }
+    .modal-btn.submit { background: var(--accent); color: #fff; }
+    .modal-btn:hover { filter: brightness(1.1); }
 
     /* Sections */
     .dashboard-section { margin-bottom: 2.8rem; scroll-margin-top: 1rem; }
@@ -303,8 +342,10 @@
     @media (max-width: 992px) {
       body { flex-direction: column; }
       aside { position: static; width: 100%; min-height: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 1rem 1.25rem; flex-direction: row; align-items: center; gap: 1rem; }
+      .brand-wrapper { display: flex; align-items: center; justify-content: space-between; width: 100%; }
       .brand { margin: 0; white-space: nowrap; }
       .brand-note { display: none; }
+      .mobile-nav-toggle { display: inline-flex; align-items: center; justify-content: center; background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .4rem .65rem; font-size: 1.1rem; }
       .nav-links { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: .55rem .75rem; margin: 0; background: var(--sidebar-bg); border-top: 1px solid var(--border); gap: .35rem; scrollbar-gutter: auto; -webkit-mask-image: none; mask-image: none; }
       .nav-links::-webkit-scrollbar { display: none; }
       .nav-links { scrollbar-width: none; }
@@ -333,11 +374,12 @@
   </style>
 </head>
 <body>
-  <aside>
-    <div>
+  <aside id="sidebar">
+    <div class="brand-wrapper">
       <div class="brand">🚀 <span>CommandOS-v1.5</span></div>
-      <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
+      <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
+    <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
     <nav class="nav-links" aria-label="Dashboard categories">
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
@@ -353,9 +395,15 @@
       <button class="nav-btn" type="button" data-section="socials"><span>Socials</span> <span class="count" id="cnt-socials">0</span></button>
       <button class="nav-btn" type="button" data-section="searchsocials"><span>Search Socials</span> <span class="count" id="cnt-searchsocials">0</span></button>
       <button class="nav-btn" type="button" data-section="revenue"><span>Service Revenue</span> <span class="count" id="cnt-revenue">0</span></button>
+      <button class="nav-btn" type="button" data-section="custom"><span>Custom Tools</span> <span class="count" id="cnt-custom">0</span></button>
     </nav>
     <div class="sidebar-footer">
       <a class="prev-dashboard" href="index-previous.html" aria-label="Open the previous dashboard (CommandOS v1.3)" title="Open the previous dashboard layout (CommandOS v1.3)"><span class="prev-icon" aria-hidden="true">↩</span><span class="prev-label">Previous dashboard</span><span class="prev-version" aria-hidden="true">v1.3</span></a>
+      <div class="config-actions">
+        <button class="config-btn" type="button" id="btn-export-config" title="Export dashboard config to JSON">💾 Export</button>
+        <button class="config-btn" type="button" id="btn-import-config" title="Import dashboard config from JSON">📂 Import</button>
+        <input type="file" id="file-import-config" accept=".json" class="sr-only" />
+      </div>
       <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle color theme">🌓 <span>Theme</span></button>
     </div>
   </aside>
@@ -368,7 +416,61 @@
         <button class="clear-search" id="clear-search" type="button" aria-label="Clear search">Clear</button>
         <span class="search-shortcut">/</span>
       </div>
+      <button class="btn-add-custom" id="btn-open-custom-modal" type="button">+ Custom Tool</button>
     </header>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Custom Tool Modal -->
+    <dialog id="custom-tool-modal" class="modal">
+      <form id="custom-tool-form" method="dialog" class="modal-card">
+        <h3 class="modal-title">Add Custom Tool Shortcut</h3>
+        <label class="form-label">
+          Tool Name *
+          <input type="text" id="custom-name" class="form-input" required placeholder="e.g. Internal Admin Portal" />
+        </label>
+        <label class="form-label">
+          URL *
+          <input type="url" id="custom-url" class="form-input" required placeholder="https://..." />
+        </label>
+        <label class="form-label">
+          Description
+          <input type="text" id="custom-desc" class="form-input" placeholder="e.g. Metrics and internal tools dashboard" />
+        </label>
+        <label class="form-label">
+          Best For
+          <input type="text" id="custom-best" class="form-input" placeholder="e.g. Internal telemetry" />
+        </label>
+        <label class="form-label">
+          Cluster Category
+          <select id="custom-cluster" class="form-input">
+            <option value="custom">Custom Tools</option>
+            <option value="daily">Daily Core</option>
+            <option value="inference">Inference</option>
+            <option value="zerocost">Zero-Cost APIs</option>
+            <option value="agent">Agents</option>
+            <option value="codingagents">Coding Agents</option>
+            <option value="vibe">Vibe Dev</option>
+            <option value="cli">CLI Coding Tools</option>
+            <option value="freebie">Free Tier Ops</option>
+            <option value="technews">Tech News</option>
+            <option value="research">Trending & Research</option>
+            <option value="socials">Socials</option>
+            <option value="searchsocials">Search Socials</option>
+            <option value="revenue">Service Revenue</option>
+          </select>
+        </label>
+        <label class="form-label">
+          Tags (comma separated)
+          <input type="text" id="custom-tags" class="form-input" placeholder="e.g. internal, metrics, admin" />
+        </label>
+        <div class="modal-actions">
+          <button type="button" id="btn-close-custom-modal" class="modal-btn cancel">Cancel</button>
+          <button type="submit" class="modal-btn submit">Save Tool</button>
+        </div>
+      </form>
+    </dialog>
     <div id="search-meta" class="search-meta" aria-live="polite"></div>
     <div id="workspace-feed"></div>
   </main>
@@ -593,8 +695,16 @@
           { name: "Dynamite Jobs", url: "https://dynamitejobs.com", desc: "Browse curated remote roles and distributed-company opportunities.", best: "Curated remote work", tags: ["jobs", "remote", "curated"] },
           { name: "Dice", url: "https://dice.com", desc: "Find technology-focused job listings and talent opportunities.", best: "Technology roles", tags: ["jobs", "technology", "career"] }
         ]
+      },
+      custom: {
+        title: "Custom Tools & Shortcuts",
+        summary: "Your personally added links and custom application shortcuts.",
+        items: []
       }
     };
+
+    let customTools = [];
+    let recentLaunches = [];
 
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
     /*
@@ -642,14 +752,115 @@
         const storedFavorites = localStorage.getItem("commandos-favorites-v1");
         state.favorites = new Set(storedFavorites ? JSON.parse(storedFavorites) : defaultFavorites);
         state.theme = localStorage.getItem("commandos-theme") || "dark";
+        const storedCustom = localStorage.getItem("commandos-custom-tools-v1");
+        customTools = storedCustom ? JSON.parse(storedCustom) : [];
+        mergeCustomTools();
+        const storedRecent = localStorage.getItem("commandos-recent-launches-v1");
+        recentLaunches = storedRecent ? JSON.parse(storedRecent) : [];
       } catch (error) {
         state.favorites = new Set(defaultFavorites);
+        customTools = [];
+        recentLaunches = [];
       }
       document.body.classList.toggle("light", state.theme === "light");
     }
 
     function saveFavorites() {
       try { localStorage.setItem("commandos-favorites-v1", JSON.stringify([...state.favorites])); } catch (error) { /* Dashboard still works when storage is unavailable. */ }
+    }
+
+    function saveCustomTools() {
+      try { localStorage.setItem("commandos-custom-tools-v1", JSON.stringify(customTools)); } catch (error) {}
+    }
+
+    function saveRecentLaunches() {
+      try { localStorage.setItem("commandos-recent-launches-v1", JSON.stringify(recentLaunches)); } catch (error) {}
+    }
+
+    function trackLaunch(item) {
+      if (!item || !item.name || !item.url) return;
+      recentLaunches = recentLaunches.filter(r => r.url !== item.url);
+      recentLaunches.unshift({
+        name: item.name,
+        url: item.url,
+        best: item.best || "Quick access",
+        desc: item.desc || "",
+        tags: item.tags || [],
+        timestamp: Date.now()
+      });
+      if (recentLaunches.length > 6) recentLaunches.pop();
+      saveRecentLaunches();
+    }
+
+    function mergeCustomTools() {
+      // Clear out previously merged custom items in database
+      Object.keys(database).forEach(key => {
+        database[key].items = database[key].items.filter(item => !item.isCustom);
+      });
+      // Merge custom tools back into target clusters
+      customTools.forEach(tool => {
+        const targetSection = database[tool.cluster] ? tool.cluster : "custom";
+        database[targetSection].items.push({
+          name: tool.name,
+          url: tool.url,
+          desc: tool.desc || "Custom added link.",
+          best: tool.best || "Custom shortcut",
+          tags: tool.tags || ["custom"],
+          isCustom: true,
+          customId: tool.id
+        });
+      });
+    }
+
+    function deleteCustomTool(customId) {
+      customTools = customTools.filter(t => t.id !== customId);
+      saveCustomTools();
+      mergeCustomTools();
+      renderDashboard();
+      applyFilters();
+      showToast("Custom tool deleted.");
+    }
+
+    function exportConfig() {
+      const config = {
+        version: "CommandOS-1.5",
+        favorites: [...state.favorites],
+        theme: state.theme,
+        customTools: customTools,
+        exportedAt: new Date().toISOString()
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+      const anchor = document.createElement("a");
+      anchor.setAttribute("href", dataStr);
+      anchor.setAttribute("download", `commandos-config-${isoDaysAgo(0)}.json`);
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+    }
+
+    function importConfig(jsonString) {
+      try {
+        const config = JSON.parse(jsonString);
+        if (Array.isArray(config.favorites)) {
+          state.favorites = new Set(config.favorites);
+          saveFavorites();
+        }
+        if (config.theme) {
+          state.theme = config.theme;
+          try { localStorage.setItem("commandos-theme", state.theme); } catch (e) {}
+          document.body.classList.toggle("light", state.theme === "light");
+        }
+        if (Array.isArray(config.customTools)) {
+          customTools = config.customTools;
+          saveCustomTools();
+          mergeCustomTools();
+        }
+        renderDashboard();
+        applyFilters();
+        showToast("Configuration imported successfully!");
+      } catch (err) {
+        showToast("Error importing configuration JSON.");
+      }
     }
 
     function getItemId(sectionKey, item) { return `${sectionKey}:${slugify(item.name)}`; }
@@ -697,6 +908,7 @@
       if (isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
       const action = item.bookmarklet ? "Run" : "Open";
       link.setAttribute("aria-label", `${action} ${item.name}${isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
+      link.addEventListener("click", () => trackLaunch(item));
 
       const title = document.createElement("h3");
       title.className = "card-title";
@@ -744,6 +956,16 @@
       copy.addEventListener("click", () => copyLink(link.href, copy)); // current href, so search cards copy the live query URL
       actions.append(favorite, copy);
 
+      if (item.isCustom) {
+        const delBtn = document.createElement("button");
+        delBtn.className = "card-action";
+        delBtn.type = "button";
+        delBtn.textContent = "Delete";
+        delBtn.title = "Delete custom tool";
+        delBtn.addEventListener("click", () => deleteCustomTool(item.customId));
+        actions.append(delBtn);
+      }
+
       const details = document.createElement("details");
       details.className = "card-details";
       const summary = document.createElement("summary");
@@ -784,6 +1006,18 @@
       applyFilters();
     }
 
+    function showToast(message) {
+      const container = document.getElementById("toast-container");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
     async function copyText(text, button) {
       const label = button.dataset.label || (button.dataset.label = button.textContent);
       let copied = false;
@@ -804,6 +1038,7 @@
         button.focus();
       }
       button.textContent = copied ? "Copied" : "Copy failed";
+      if (copied) showToast("Copied to clipboard!");
       window.setTimeout(() => { button.textContent = label; }, 1300);
     }
 
@@ -834,6 +1069,26 @@
     function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
 
     function renderHomeSections(feed, allItems) {
+      if (recentLaunches.length > 0) {
+        const recentSection = document.createElement("section");
+        recentSection.className = "dashboard-section home-section";
+        recentSection.dataset.home = "true";
+        recentSection.appendChild(makeSectionHeader("Recently Launched", "Your most recently accessed services and shortcuts."));
+        const recentGrid = document.createElement("div");
+        recentGrid.className = "grid";
+        recentLaunches.forEach((item, index) => {
+          recentGrid.appendChild(makeTaskCard({
+            title: item.name,
+            best: item.best || "Recent launch",
+            desc: item.desc || "",
+            url: item.url,
+            tags: item.tags || []
+          }));
+        });
+        recentSection.appendChild(recentGrid);
+        feed.appendChild(recentSection);
+      }
+
       // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
       // with the pinned bookmarklets held at the front so they survive any change to the saved list.
       const savedFavorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
@@ -1226,6 +1481,78 @@
       // Clicking anywhere outside an open Details/Steps panel closes it.
       document.addEventListener("click", event => { if (!event.target.closest(".card-details")) closeOtherDetails(null); });
     }
+
+    // Custom tool modal bindings
+    const modal = document.getElementById("custom-tool-modal");
+    const openBtn = document.getElementById("btn-open-custom-modal");
+    const closeBtn = document.getElementById("btn-close-custom-modal");
+    const form = document.getElementById("custom-tool-form");
+
+    if (openBtn && modal) {
+      openBtn.addEventListener("click", () => modal.showModal());
+    }
+    if (closeBtn && modal) {
+      closeBtn.addEventListener("click", () => modal.close());
+    }
+    if (form) {
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+        const name = document.getElementById("custom-name").value.trim();
+        const url = document.getElementById("custom-url").value.trim();
+        const desc = document.getElementById("custom-desc").value.trim();
+        const best = document.getElementById("custom-best").value.trim();
+        const cluster = document.getElementById("custom-cluster").value;
+        const tagsInput = document.getElementById("custom-tags").value.trim();
+        const tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(Boolean) : ["custom"];
+
+        if (name && url) {
+          const newTool = {
+            id: "custom_" + Date.now(),
+            name,
+            url,
+            desc,
+            best,
+            cluster,
+            tags
+          };
+          customTools.push(newTool);
+          saveCustomTools();
+          mergeCustomTools();
+          renderDashboard();
+          applyFilters();
+            showToast(`Added custom tool "${name}"`);
+          form.reset();
+          modal.close();
+        }
+      });
+    }
+
+      // Mobile sidebar toggle binding
+      const sidebarToggleBtn = document.getElementById("btn-toggle-sidebar");
+      const sidebar = document.getElementById("sidebar");
+      if (sidebarToggleBtn && sidebar) {
+        sidebarToggleBtn.addEventListener("click", () => {
+          sidebar.classList.toggle("is-collapsed");
+        });
+      }
+
+      // Config export & import bindings
+      const exportBtn = document.getElementById("btn-export-config");
+      const importBtn = document.getElementById("btn-import-config");
+      const importFileInput = document.getElementById("file-import-config");
+
+      if (exportBtn) exportBtn.addEventListener("click", exportConfig);
+      if (importBtn && importFileInput) {
+        importBtn.addEventListener("click", () => importFileInput.click());
+        importFileInput.addEventListener("change", event => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = e => importConfig(e.target.result);
+            reader.readAsText(file);
+          }
+        });
+      }
 
     initialize();
   </script>

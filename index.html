@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="description" content="Command Center 2026 — part of dash, a personal dashboard of AI chat, inference, coding agents and tools.">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0914" />
@@ -717,6 +718,18 @@
       can be dragged onto the browser's bookmarks bar.
     */
     const pinnedFavorites = [
+      {
+        id: "bookmarklets:github-arena",
+        sectionKey: "bookmarklets",
+        name: "GitHub + Arena Agent",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub and the Arena AI Agent together.",
+        best: "Starting a GitHub + Arena session",
+        tags: ["bookmarklet", "github", "arena", "agents"],
+        aliases: ["github arena bookmarklet", "open github and arena agent"],
+        detail: "Opens two tabs: GitHub and Arena Agent. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      },
       {
         id: "bookmarklets:coding-agents",
         sectionKey: "bookmarklets",

@@ -372,15 +372,31 @@
       .query-go { flex: 1 1 100%; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+    /* ---- Seasonal adornments & interactive animation layer ---- */
+    #seasonal-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
+    .seasonal-greeting { display: flex; align-items: center; gap: .45rem; margin: 0 0 1rem; padding: .5rem .65rem;
+      border: 1px solid var(--border); border-radius: 10px; background: var(--card-bg); color: var(--text-muted);
+      font-size: .74rem; line-height: 1.35; }
+    .seasonal-greeting .seasonal-icon { font-size: 1rem; animation: seasonal-sway 3.2s ease-in-out infinite; display: inline-block; }
+    @keyframes seasonal-sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg) translateY(-1px); } }
+    .brand-wrapper { border-bottom: 3px solid transparent; border-image: linear-gradient(90deg, #d97706, #dc2626, #a16207, #ea580c) 1; padding-bottom: .5rem; }
+    .seasonal-toggle { background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px;
+      padding: .45rem .8rem; margin-left: .5rem; white-space: nowrap; }
+    .seasonal-toggle:hover { background: var(--card-hover); }
+    .seasonal-toggle[aria-pressed="false"] { opacity: .65; }
+    @media (prefers-reduced-motion: reduce) { .seasonal-greeting .seasonal-icon { animation: none; } }
   </style>
 </head>
 <body>
+  <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
       <div class="brand">🚀 <span>CommandOS-v1.5</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
+    <p class="seasonal-greeting" id="seasonal-greeting"><span class="seasonal-icon" aria-hidden="true">🍂</span><span id="seasonal-greeting-text">Autumn in the Command Center — move for a gust of leaves, click anywhere for a leaf burst.</span></p>
     <nav class="nav-links" aria-label="Dashboard categories">
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
@@ -418,6 +434,7 @@
         <span class="search-shortcut">/</span>
       </div>
       <button class="btn-add-custom" id="btn-open-custom-modal" type="button">+ Custom Tool</button>
+      <button class="seasonal-toggle" id="seasonal-toggle" type="button" aria-pressed="true" title="Toggle the seasonal animation">🍂 <span>Season</span></button>
     </header>
 
     <!-- Toast Container -->
@@ -1569,6 +1586,126 @@
           }
         });
       }
+
+
+    /* ---- Seasonal adornments engine ------------------------------------
+       Picks a theme from the calendar, draws gently falling particles on a
+       full-screen canvas, and makes them interactive: moving the pointer
+       stirs a gust, clicking/tapping bursts a handful of particles at the
+       pointer, and the header Season button (or the "S" key) toggles the
+       layer, remembered in localStorage. Respects prefers-reduced-motion. */
+    (function initSeasonal() {
+      const canvas = document.getElementById("seasonal-canvas");
+      const toggleBtn = document.getElementById("seasonal-toggle");
+      const greetingText = document.getElementById("seasonal-greeting-text");
+      const greetingIcon = document.querySelector(".seasonal-greeting .seasonal-icon");
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext("2d");
+
+      const month = new Date().getMonth();
+      const themes = {
+        autumn: { name: "Autumn", icon: "🍂", greeting: "Autumn in the Command Center — move for a gust of leaves, click anywhere for a leaf burst.",
+          colors: ["#d97706", "#ea580c", "#b45309", "#dc2626", "#a16207", "#f59e0b"], count: 42, speed: [0.35, 0.95], size: [7, 15], shape: "leaf" },
+        winter: { name: "Winter", icon: "❄️", greeting: "Winter in the Command Center — move for a flurry, click anywhere for a snow burst.",
+          colors: ["#ffffff", "#e2e8f0", "#bae6fd", "#cbd5e1"], count: 70, speed: [0.3, 0.85], size: [2, 5], shape: "flake" },
+        spring: { name: "Spring", icon: "🌸", greeting: "Spring in the Command Center — move for a breeze of blossom, click anywhere for a petal burst.",
+          colors: ["#f9a8d4", "#fbcfe8", "#f472b6", "#fff1f2", "#86efac"], count: 42, speed: [0.3, 0.8], size: [6, 12], shape: "petal" },
+        summer: { name: "Summer", icon: "✨", greeting: "Summer in the Command Center — fireflies drift by night; move to stir them, click for a sparkle burst.",
+          colors: ["#fde68a", "#facc15", "#a3e635", "#fef08a"], count: 36, speed: [0.12, 0.4], size: [2, 4], shape: "glow" }
+      };
+      const seasonKey = month === 11 || month <= 1 ? "winter" : month <= 4 ? "spring" : month <= 7 ? "summer" : "autumn";
+      const theme = themes[seasonKey];
+      if (greetingText) greetingText.textContent = theme.greeting;
+      if (greetingIcon) greetingIcon.textContent = theme.icon;
+      if (toggleBtn) toggleBtn.innerHTML = theme.icon + " <span>" + theme.name + "</span>";
+
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let enabled = !reduced;
+      try { const saved = localStorage.getItem("commandos-seasonal"); if (saved !== null) enabled = saved === "on"; } catch (e) {}
+      let running = false, rafId = null, particles = [], bursts = [], wind = 0, lastX = null;
+
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+      function makeParticle(anywhere) {
+        return { x: Math.random() * canvas.width, y: anywhere ? Math.random() * canvas.height : -20,
+          size: theme.size[0] + Math.random() * (theme.size[1] - theme.size[0]),
+          vy: theme.speed[0] + Math.random() * (theme.speed[1] - theme.speed[0]),
+          phase: Math.random() * Math.PI * 2, sway: 0.6 + Math.random() * 1.4,
+          rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.03,
+          color: theme.colors[Math.floor(Math.random() * theme.colors.length)],
+          alpha: 0.55 + Math.random() * 0.45 };
+      }
+      function seed() { particles = Array.from({ length: theme.count }, () => makeParticle(true)); }
+      function drawLeaf(s, color) {
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.bezierCurveTo(s * 0.9, -s * 0.4, s * 0.7, s * 0.6, 0, s);
+        ctx.bezierCurveTo(-s * 0.7, s * 0.6, -s * 0.9, -s * 0.4, 0, -s);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.beginPath(); ctx.moveTo(0, -s * 0.8); ctx.lineTo(0, s * 1.05);
+        ctx.strokeStyle = "rgba(0,0,0,0.18)"; ctx.lineWidth = 1; ctx.stroke();
+      }
+      function drawPetal(s, color) {
+        ctx.beginPath();
+        ctx.moveTo(0, -s);
+        ctx.bezierCurveTo(s * 0.8, -s * 0.2, s * 0.5, s * 0.7, 0, s);
+        ctx.bezierCurveTo(-s * 0.5, s * 0.7, -s * 0.8, -s * 0.2, 0, -s);
+        ctx.fillStyle = color; ctx.fill();
+      }
+      function drawDot(s, color) {
+        ctx.beginPath(); ctx.arc(0, 0, s / 2, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+      }
+      function drawGlow(s, color) {
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 2.2);
+        g.addColorStop(0, color); g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.beginPath(); ctx.arc(0, 0, s * 2.2, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
+      }
+      const drawShape = { leaf: drawLeaf, petal: drawPetal, flake: drawDot, glow: drawGlow }[theme.shape];
+      function step(now) {
+        if (!running) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        wind *= 0.94;
+        const all = particles.concat(bursts);
+        for (const pt of all) {
+          pt.phase += 0.01 * pt.sway;
+          pt.x += Math.sin(pt.phase) * pt.sway + wind + (pt.vx || 0);
+          pt.y += pt.vy; pt.rot += pt.vr;
+          if (pt.vx) { pt.vx *= 0.96; pt.vy += 0.03; pt.alpha -= 0.006; }
+          if (pt.y > canvas.height + 24) { Object.assign(pt, makeParticle(false)); pt.vx = 0; }
+          if (pt.x > canvas.width + 24) pt.x = -20; if (pt.x < -24) pt.x = canvas.width + 20;
+          ctx.save(); ctx.translate(pt.x, pt.y); ctx.rotate(pt.rot);
+          ctx.globalAlpha = Math.max(pt.alpha, 0); drawShape(pt.size, pt.color); ctx.restore();
+        }
+        bursts = bursts.filter(b => b.alpha > 0.05);
+        rafId = requestAnimationFrame(step);
+      }
+      function setEnabled(on) {
+        enabled = on;
+        try { localStorage.setItem("commandos-seasonal", on ? "on" : "off"); } catch (e) {}
+        if (toggleBtn) toggleBtn.setAttribute("aria-pressed", String(on));
+        canvas.style.display = on ? "block" : "none";
+        if (on && !running) { running = true; seed(); rafId = requestAnimationFrame(step); }
+        if (!on) { running = false; if (rafId) cancelAnimationFrame(rafId); ctx.clearRect(0, 0, canvas.width, canvas.height); }
+      }
+      window.addEventListener("resize", resize);
+      window.addEventListener("pointermove", e => {
+        if (lastX !== null) wind += Math.max(-2.4, Math.min(2.4, (e.clientX - lastX) * 0.02));
+        lastX = e.clientX;
+      }, { passive: true });
+      window.addEventListener("pointerdown", e => {
+        if (!enabled || !running) return;
+        for (let i = 0; i < 12; i++) {
+          const b = makeParticle(false);
+          b.x = e.clientX; b.y = e.clientY;
+          b.vx = (Math.random() - 0.5) * 4.4; b.vy = -Math.random() * 2.4 - 0.4;
+          b.alpha = 1; bursts.push(b);
+        }
+      }, { passive: true });
+      if (toggleBtn) toggleBtn.addEventListener("click", () => setEnabled(!enabled));
+      document.addEventListener("keydown", e => {
+        if ((e.key === "s" || e.key === "S") && !isTypingTarget(document.activeElement)) setEnabled(!enabled);
+      });
+      resize(); setEnabled(enabled);
+    })();
 
     initialize();
   </script>

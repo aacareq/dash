@@ -1,0 +1,30 @@
+name: Link check
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  linkchecker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check links in HTML files
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: --no-progress --exclude-loopback --accept 200,206,403,429 './**/*.html'
+          fail: false
+          jobSummary: true
+          format: markdown
+          output: ./lychee/out.md
+      - name: Open an issue when broken links are found
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: "Link check: broken links found"
+          content-filepath: ./lychee/out.md
+          labels: link-check, maintenance

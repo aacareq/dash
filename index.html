@@ -333,6 +333,16 @@
     .card.has-query { border-color: var(--accent-glow); }
     .card.has-query .query-preview { display: block; }
 
+    /* Personal AI Agents — Always-On: live accent so the section feels persistent */
+    .card.always-on { border-color: rgba(34,197,94,0.32); }
+    .card.always-on:hover { border-color: #22c55e; box-shadow: 0 9px 22px rgba(34,197,94,0.14); }
+    .always-on-badge { display: inline-flex; align-items: center; gap: .38rem; width: fit-content; margin: 0 0 .6rem; padding: .22rem .55rem; border-radius: 999px; background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.32); font-size: .66rem; font-weight: 800; letter-spacing: .42px; text-transform: uppercase; }
+    .always-on-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 0 rgba(34,197,94,0.65); animation: pulse-live 2s infinite; flex-shrink: 0; }
+    @keyframes pulse-live { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.65); } 70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
+    .light .card.always-on { border-color: rgba(34,197,94,0.42); }
+    .light .always-on-badge { background: rgba(34,197,94,0.1); color: #15803d; border-color: rgba(34,197,94,0.38); }
+    .light .always-on-dot { background: #16a34a; }
+
     /* Section changes fade the new cluster in instead of snapping */
     @keyframes section-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
     .feed-enter > .dashboard-section { animation: section-in .34s ease backwards; }
@@ -388,6 +398,7 @@
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
+      <button class="nav-btn" type="button" data-section="personalagents"><span>Personal Agents</span> <span class="count" id="cnt-personalagents">0</span></button>
       <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
       <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
       <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
@@ -451,6 +462,7 @@
             <option value="inference">Inference</option>
             <option value="zerocost">Zero-Cost APIs</option>
             <option value="agent">Agents</option>
+            <option value="personalagents">Personal AI Agents — Always-On</option>
             <option value="codingagents">Coding Agents</option>
             <option value="vibe">Vibe Dev</option>
             <option value="cli">CLI Coding Tools</option>
@@ -568,6 +580,16 @@
           { name: "HappyCapy.ai", url: "https://happycapy.ai", desc: "Connect tools and automate autonomous workflow steps.", best: "Workflow integrations", tags: ["agents", "automation", "integrations"], group: "General task agents" },
           { name: "Agent.ai", url: "https://agent.ai", desc: "Explore and build reusable AI agents for business tasks.", best: "Agent discovery", tags: ["agents", "community", "workflows"], group: "General task agents" },
           { name: "Parallel AI", url: "https://parallel.ai", desc: "Coordinate parallel agent tasks for broader research and execution.", best: "Parallel research tasks", tags: ["agents", "research", "parallel"], group: "Research & orchestration" }
+        ]
+      },
+      personalagents: {
+        title: "Personal AI Agents — Always-On",
+        summary: "Persistent teammates that keep working after you close the tab — each lives on its own cloud computer and acts inside your apps.",
+        note: "<strong>Always-on vs chat:</strong> chat answers one message; these agents take a goal, sign into your tools, and come back only when the work is done or needs approval. Both launched in 2026 with a dedicated VM per user and Sentinel-style approvals.",
+        filters: ["always-on", "personal agent", "cloud computer"],
+        items: [
+          { name: "Muse", url: "https://muse.ai/", desc: "Meta's personal agent on its own Secure VM — manages email, calendar, bookings, shopping and long-running projects. You set name, avatar and style; Sentinel approves every outbound action.", best: "Everyday delegation on autopilot", tags: ["always-on", "personal agent", "Meta", "Muse Spark", "Sentinel"], group: "Always-on agents", aliases: ["muse ai", "meta muse", "muse spark"], detail: "Launched 8 Sep 2026. Runs on a persistent Muse Secure VM (runtime + credential store + Sentinel). Available on muse.ai, iOS/Android, WhatsApp and Mac. Free tier → Power $20/mo → Maximum $100/mo. Connect Gmail, Calendar, Spotify, OpenTable and more — nothing reaches the internet without Sentinel approval.", alwaysOn: true },
+          { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI's team of always-on agents — each bot gets its own cloud computer, signs into the sites and tools you use, and works 24/7 until the job is done.", best: "Hands-off work inside your tools", tags: ["always-on", "agents", "xAI", "cloud computer", "Grok"], group: "Always-on agents", aliases: ["grok bot", "spacexai", "xai bot"], detail: "Launched 11 Aug 2026 (beta). No standalone subscription — bundled with Cursor Pro $20/mo, Pro+ $60, Ultra $200, and linked SuperGrok/X plans. Create named bots (researcher, chief of staff, triage), connect Gmail/Slack/Calendar, set schedule and approvals. Installer via Cursor onboarding.", alwaysOn: true }
         ]
       },
       vibe: {
@@ -906,6 +928,21 @@
         card.dataset.template = item.template;
         card.dataset.fallback = item.url;
         card.dataset.name = item.name;
+      }
+
+      if (item.alwaysOn) {
+        card.classList.add("always-on");
+        const badge = document.createElement("p");
+        badge.className = "always-on-badge";
+        badge.title = "Always-on — lives on its own cloud computer and keeps working after you close the tab.";
+        const dot = document.createElement("span");
+        dot.className = "always-on-dot";
+        dot.setAttribute("aria-hidden", "true");
+        const label = document.createElement("span");
+        label.textContent = "Always-on";
+        // Use dot + label for visual pulse; keep text for accessibility
+        badge.append(dot, label);
+        card.appendChild(badge);
       }
 
       if (item.bookmarklet) {

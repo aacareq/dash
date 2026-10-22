@@ -28,11 +28,18 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   tools that open as wide dialogs instead of navigating away: a Google Tasks
   list, a GitHub-backed work list that can create files in a chosen repo, a
   Google Calendar mini agenda, a Pomodoro/focus timer, an exportable
-  scratchpad, and a Techmeme/Hacker News headlines feed (with a short chain of
-  fallback sources and a direct link if every live fetch fails). The Google
-  Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
-  in this browser's `localStorage`) since the dashboard has no backend of its
-  own.
+  scratchpad, and a Techmeme/Hacker News headlines feed. The Google Tasks,
+  GitHub, and Google Calendar tools need a token pasted in (kept only in this
+  browser's `localStorage`) since the dashboard has no backend of its own.
+  Techmeme has no CORS header of its own, so its headlines go through a chain
+  of free, no-signup CORS proxies (`rss2json` → `allorigins.win` →
+  `proxy.cors.dev` → `cors.lol`), trying each in turn and showing progress
+  ("trying source 2 of 4") while it does. Free proxies occasionally disappear
+  or add a paywall — if every one in the chain fails, the dashboard shows your
+  last successfully loaded headlines from `localStorage` (clearly labeled as
+  cached) instead of an empty modal, and only falls back to a plain "open the
+  site directly" link if there's no cache yet either. Hacker News is fetched
+  straight from its own CORS-enabled API, so it never needs a proxy.
 - **Seasonal layer** — a full-screen, click-through canvas drifts leaves,
   snow, blossom, or fireflies behind the dashboard depending on today's month.
   Move your pointer to stir a gust, click/tap to burst particles, and toggle

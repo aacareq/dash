@@ -303,6 +303,7 @@
     .news-tab.active { color: #fff; background: var(--accent); border-color: var(--accent); }
     .news-list { display: flex; flex-direction: column; gap: .5rem; max-height: 320px; overflow-y: auto; }
     .news-item { padding: .6rem .7rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; }
+    .news-cached-banner { padding: .55rem .7rem; border: 1px dashed var(--border); border-radius: 9px; color: var(--text-muted); font-size: .76rem; line-height: 1.4; background: var(--tag-bg); }
     .news-item a { color: var(--text); font-weight: 700; font-size: .87rem; text-decoration: none; }
     .news-item a:hover { color: var(--accent); }
     .news-item .news-source { color: var(--text-muted); font-size: .72rem; margin-top: .25rem; }
@@ -2241,7 +2242,7 @@
       let activeFeed = "techmeme";
 
       // A small timeout wrapper: slow or hung third-party endpoints shouldn't leave the modal spinning forever.
-      async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
+      async function fetchWithTimeout(url, options = {}, timeoutMs = 7000) {
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         try {
@@ -2267,32 +2268,65 @@
         });
       }
 
+      // A small cache so a dead/renamed proxy doesn't leave the modal empty — the last successful fetch of each
+      // feed is kept in localStorage and shown (clearly labeled as cached) if every live source fails.
+      function readCache(feedKey) {
+        try {
+          const raw = localStorage.getItem(`commandos-news-cache-${feedKey}`);
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) { return null; }
+      }
+      function writeCache(feedKey, items) {
+        try { localStorage.setItem(`commandos-news-cache-${feedKey}`, JSON.stringify({ items, savedAt: Date.now() })); } catch (error) { /* storage is optional */ }
+      }
+
       // Techmeme has no CORS header of its own, so headlines are fetched through a short chain of public,
       // no-signup proxies — whichever responds first wins, and the raw XML is parsed the same way either way.
-      async function loadTechmeme() {
+      // Free CORS proxies come and go (corsproxy.io now requires a paid API key outside localhost, and
+      // codetabs shut down in mid-2026), so this list is deliberately short-lived services that can be
+      // swapped out independently without touching the parsing or UI logic below.
+      async function loadTechmeme(onProgress) {
         const feedUrl = "https://www.techmeme.com/feed.xml";
         const providers = [
-          async () => {
-            const res = await fetchWithTimeout("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl));
-            if (!res.ok) throw new Error(`rss2json HTTP ${res.status}`);
-            const data = await res.json();
-            if (data.status !== "ok" || !data.items?.length) throw new Error(data.message || "rss2json returned no items");
-            return data.items.slice(0, 10).map(item => ({ title: item.title, url: item.link, source: item.pubDate ? new Date(item.pubDate).toLocaleString() : "Techmeme" }));
+          {
+            name: "rss2json",
+            run: async () => {
+              const res = await fetchWithTimeout("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(feedUrl));
+              if (!res.ok) throw new Error(`rss2json HTTP ${res.status}`);
+              const data = await res.json();
+              if (data.status !== "ok" || !data.items?.length) throw new Error(data.message || "rss2json returned no items");
+              return data.items.slice(0, 10).map(item => ({ title: item.title, url: item.link, source: item.pubDate ? new Date(item.pubDate).toLocaleString() : "Techmeme" }));
+            }
           },
-          async () => {
-            const res = await fetchWithTimeout("https://api.allorigins.win/raw?url=" + encodeURIComponent(feedUrl));
-            if (!res.ok) throw new Error(`allorigins HTTP ${res.status}`);
-            return parseFeedXml(await res.text());
+          {
+            name: "allorigins",
+            run: async () => {
+              const res = await fetchWithTimeout("https://api.allorigins.win/raw?url=" + encodeURIComponent(feedUrl));
+              if (!res.ok) throw new Error(`allorigins HTTP ${res.status}`);
+              return parseFeedXml(await res.text());
+            }
           },
-          async () => {
-            const res = await fetchWithTimeout("https://corsproxy.io/?url=" + encodeURIComponent(feedUrl));
-            if (!res.ok) throw new Error(`corsproxy HTTP ${res.status}`);
-            return parseFeedXml(await res.text());
+          {
+            name: "cors.dev",
+            run: async () => {
+              const res = await fetchWithTimeout("https://proxy.cors.dev/" + feedUrl);
+              if (!res.ok) throw new Error(`cors.dev HTTP ${res.status}`);
+              return parseFeedXml(await res.text());
+            }
+          },
+          {
+            name: "cors.lol",
+            run: async () => {
+              const res = await fetchWithTimeout("https://api.cors.lol/?url=" + encodeURIComponent(feedUrl));
+              if (!res.ok) throw new Error(`cors.lol HTTP ${res.status}`);
+              return parseFeedXml(await res.text());
+            }
           }
         ];
         let lastError;
-        for (const provider of providers) {
-          try { return await provider(); } catch (error) { lastError = error; }
+        for (let i = 0; i < providers.length; i++) {
+          onProgress?.(i + 1, providers.length);
+          try { return await providers[i].run(); } catch (error) { lastError = error; }
         }
         throw lastError || new Error("Every Techmeme source failed.");
       }
@@ -2310,32 +2344,52 @@
         return resolved;
       }
 
+      function renderItems(list, items, { cached } = {}) {
+        list.replaceChildren();
+        if (cached) {
+          const banner = document.createElement("div");
+          banner.className = "news-cached-banner";
+          banner.textContent = `Showing headlines saved from your last successful refresh (${new Date(cached).toLocaleString()}).`;
+          list.appendChild(banner);
+        }
+        items.forEach(item => {
+          const row = document.createElement("div");
+          row.className = "news-item";
+          const link = document.createElement("a");
+          link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = item.title;
+          const source = document.createElement("div");
+          source.className = "news-source"; source.textContent = item.source;
+          row.append(link, source);
+          list.appendChild(row);
+        });
+        if (!items.length) list.innerHTML = '<div class="empty-state">No headlines returned.</div>';
+      }
+
       async function refresh() {
         const list = document.getElementById("newsfeed-list");
         const requestFeed = activeFeed;
         setStatus("newsfeed-status", "Loading headlines…");
         try {
-          const items = requestFeed === "techmeme" ? await loadTechmeme() : await loadHackerNews();
+          const items = requestFeed === "techmeme"
+            ? await loadTechmeme((step, total) => { if (requestFeed === activeFeed) setStatus("newsfeed-status", `Loading headlines… (trying source ${step} of ${total})`); })
+            : await loadHackerNews();
           if (requestFeed !== activeFeed) return; // the user switched tabs while this request was in flight
-          list.replaceChildren();
-          items.forEach(item => {
-            const row = document.createElement("div");
-            row.className = "news-item";
-            const link = document.createElement("a");
-            link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = item.title;
-            const source = document.createElement("div");
-            source.className = "news-source"; source.textContent = item.source;
-            row.append(link, source);
-            list.appendChild(row);
-          });
-          if (!items.length) list.innerHTML = '<div class="empty-state">No headlines returned.</div>';
+          renderItems(list, items);
+          writeCache(requestFeed, items);
           setStatus("newsfeed-status", `Loaded ${items.length} headlines from ${requestFeed === "techmeme" ? "Techmeme" : "Hacker News"}.`, "success");
         } catch (error) {
           if (requestFeed !== activeFeed) return;
           const label = requestFeed === "techmeme" ? "Techmeme" : "Hacker News";
           const fallbackUrl = requestFeed === "techmeme" ? "https://www.techmeme.com" : "https://news.ycombinator.com";
-          list.innerHTML = `<div class="empty-state">Could not load live headlines (${error.name === "AbortError" ? "request timed out" : error.message}). <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">Open ${label} directly ↗</a></div>`;
-          setStatus("newsfeed-status", "Live fetch failed after trying every available source — showing a direct link instead.", "error");
+          const cached = readCache(requestFeed);
+          const reason = error.name === "AbortError" ? "every source timed out" : error.message;
+          if (cached?.items?.length) {
+            renderItems(list, cached.items, { cached: cached.savedAt });
+            setStatus("newsfeed-status", `Live fetch failed (${reason}) — showing your last saved ${label} headlines instead.`, "error");
+          } else {
+            list.innerHTML = `<div class="empty-state">Could not load live headlines (${reason}). <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">Open ${label} directly ↗</a></div>`;
+            setStatus("newsfeed-status", "Live fetch failed after trying every available source — showing a direct link instead.", "error");
+          }
         }
       }
       document.querySelectorAll(".news-tab").forEach(tab => {

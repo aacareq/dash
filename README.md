@@ -2,8 +2,9 @@
 
 A personal, single-page dashboard for AI chat, inference services, coding
 agents and everyday tools — with search, favorites, recently launched items,
-custom tools, config import/export, a dark/light theme, and one-click
-bookmarklets that launch whole workflows.
+custom tools, config import/export, a dark/light theme, one-click
+bookmarklets that launch whole workflows, and a calendar-aware seasonal
+particle layer for a bit of delight.
 
 **Live dashboard:** https://aacareq.github.io/dash/
 
@@ -23,20 +24,31 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   every tab can open. The same cards are also pinned at the front of Favorites.
 - **Personal AI Agents — Always-On** — a menu cluster for standing agent
   sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code).
-- **Working On** — a menu cluster of in-dashboard tools that open as dialogs
-  instead of navigating away: a Google Tasks list, a GitHub-backed work list
-  that can create files in a chosen repo, a Google Calendar mini agenda, a
-  Pomodoro/focus timer, an exportable scratchpad, and a Techmeme/Hacker News
-  headlines feed. The Google Tasks, GitHub, and Google Calendar tools need a
-  token pasted in (kept only in this browser's `localStorage`) since the
-  dashboard has no backend of its own.
+- **Working On** (4th in the menu, right after Daily Core) — in-dashboard
+  tools that open as wide dialogs instead of navigating away: a Google Tasks
+  list, a GitHub-backed work list that can create files in a chosen repo, a
+  Google Calendar mini agenda, a Pomodoro/focus timer, an exportable
+  scratchpad, and a Techmeme/Hacker News headlines feed (with a short chain of
+  fallback sources and a direct link if every live fetch fails). The Google
+  Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
+  in this browser's `localStorage`) since the dashboard has no backend of its
+  own.
+- **Seasonal layer** — a full-screen, click-through canvas drifts leaves,
+  snow, blossom, or fireflies behind the dashboard depending on today's month.
+  Move your pointer to stir a gust, click/tap to burst particles, and toggle
+  it from the header's 🍂 Season button or the `S` key — your choice is
+  remembered in `localStorage`. It's automatically skipped if your system
+  requests reduced motion. The sidebar also gets a matching seasonal greeting
+  and a small garland accent under the brand.
 
 ## Layout
 
 - `index.html` — the current dashboard (Command Center 2026)
 - `*.html` / `tools/` — standalone topic pages (inference, coding, hosting,
   video, images, music, feeds, search and more)
-- `archive/` — superseded dashboard versions, kept for reference
+- `archive/` — the 11 superseded dashboard versions, each kept exactly where
+  it can be found (see `archive/README.md` for the list); there are no
+  duplicate copies of these left in the repo root
 
 ## Contributing / changes
 

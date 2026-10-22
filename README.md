@@ -37,7 +37,14 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   Contents API's `sha` field) instead of only ever being able to create new
   files. Changing the repo or path after loading a file resets it back to
   "create" mode, so a slip of the keyboard can't accidentally overwrite the
-  wrong file.
+  wrong file. It also stays in sync with GitHub: a "Check for Updates" button
+  compares the loaded file's version against what's currently on GitHub
+  without touching the editor, and every save re-checks GitHub first — if the
+  file changed since it was loaded (someone else edited it, or you edited it
+  from another tab/device), the save is paused with a clear warning instead
+  of silently overwriting that change, and you either reload the latest
+  version or explicitly click "Overwrite Anyway" to confirm pushing your
+  edits over it.
 - **News / headlines feed** — tabs for Techmeme, Hacker News, Ars Technica,
   InfoWorld, and Lobste.rs. None of the plain-RSS sources (everything except
   Hacker News, which has its own CORS-enabled API) have a CORS header of

@@ -26,20 +26,29 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code).
 - **Working On** (4th in the menu, right after Daily Core) — in-dashboard
   tools that open as wide dialogs instead of navigating away: a Google Tasks
-  list, a GitHub-backed work list that can create files in a chosen repo, a
-  Google Calendar mini agenda, a Pomodoro/focus timer, an exportable
-  scratchpad, and a Techmeme/Hacker News headlines feed. The Google Tasks,
-  GitHub, and Google Calendar tools need a token pasted in (kept only in this
-  browser's `localStorage`) since the dashboard has no backend of its own.
-  Techmeme has no CORS header of its own, so its headlines go through a chain
-  of free, no-signup CORS proxies (`rss2json` → `allorigins.win` →
-  `proxy.cors.dev` → `cors.lol`), trying each in turn and showing progress
-  ("trying source 2 of 4") while it does. Free proxies occasionally disappear
-  or add a paywall — if every one in the chain fails, the dashboard shows your
-  last successfully loaded headlines from `localStorage` (clearly labeled as
+  list, a GitHub-backed work list that can create **and edit** files in a
+  chosen repo, a Google Calendar mini agenda, a Pomodoro/focus timer, an
+  exportable scratchpad, and a multi-source news/headlines feed. The Google
+  Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
+  in this browser's `localStorage`) since the dashboard has no backend of its
+  own. The GitHub work list has a "Load Existing File" button that fetches a
+  file's current content and version (SHA) from a chosen repo/path into the
+  editor; saving then updates that same file in place (via the GitHub
+  Contents API's `sha` field) instead of only ever being able to create new
+  files. Changing the repo or path after loading a file resets it back to
+  "create" mode, so a slip of the keyboard can't accidentally overwrite the
+  wrong file.
+- **News / headlines feed** — tabs for Techmeme, Hacker News, Ars Technica,
+  InfoWorld, and Lobste.rs. None of the plain-RSS sources (everything except
+  Hacker News, which has its own CORS-enabled API) have a CORS header of
+  their own, so their headlines go through a shared chain of free, no-signup
+  CORS proxies (`rss2json` → `allorigins.win` → `proxy.cors.dev` →
+  `cors.lol`), trying each in turn and showing progress ("trying source 2 of
+  4") while it does. Free proxies occasionally disappear or add a paywall —
+  if every one in the chain fails, the dashboard shows the last successfully
+  loaded headlines for that feed from `localStorage` (clearly labeled as
   cached) instead of an empty modal, and only falls back to a plain "open the
-  site directly" link if there's no cache yet either. Hacker News is fetched
-  straight from its own CORS-enabled API, so it never needs a proxy.
+  site directly" link if there's no cache yet either.
 - **Seasonal layer** — a full-screen, click-through canvas drifts leaves,
   snow, blossom, or fireflies behind the dashboard depending on today's month.
   Move your pointer to stir a gust, click/tap to burst particles, and toggle

@@ -298,7 +298,7 @@
     .scratch-textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; line-height: 1.5; }
     .pomodoro-display { font-size: 3.4rem; font-weight: 800; text-align: center; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
     .pomodoro-presets { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
-    .news-tabs { display: flex; gap: .5rem; }
+    .news-tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
     .news-tab { border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); border-radius: 99px; padding: .4rem .85rem; font-size: .8rem; font-weight: 700; }
     .news-tab.active { color: #fff; background: var(--accent); border-color: var(--accent); }
     .news-list { display: flex; flex-direction: column; gap: .5rem; max-height: 320px; overflow-y: auto; }
@@ -581,7 +581,7 @@
 
     <dialog id="modal-github-work" class="modal modal-wide">
       <div class="modal-card">
-        <h3 class="modal-title">Work List — Create Files in GitHub</h3>
+        <h3 class="modal-title">Work List — Create &amp; Edit Files in GitHub</h3>
         <p class="modal-hint">Paste a GitHub personal access token with <code>repo</code> scope. It's stored only in this browser's local storage and sent directly to the GitHub API.</p>
         <div class="token-row">
           <label class="form-label" style="flex:1;">Personal access token
@@ -599,6 +599,10 @@
         <label class="form-label">File path
           <input type="text" id="ghwork-path" class="form-input" placeholder="e.g. notes/todo.md" />
         </label>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn cancel" id="ghwork-load-file">Load Existing File</button>
+        </div>
+        <p class="status-msg" id="ghwork-file-status"></p>
         <label class="form-label">Commit message
           <input type="text" id="ghwork-message" class="form-input" placeholder="e.g. Add todo file" value="Add file via dashboard" />
         </label>
@@ -613,6 +617,7 @@
         </div>
       </div>
     </dialog>
+
 
     <dialog id="modal-calendar" class="modal modal-wide">
       <div class="modal-card">
@@ -686,6 +691,9 @@
         <div class="news-tabs">
           <button type="button" class="news-tab active" data-feed="techmeme">Techmeme</button>
           <button type="button" class="news-tab" data-feed="hackernews">Hacker News</button>
+          <button type="button" class="news-tab" data-feed="arstechnica">Ars Technica</button>
+          <button type="button" class="news-tab" data-feed="infoworld">InfoWorld</button>
+          <button type="button" class="news-tab" data-feed="lobsters">Lobste.rs</button>
         </div>
         <div class="modal-actions" style="justify-content:flex-start;">
           <button type="button" class="modal-btn cancel" id="newsfeed-refresh">Refresh</button>
@@ -908,10 +916,10 @@
           {
             name: "Work List (GitHub)",
             modal: "modal-github-work",
-            desc: "Pick a repository and create a file in it directly from the dashboard, backed by the GitHub API.",
-            best: "Creating files in a repo",
+            desc: "Pick a repository and create or edit a file in it directly from the dashboard, backed by the GitHub API.",
+            best: "Creating and editing files in a repo",
             tags: ["github", "API", "repos"],
-            aliases: ["github work list", "create file in repo"]
+            aliases: ["github work list", "create file in repo", "edit file in repo"]
           },
           {
             name: "Time-Block Schedule",
@@ -940,10 +948,10 @@
           {
             name: "RSS / News Headlines",
             modal: "modal-newsfeed",
-            desc: "Top headline summaries pulled live from Techmeme and Hacker News.",
+            desc: "Top headline summaries pulled live from Techmeme, Hacker News, Ars Technica, InfoWorld, and Lobste.rs.",
             best: "Skimming tech headlines",
             tags: ["news", "RSS", "headlines"],
-            aliases: ["techmeme", "hacker news", "news feed"]
+            aliases: ["techmeme", "hacker news", "ars technica", "infoworld", "lobsters", "news feed"]
           }
         ]
       },
@@ -2015,11 +2023,33 @@
       });
     }
 
-    // ---- Work List (GitHub API — create files in a repo) ----------------------------------------------
+    // ---- Work List (GitHub API — create and edit files in a repo) --------------------------------------
     function initGithubWorkTool() {
       const tokenInput = document.getElementById("ghwork-token");
       const saved = (() => { try { return localStorage.getItem("dash-github-token") || ""; } catch (e) { return ""; } })();
       if (tokenInput) tokenInput.value = saved;
+
+      // Base64 helpers that are safe for UTF-8 file content (plain atob/btoa only handle Latin1).
+      function encodeUtf8Base64(text) { return btoa(unescape(encodeURIComponent(text))); }
+      function decodeUtf8Base64(base64) { return decodeURIComponent(escape(atob(base64.replace(/\n/g, "")))); }
+
+      // When a file is loaded for editing, its blob SHA has to be sent back with the update or GitHub
+      // rejects the PUT with "the sha wasn't supplied" — this is what actually turns "create" into "edit".
+      let loadedFileSha = null;
+      const createBtn = document.getElementById("ghwork-create");
+      const messageInput = document.getElementById("ghwork-message");
+      const pathInput = document.getElementById("ghwork-path");
+      const repoSelect = document.getElementById("ghwork-repo");
+
+      function resetToCreateMode(reason) {
+        loadedFileSha = null;
+        if (createBtn) createBtn.textContent = "Create File";
+        if (reason) setStatus("ghwork-file-status", reason);
+      }
+      // Editing the path/repo after loading a file means it no longer refers to what's on screen,
+      // so drop back to create mode rather than risk silently overwriting the wrong file.
+      pathInput?.addEventListener("input", () => { if (loadedFileSha) resetToCreateMode("Path changed — this will create a new file unless you load it again."); });
+      repoSelect?.addEventListener("change", () => { if (loadedFileSha) resetToCreateMode("Repository changed — this will create a new file unless you load it again."); });
 
       document.getElementById("ghwork-save-token")?.addEventListener("click", () => {
         try { localStorage.setItem("dash-github-token", tokenInput.value.trim()); } catch (e) {}
@@ -2028,7 +2058,7 @@
 
       document.getElementById("ghwork-load-repos")?.addEventListener("click", async () => {
         const token = tokenInput.value.trim();
-        const select = document.getElementById("ghwork-repo");
+        const select = repoSelect;
         if (!token) { setStatus("ghwork-status", "Paste a personal access token first.", "error"); return; }
         setStatus("ghwork-status", "Loading repositories…");
         try {
@@ -2051,24 +2081,59 @@
         }
       });
 
-      document.getElementById("ghwork-create")?.addEventListener("click", async () => {
+      // Pulls an existing file's current content + SHA from GitHub so it can be edited in place, instead
+      // of only ever creating brand-new files.
+      document.getElementById("ghwork-load-file")?.addEventListener("click", async () => {
         const token = tokenInput.value.trim();
-        const select = document.getElementById("ghwork-repo");
-        const repo = select.value;
-        const path = document.getElementById("ghwork-path").value.trim().replace(/^\/+/, "");
-        const message = document.getElementById("ghwork-message").value.trim() || "Add file via dashboard";
+        const repo = repoSelect.value;
+        const path = pathInput.value.trim().replace(/^\/+/, "");
+        if (!token || !repo || !path) { setStatus("ghwork-file-status", "Pick a repo and enter a file path first.", "error"); return; }
+        setStatus("ghwork-file-status", "Looking up file…");
+        try {
+          const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
+          });
+          if (res.status === 404) {
+            resetToCreateMode(`No file at "${path}" yet — Create File will add a new one.`);
+            return;
+          }
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
+          if (Array.isArray(data) || data.type !== "file") throw new Error("That path is a directory, not a file.");
+          document.getElementById("ghwork-content").value = decodeUtf8Base64(data.content || "");
+          if (messageInput) messageInput.value = `Update ${path} via dashboard`;
+          loadedFileSha = data.sha;
+          if (createBtn) createBtn.textContent = "Update File";
+          setStatus("ghwork-file-status", `Loaded current version of ${path}. Editing and saving will update this file.`, "success");
+        } catch (error) {
+          setStatus("ghwork-file-status", error.message, "error");
+        }
+      });
+
+      createBtn?.addEventListener("click", async () => {
+        const token = tokenInput.value.trim();
+        const repo = repoSelect.value;
+        const path = pathInput.value.trim().replace(/^\/+/, "");
+        const editing = Boolean(loadedFileSha);
+        const message = messageInput.value.trim() || (editing ? "Update file via dashboard" : "Add file via dashboard");
         const content = document.getElementById("ghwork-content").value;
         if (!token || !repo || !path) { setStatus("ghwork-status", "Pick a repo and a file path first.", "error"); return; }
-        setStatus("ghwork-status", "Creating file…");
+        setStatus("ghwork-status", editing ? "Updating file…" : "Creating file…");
         try {
+          const body = { message, content: encodeUtf8Base64(content) };
+          if (editing) body.sha = loadedFileSha;
           const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, {
             method: "PUT",
             headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
-            body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))) })
+            body: JSON.stringify(body)
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
-          setStatus("ghwork-status", `Created ${path} in ${repo}.`, "success");
+          // Keep the SHA in sync so a second save right away still counts as an edit, not a conflicting create.
+          loadedFileSha = data.content?.sha || loadedFileSha;
+          if (createBtn) createBtn.textContent = "Update File";
+          setStatus("ghwork-status", `${editing ? "Updated" : "Created"} ${path} in ${repo}.`, "success");
+          setStatus("ghwork-file-status", `${editing ? "Updated" : "Created"} ${path} — loaded version is current.`, "success");
         } catch (error) {
           setStatus("ghwork-status", error.message, "error");
         }
@@ -2237,7 +2302,17 @@
       });
     }
 
-    // ---- RSS / News Headlines (Techmeme + Hacker News) -------------------------------------------------
+    // ---- RSS / News Headlines (Techmeme, Hacker News, Ars Technica, InfoWorld, Lobste.rs) ---------------
+    // Every feed except Hacker News (which has its own CORS-enabled API) is plain RSS/Atom with no CORS
+    // header, so they all share one proxy-fallback pipeline — adding a new site is just one FEEDS entry.
+    const NEWS_FEEDS = {
+      techmeme: { label: "Techmeme", kind: "rss", url: "https://www.techmeme.com/feed.xml", directUrl: "https://www.techmeme.com" },
+      hackernews: { label: "Hacker News", kind: "hackernews", directUrl: "https://news.ycombinator.com" },
+      arstechnica: { label: "Ars Technica", kind: "rss", url: "https://feeds.arstechnica.com/arstechnica/index", directUrl: "https://arstechnica.com/" },
+      infoworld: { label: "InfoWorld", kind: "rss", url: "https://www.infoworld.com/index.rss", directUrl: "https://www.infoworld.com/" },
+      lobsters: { label: "Lobste.rs", kind: "rss", url: "https://lobste.rs/rss", directUrl: "https://lobste.rs/" }
+    };
+
     function initNewsFeedTool() {
       let activeFeed = "techmeme";
 
@@ -2253,7 +2328,7 @@
       }
 
       // Shared RSS/Atom parsing so every raw-XML fallback (no matter which CORS proxy served it) renders the same way.
-      function parseFeedXml(xmlText, limit = 10) {
+      function parseFeedXml(xmlText, fallbackLabel, limit = 10) {
         const doc = new DOMParser().parseFromString(xmlText, "application/xml");
         if (doc.querySelector("parsererror")) throw new Error("Could not parse feed XML.");
         const entries = [...doc.querySelectorAll("item, entry")].slice(0, limit);
@@ -2264,7 +2339,7 @@
           const url = linkEl?.getAttribute?.("href") || linkEl?.textContent?.trim() || entry.querySelector("guid")?.textContent?.trim() || "#";
           const dateText = entry.querySelector("pubDate")?.textContent || entry.querySelector("published")?.textContent || entry.querySelector("updated")?.textContent;
           const parsedDate = dateText ? new Date(dateText) : null;
-          return { title, url, source: parsedDate && !Number.isNaN(+parsedDate) ? parsedDate.toLocaleString() : "Techmeme" };
+          return { title, url, source: parsedDate && !Number.isNaN(+parsedDate) ? parsedDate.toLocaleString() : fallbackLabel };
         });
       }
 
@@ -2280,13 +2355,13 @@
         try { localStorage.setItem(`commandos-news-cache-${feedKey}`, JSON.stringify({ items, savedAt: Date.now() })); } catch (error) { /* storage is optional */ }
       }
 
-      // Techmeme has no CORS header of its own, so headlines are fetched through a short chain of public,
-      // no-signup proxies — whichever responds first wins, and the raw XML is parsed the same way either way.
-      // Free CORS proxies come and go (corsproxy.io now requires a paid API key outside localhost, and
-      // codetabs shut down in mid-2026), so this list is deliberately short-lived services that can be
-      // swapped out independently without touching the parsing or UI logic below.
-      async function loadTechmeme(onProgress) {
-        const feedUrl = "https://www.techmeme.com/feed.xml";
+      // Plain RSS/Atom feeds have no CORS header of their own, so headlines are fetched through a short
+      // chain of public, no-signup proxies — whichever responds first wins, and the raw XML is parsed the
+      // same way either way. Free CORS proxies come and go (corsproxy.io now requires a paid API key
+      // outside localhost, and codetabs shut down in mid-2026), so this list is deliberately a short,
+      // independently-swappable chain rather than a single point of failure.
+      async function loadRssFeed(feed, onProgress) {
+        const { url: feedUrl, label } = feed;
         const providers = [
           {
             name: "rss2json",
@@ -2295,7 +2370,7 @@
               if (!res.ok) throw new Error(`rss2json HTTP ${res.status}`);
               const data = await res.json();
               if (data.status !== "ok" || !data.items?.length) throw new Error(data.message || "rss2json returned no items");
-              return data.items.slice(0, 10).map(item => ({ title: item.title, url: item.link, source: item.pubDate ? new Date(item.pubDate).toLocaleString() : "Techmeme" }));
+              return data.items.slice(0, 10).map(item => ({ title: item.title, url: item.link, source: item.pubDate ? new Date(item.pubDate).toLocaleString() : label }));
             }
           },
           {
@@ -2303,7 +2378,7 @@
             run: async () => {
               const res = await fetchWithTimeout("https://api.allorigins.win/raw?url=" + encodeURIComponent(feedUrl));
               if (!res.ok) throw new Error(`allorigins HTTP ${res.status}`);
-              return parseFeedXml(await res.text());
+              return parseFeedXml(await res.text(), label);
             }
           },
           {
@@ -2311,7 +2386,7 @@
             run: async () => {
               const res = await fetchWithTimeout("https://proxy.cors.dev/" + feedUrl);
               if (!res.ok) throw new Error(`cors.dev HTTP ${res.status}`);
-              return parseFeedXml(await res.text());
+              return parseFeedXml(await res.text(), label);
             }
           },
           {
@@ -2319,7 +2394,7 @@
             run: async () => {
               const res = await fetchWithTimeout("https://api.cors.lol/?url=" + encodeURIComponent(feedUrl));
               if (!res.ok) throw new Error(`cors.lol HTTP ${res.status}`);
-              return parseFeedXml(await res.text());
+              return parseFeedXml(await res.text(), label);
             }
           }
         ];
@@ -2328,7 +2403,7 @@
           onProgress?.(i + 1, providers.length);
           try { return await providers[i].run(); } catch (error) { lastError = error; }
         }
-        throw lastError || new Error("Every Techmeme source failed.");
+        throw lastError || new Error(`Every ${label} source failed.`);
       }
 
       // Hacker News ships an official, CORS-enabled Firebase API, so it's fetched directly with no proxy needed.
@@ -2368,26 +2443,25 @@
       async function refresh() {
         const list = document.getElementById("newsfeed-list");
         const requestFeed = activeFeed;
+        const feed = NEWS_FEEDS[requestFeed];
         setStatus("newsfeed-status", "Loading headlines…");
         try {
-          const items = requestFeed === "techmeme"
-            ? await loadTechmeme((step, total) => { if (requestFeed === activeFeed) setStatus("newsfeed-status", `Loading headlines… (trying source ${step} of ${total})`); })
-            : await loadHackerNews();
+          const items = feed.kind === "hackernews"
+            ? await loadHackerNews()
+            : await loadRssFeed(feed, (step, total) => { if (requestFeed === activeFeed) setStatus("newsfeed-status", `Loading headlines… (trying source ${step} of ${total})`); });
           if (requestFeed !== activeFeed) return; // the user switched tabs while this request was in flight
           renderItems(list, items);
           writeCache(requestFeed, items);
-          setStatus("newsfeed-status", `Loaded ${items.length} headlines from ${requestFeed === "techmeme" ? "Techmeme" : "Hacker News"}.`, "success");
+          setStatus("newsfeed-status", `Loaded ${items.length} headlines from ${feed.label}.`, "success");
         } catch (error) {
           if (requestFeed !== activeFeed) return;
-          const label = requestFeed === "techmeme" ? "Techmeme" : "Hacker News";
-          const fallbackUrl = requestFeed === "techmeme" ? "https://www.techmeme.com" : "https://news.ycombinator.com";
           const cached = readCache(requestFeed);
           const reason = error.name === "AbortError" ? "every source timed out" : error.message;
           if (cached?.items?.length) {
             renderItems(list, cached.items, { cached: cached.savedAt });
-            setStatus("newsfeed-status", `Live fetch failed (${reason}) — showing your last saved ${label} headlines instead.`, "error");
+            setStatus("newsfeed-status", `Live fetch failed (${reason}) — showing your last saved ${feed.label} headlines instead.`, "error");
           } else {
-            list.innerHTML = `<div class="empty-state">Could not load live headlines (${reason}). <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">Open ${label} directly ↗</a></div>`;
+            list.innerHTML = `<div class="empty-state">Could not load live headlines (${reason}). <a href="${feed.directUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">Open ${feed.label} directly ↗</a></div>`;
             setStatus("newsfeed-status", "Live fetch failed after trying every available source — showing a direct link instead.", "error");
           }
         }

@@ -243,6 +243,38 @@
     .modal-btn.submit { background: var(--accent); color: #fff; }
     .modal-btn:hover { filter: brightness(1.1); }
 
+    /* "Working On" tool modals: tasks, GitHub work items, calendar, timer, notes, headlines */
+    .modal.modal-wide { max-width: 620px; }
+    .modal-hint { margin: -.4rem 0 0; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+    .modal-hint a { color: var(--accent); }
+    .modal-hint code { background: var(--tag-bg); padding: .08rem .3rem; border-radius: 5px; font-size: .78rem; }
+    .token-row { display: flex; gap: .6rem; align-items: flex-end; }
+    .status-msg { margin: -.3rem 0 0; font-size: .82rem; color: var(--text-muted); min-height: 1.1rem; }
+    .status-msg.is-error { color: #f87171; }
+    .status-msg.is-success { color: #34d399; }
+    .task-list { display: flex; flex-direction: column; gap: .4rem; max-height: 260px; overflow-y: auto; }
+    .task-item { display: flex; align-items: flex-start; gap: .5rem; padding: .55rem .65rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; font-size: .85rem; }
+    .task-item input[type="checkbox"] { margin-top: .2rem; }
+    .task-item .task-item-meta { color: var(--text-muted); font-size: .74rem; margin-top: .15rem; }
+    .inline-form { display: flex; gap: .5rem; }
+    .inline-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem; }
+    .inline-form-grid input[type="text"] { grid-column: 1 / -1; }
+    .inline-form-grid button { grid-column: 1 / -1; }
+    .scratch-textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; line-height: 1.5; }
+    .pomodoro-display { font-size: 3.4rem; font-weight: 800; text-align: center; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
+    .pomodoro-presets { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
+    .news-tabs { display: flex; gap: .5rem; }
+    .news-tab { border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted); border-radius: 99px; padding: .4rem .85rem; font-size: .8rem; font-weight: 700; }
+    .news-tab.active { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .news-list { display: flex; flex-direction: column; gap: .5rem; max-height: 320px; overflow-y: auto; }
+    .news-item { padding: .6rem .7rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; }
+    .news-item a { color: var(--text); font-weight: 700; font-size: .87rem; text-decoration: none; }
+    .news-item a:hover { color: var(--accent); }
+    .news-item .news-source { color: var(--text-muted); font-size: .72rem; margin-top: .25rem; }
+    .modal-badge { color: var(--accent); }
+    .card.modal-trigger { border-style: dashed; }
+    .card.modal-trigger:hover { border-style: solid; }
+
     /* Sections */
     .dashboard-section { margin-bottom: 2.8rem; scroll-margin-top: 1rem; }
     .dashboard-section.is-hidden, .subgroup.is-hidden, .card.is-filtered { display: none; }
@@ -383,7 +415,10 @@
     <p class="brand-note">Launch tools by task, pin the ones you return to, and keep the full directory close at hand.</p>
     <nav class="nav-links" aria-label="Dashboard categories">
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
+      <button class="nav-btn" type="button" data-section="favorites"><span>★ Favorites</span> <span class="count" id="cnt-favorites">0</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
+      <button class="nav-btn" type="button" data-section="personalagents"><span>Personal AI Agents</span> <span class="count" id="cnt-personalagents">0</span></button>
+      <button class="nav-btn" type="button" data-section="bookmarklets"><span>Bookmarklets</span> <span class="count" id="cnt-bookmarklets">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
@@ -391,6 +426,7 @@
       <button class="nav-btn" type="button" data-section="vibe"><span>Vibe Dev</span> <span class="count" id="cnt-vibe">0</span></button>
       <button class="nav-btn" type="button" data-section="cli"><span>CLI Coding Tools</span> <span class="count" id="cnt-cli">0</span></button>
       <button class="nav-btn" type="button" data-section="freebie"><span>Free Tier Ops</span> <span class="count" id="cnt-freebie">0</span></button>
+      <button class="nav-btn" type="button" data-section="workingon"><span>Working On</span> <span class="count" id="cnt-workingon">0</span></button>
       <button class="nav-btn" type="button" data-section="technews"><span>Tech News</span> <span class="count" id="cnt-technews">0</span></button>
       <button class="nav-btn" type="button" data-section="research"><span>Trending &amp; Research</span> <span class="count" id="cnt-research">0</span></button>
       <button class="nav-btn" type="button" data-section="socials"><span>Socials</span> <span class="count" id="cnt-socials">0</span></button>
@@ -448,6 +484,8 @@
           <select id="custom-cluster" class="form-input">
             <option value="custom">Custom Tools</option>
             <option value="daily">Daily Core</option>
+            <option value="personalagents">Personal AI Agents</option>
+            <option value="bookmarklets">Bookmarklets</option>
             <option value="inference">Inference</option>
             <option value="zerocost">Zero-Cost APIs</option>
             <option value="agent">Agents</option>
@@ -472,6 +510,151 @@
         </div>
       </form>
     </dialog>
+    <!-- "Working On" tool modals: in-page dialogs for tasks, GitHub work items, calendar, a timer, notes, and headlines -->
+    <dialog id="modal-google-tasks" class="modal">
+      <div class="modal-card modal-wide">
+        <h3 class="modal-title">Tasks List — Google Tasks</h3>
+        <p class="modal-hint">Paste a Google OAuth access token with the <code>tasks</code> scope (e.g. from <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noopener noreferrer">OAuth Playground</a>). It's stored only in this browser's local storage and used directly against the Google Tasks API.</p>
+        <div class="token-row">
+          <label class="form-label" style="flex:1;">Access token
+            <input type="password" id="gtasks-token" class="form-input" placeholder="ya29...." autocomplete="off" />
+          </label>
+          <button type="button" class="modal-btn submit" id="gtasks-save-token">Save</button>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn cancel" id="gtasks-load">Load Tasks</button>
+        </div>
+        <p class="status-msg" id="gtasks-status"></p>
+        <div class="task-list" id="gtasks-list"></div>
+        <form id="gtasks-add-form" class="inline-form">
+          <input type="text" id="gtasks-new-title" class="form-input" placeholder="Add a new task…" />
+          <button type="submit" class="modal-btn submit">Add</button>
+        </form>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="modal-github-work" class="modal">
+      <div class="modal-card modal-wide">
+        <h3 class="modal-title">Work List — Create Files in GitHub</h3>
+        <p class="modal-hint">Paste a GitHub personal access token with <code>repo</code> scope. It's stored only in this browser's local storage and sent directly to the GitHub API.</p>
+        <div class="token-row">
+          <label class="form-label" style="flex:1;">Personal access token
+            <input type="password" id="ghwork-token" class="form-input" placeholder="ghp_...." autocomplete="off" />
+          </label>
+          <button type="button" class="modal-btn submit" id="ghwork-save-token">Save</button>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn cancel" id="ghwork-load-repos">Load My Repos</button>
+        </div>
+        <p class="status-msg" id="ghwork-status"></p>
+        <label class="form-label">Repository
+          <select id="ghwork-repo" class="form-input"><option value="">Load repos first…</option></select>
+        </label>
+        <label class="form-label">File path
+          <input type="text" id="ghwork-path" class="form-input" placeholder="e.g. notes/todo.md" />
+        </label>
+        <label class="form-label">Commit message
+          <input type="text" id="ghwork-message" class="form-input" placeholder="e.g. Add todo file" value="Add file via dashboard" />
+        </label>
+        <label class="form-label">File content
+          <textarea id="ghwork-content" class="form-input scratch-textarea" rows="6" placeholder="File contents…"></textarea>
+        </label>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn submit" id="ghwork-create">Create File</button>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="modal-calendar" class="modal">
+      <div class="modal-card modal-wide">
+        <h3 class="modal-title">Time-Block Schedule — Google Calendar</h3>
+        <p class="modal-hint">Uses the same Google token as Tasks, authorized with the <code>calendar</code> scope too. Stored only in this browser's local storage.</p>
+        <div class="token-row">
+          <label class="form-label" style="flex:1;">Access token
+            <input type="password" id="gcal-token" class="form-input" placeholder="ya29...." autocomplete="off" />
+          </label>
+          <button type="button" class="modal-btn submit" id="gcal-save-token">Save</button>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn cancel" id="gcal-load">Load Upcoming Events</button>
+        </div>
+        <p class="status-msg" id="gcal-status"></p>
+        <div class="task-list" id="gcal-list"></div>
+        <form id="gcal-add-form" class="inline-form inline-form-grid">
+          <input type="text" id="gcal-title" class="form-input" placeholder="Event title" required />
+          <input type="date" id="gcal-date" class="form-input" required />
+          <input type="time" id="gcal-start" class="form-input" required />
+          <input type="time" id="gcal-end" class="form-input" required />
+          <button type="submit" class="modal-btn submit">Add Event</button>
+        </form>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="modal-pomodoro" class="modal">
+      <div class="modal-card">
+        <h3 class="modal-title">Pomodoro / Focus Timer</h3>
+        <div class="pomodoro-display" id="pomodoro-display">25:00</div>
+        <div class="pomodoro-presets">
+          <button type="button" class="tag-filter" data-minutes="25">Focus 25</button>
+          <button type="button" class="tag-filter" data-minutes="5">Short Break 5</button>
+          <button type="button" class="tag-filter" data-minutes="15">Long Break 15</button>
+        </div>
+        <div class="modal-actions" style="justify-content:center;">
+          <button type="button" class="modal-btn submit" id="pomodoro-start">Start</button>
+          <button type="button" class="modal-btn cancel" id="pomodoro-pause">Pause</button>
+          <button type="button" class="modal-btn cancel" id="pomodoro-reset">Reset</button>
+        </div>
+        <p class="status-msg" id="pomodoro-status"></p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="modal-scratchpad" class="modal">
+      <div class="modal-card modal-wide">
+        <h3 class="modal-title">Scratchpad / Quick Notes</h3>
+        <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="12" placeholder="Jot anything here… it autosaves to this browser."></textarea>
+        <p class="status-msg" id="scratchpad-status"></p>
+        <div class="modal-actions" style="justify-content:flex-start; flex-wrap:wrap;">
+          <button type="button" class="modal-btn cancel" id="scratchpad-copy">Copy All</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-export-txt">Export .txt</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-export-md">Export .md</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-clear">Clear</button>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="modal-newsfeed" class="modal">
+      <div class="modal-card modal-wide">
+        <h3 class="modal-title">RSS / News Headlines</h3>
+        <div class="news-tabs">
+          <button type="button" class="news-tab active" data-feed="techmeme">Techmeme</button>
+          <button type="button" class="news-tab" data-feed="hackernews">Hacker News</button>
+        </div>
+        <div class="modal-actions" style="justify-content:flex-start;">
+          <button type="button" class="modal-btn cancel" id="newsfeed-refresh">Refresh</button>
+        </div>
+        <p class="status-msg" id="newsfeed-status"></p>
+        <div class="news-list" id="newsfeed-list"></div>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
     <div id="search-meta" class="search-meta" aria-live="polite"></div>
     <div id="workspace-feed"></div>
   </main>
@@ -480,7 +663,64 @@
     // Rolling dates keep time-boxed searches (e.g. "repos created this week") current on every load.
     const isoDaysAgo = days => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 
+    /*
+      Bookmarklets: javascript: links that open several tabs at once. Defined once here so both the browsable
+      "Bookmarklets" cluster (below, in `database`) and the pinned Favorites shortcuts (`pinnedFavorites`,
+      further down) share the exact same cards instead of drifting out of sync.
+    */
+    const bookmarkletItems = [
+      {
+        name: "GitHub + Arena Agent",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub and the Arena AI Agent together.",
+        best: "Starting a GitHub + Arena session",
+        tags: ["bookmarklet", "github", "arena", "agents"],
+        aliases: ["github arena bookmarklet", "open github and arena agent"],
+        detail: "Opens two tabs: GitHub and Arena Agent. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      },
+      {
+        name: "Coding Agents",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/','https://jules.google.com/','https://chatgpt.com/codex/cloud','https://app.all-hands.dev/'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud side by side.",
+        best: "Starting a coding-agent session",
+        tags: ["bookmarklet", "agents", "coding"],
+        aliases: ["coding agents bookmarklet", "open every coding agent"],
+        detail: "Opens five tabs: GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      },
+      {
+        name: "Free Inference Keys",
+        url: "javascript:(function(){['https://console.groq.com/keys','https://aistudio.google.com/api-keys'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens the Groq and Google AI Studio key consoles together.",
+        best: "Collecting free inference API keys",
+        tags: ["bookmarklet", "API", "free"],
+        aliases: ["free inference keys bookmarklet", "groq and gemini keys"],
+        detail: "Opens two tabs: the Groq Cloud API-key console and Google AI Studio API keys. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      },
+      {
+        name: "GitHub + Arena AI + Proton VPN",
+        url: "javascript:(function(){['https://github.com/','https://arena.ai/','https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa'].forEach(url=>window.open(url,'_blank'));})()",
+        desc: "One click opens GitHub, Arena AI, and the Proton VPN Chrome extension listing together.",
+        best: "Daily startup routine",
+        tags: ["bookmarklet", "github", "arena", "vpn"],
+        aliases: ["github arena proton vpn bookmarklet", "open github arena and proton vpn"],
+        detail: "Opens three tabs: GitHub, Arena AI, and the Proton VPN — Fast & Secure Chrome Web Store listing. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
+        bookmarklet: true
+      }
+    ];
+
     const database = {
+      personalagents: {
+        title: "Personal AI Agents — Always-On",
+        summary: "Standing agent sessions that keep working in the background, ready whenever you check in.",
+        items: [
+          { name: "Muse.ai", url: "https://muse.ai/", desc: "An always-on personal AI agent workspace for ongoing research and creative tasks.", best: "Background agent sessions", tags: ["agents", "always-on", "personal"] },
+          { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI's standing Grok bot agent for continuous conversations and tasks.", best: "Persistent Grok sessions", tags: ["agents", "always-on", "grok"] },
+          { name: "Claude Code", url: "https://claude.ai/code", desc: "Anthropic's agentic coding environment for ongoing, code-focused work.", best: "Always-on coding agent", tags: ["agents", "always-on", "coding"] }
+        ]
+      },
       daily: {
         title: "Key Daily Services",
         summary: "Your familiar, high-frequency launch points.",
@@ -492,6 +732,11 @@
           { name: "Proton VPN ChExt", url: "https://chromewebstore.google.com/detail/proton-vpn-fast-secure/jplgfhpmjnbigmhklmmbgecoobifkmpa", desc: "Use a browser VPN connection when privacy or location controls matter.", best: "Private browsing", tags: ["privacy", "security"] },
           { name: "GitHub Codespaces", url: "https://github.com/codespaces", desc: "Launch a cloud development environment directly from a repository.", best: "Cloud development", tags: ["coding", "cloud", "terminal"] }
         ]
+      },
+      bookmarklets: {
+        title: "Bookmarklets",
+        summary: "Click to run instantly, or drag any card's link onto your browser's bookmarks bar.",
+        items: bookmarkletItems
       },
       inference: {
         title: "Inference Engines",
@@ -605,6 +850,60 @@
           { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Use a managed cloud document database.", best: "Document data models", tags: ["database", "NoSQL", "managed"], group: "Databases & backends" }
         ]
       },
+      workingon: {
+        title: "Working On",
+        summary: "In-dashboard tools for what's active right now. Each card opens a modal — nothing leaves this page.",
+        items: [
+          {
+            name: "Tasks List",
+            modal: "modal-google-tasks",
+            desc: "A task list backed by Google Tasks. Connect with an access token to view and add tasks without leaving the dashboard.",
+            best: "Google Tasks, in-dashboard",
+            tags: ["tasks", "google", "API"],
+            aliases: ["google tasks", "to-do list"]
+          },
+          {
+            name: "Work List (GitHub)",
+            modal: "modal-github-work",
+            desc: "Pick a repository and create a file in it directly from the dashboard, backed by the GitHub API.",
+            best: "Creating files in a repo",
+            tags: ["github", "API", "repos"],
+            aliases: ["github work list", "create file in repo"]
+          },
+          {
+            name: "Time-Block Schedule",
+            modal: "modal-calendar",
+            desc: "A mini agenda backed by Google Calendar. Review upcoming events and add new ones in place.",
+            best: "Google Calendar, in-dashboard",
+            tags: ["calendar", "google", "API"],
+            aliases: ["mini agenda", "google calendar", "time blocking"]
+          },
+          {
+            name: "Pomodoro / Focus Timer",
+            modal: "modal-pomodoro",
+            desc: "A visual countdown timer for focus sprints and breaks, right on the dashboard.",
+            best: "Timed focus sprints",
+            tags: ["focus", "timer", "productivity"],
+            aliases: ["pomodoro timer", "focus timer"]
+          },
+          {
+            name: "Scratchpad / Quick Notes",
+            modal: "modal-scratchpad",
+            desc: "A quick notes pad that autosaves locally and exports to a text or markdown file.",
+            best: "Fast, exportable notes",
+            tags: ["notes", "scratchpad", "export"],
+            aliases: ["quick notes", "notepad"]
+          },
+          {
+            name: "RSS / News Headlines",
+            modal: "modal-newsfeed",
+            desc: "Top headline summaries pulled live from Techmeme and Hacker News.",
+            best: "Skimming tech headlines",
+            tags: ["news", "RSS", "headlines"],
+            aliases: ["techmeme", "hacker news", "news feed"]
+          }
+        ]
+      },
       technews: {
         title: "Tech News",
         summary: "A compact launchpad for daily technical reading and feeds.",
@@ -711,52 +1010,15 @@
     let recentLaunches = [];
 
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
-    /*
-      Pinned favorites: bookmarklets that always sit at the front of the Favorites grid, independently of the
-      saved list, because each one launches a whole workflow in a single click. They live outside `database`
-      (no cluster of their own) and carry a `javascript:` URL, so the card link both runs the bookmarklet and
-      can be dragged onto the browser's bookmarks bar.
-    */
-    const pinnedFavorites = [
-      {
-        id: "bookmarklets:github-arena",
-        sectionKey: "bookmarklets",
-        name: "GitHub + Arena Agent",
-        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/'].forEach(url=>window.open(url,'_blank'));})()",
-        desc: "One click opens GitHub and the Arena AI Agent together.",
-        best: "Starting a GitHub + Arena session",
-        tags: ["bookmarklet", "github", "arena", "agents"],
-        aliases: ["github arena bookmarklet", "open github and arena agent"],
-        detail: "Opens two tabs: GitHub and Arena Agent. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
-        bookmarklet: true
-      },
-      {
-        id: "bookmarklets:coding-agents",
-        sectionKey: "bookmarklets",
-        name: "Coding Agents",
-        url: "javascript:(function(){['https://github.com/','https://arena.ai/agent/','https://jules.google.com/','https://chatgpt.com/codex/cloud','https://app.all-hands.dev/'].forEach(url=>window.open(url,'_blank'));})()",
-        desc: "One click opens GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud side by side.",
-        best: "Starting a coding-agent session",
-        tags: ["bookmarklet", "agents", "coding"],
-        aliases: ["coding agents bookmarklet", "open every coding agent"],
-        detail: "Opens five tabs: GitHub, Arena Agent, Jules, Codex Cloud, and OpenHands Cloud. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
-        bookmarklet: true
-      },
-      {
-        id: "bookmarklets:free-inference-keys",
-        sectionKey: "bookmarklets",
-        name: "Free Inference Keys",
-        url: "javascript:(function(){['https://console.groq.com/keys','https://aistudio.google.com/api-keys'].forEach(url=>window.open(url,'_blank'));})()",
-        desc: "One click opens the Groq and Google AI Studio key consoles together.",
-        best: "Collecting free inference API keys",
-        tags: ["bookmarklet", "API", "free"],
-        aliases: ["free inference keys bookmarklet", "groq and gemini keys"],
-        detail: "Opens two tabs: the Groq Cloud API-key console and Google AI Studio API keys. Allow pop-ups if the browser blocks the second tab, or drag this card's link onto your bookmarks bar to run it from anywhere.",
-        bookmarklet: true
-      }
-    ];
     const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    /*
+      Pinned favorites: bookmarklets that always sit at the front of the Favorites grid, independently of the
+      saved list, because each one launches a whole workflow in a single click. They reuse the exact same
+      `bookmarkletItems` cards shown in the browsable "Bookmarklets" cluster, tagged with that cluster's section
+      key so ids line up, so the card link both runs the bookmarklet and can be dragged onto the bookmarks bar.
+    */
+    const pinnedFavorites = bookmarkletItems.map(item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` }));
     const isExternal = url => /^https?:\/\//i.test(url);
     const isTypingTarget = element => Boolean(element) && (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
     // Search shortcuts: items with a `template` swap {q} for the section's query; with no query they open `url`.
@@ -917,14 +1179,30 @@
         badge.title = "Click the card to run it, or drag the card onto your bookmarks bar.";
         card.appendChild(badge);
       }
+      if (item.modal) {
+        // Cards that open an in-page dialog instead of navigating anywhere.
+        card.classList.add("modal-trigger");
+        const badge = document.createElement("p");
+        badge.className = "bookmarklet-badge modal-badge";
+        badge.textContent = "🧩 Opens here";
+        badge.title = "Click the card to open this tool in a dialog on this page.";
+        card.appendChild(badge);
+      }
 
       const link = document.createElement("a");
       link.className = "card-main";
-      link.href = item.url;
-      if (isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
-      const action = item.bookmarklet ? "Run" : "Open";
-      link.setAttribute("aria-label", `${action} ${item.name}${isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
-      link.addEventListener("click", () => trackLaunch(item));
+      link.href = item.modal ? "#" : item.url;
+      if (!item.modal && isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
+      const action = item.bookmarklet ? "Run" : item.modal ? "Open" : "Open";
+      link.setAttribute("aria-label", `${action} ${item.name}${!item.modal && isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
+      if (item.modal) {
+        link.addEventListener("click", event => {
+          event.preventDefault();
+          openModal(item.modal);
+        });
+      } else {
+        link.addEventListener("click", () => trackLaunch(item));
+      }
 
       const title = document.createElement("h3");
       title.className = "card-title";
@@ -967,9 +1245,15 @@
       const copy = document.createElement("button");
       copy.className = "card-action";
       copy.type = "button";
-      copy.textContent = "Copy";
-      copy.title = "Copy link";
-      copy.addEventListener("click", () => copyLink(link.href, copy)); // current href, so search cards copy the live query URL
+      if (item.modal) {
+        copy.textContent = "Open";
+        copy.title = "Open this tool";
+        copy.addEventListener("click", () => openModal(item.modal));
+      } else {
+        copy.textContent = "Copy";
+        copy.title = "Copy link";
+        copy.addEventListener("click", () => copyLink(link.href, copy)); // current href, so search cards copy the live query URL
+      }
       actions.append(favorite, copy);
 
       if (item.isCustom) {
@@ -994,7 +1278,7 @@
       detailText.textContent = item.detail || item.desc;
       const url = document.createElement("div");
       url.className = "detail-url";
-      url.textContent = item.url;
+      url.textContent = item.modal ? "Opens as a dialog on this page — no URL to leave." : item.url;
       panel.append(detailTitle, detailText, url);
       details.append(summary, panel);
       details.addEventListener("toggle", () => { if (details.open) closeOtherDetails(details); });
@@ -1084,11 +1368,35 @@
 
     function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
 
+    // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
+    // with the pinned bookmarklets held at the front so they survive any change to the saved list.
+    function getFavoritesList(allItems) {
+      const savedFavorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
+      const pinned = pinnedFavorites.filter(item => !savedFavorites.some(saved => saved.id === item.id));
+      return [...pinned, ...savedFavorites];
+    }
+
+    function buildFavoritesSection(allItems) {
+      const favorites = getFavoritesList(allItems);
+      const favoriteSection = document.createElement("section");
+      favoriteSection.className = "dashboard-section home-section";
+      favoriteSection.dataset.home = "true";
+      favoriteSection.dataset.homeKey = "favorites";
+      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points, plus pinned bookmarklets. Use ☆ Save on any card to change your list."));
+      const favoriteGrid = document.createElement("div");
+      favoriteGrid.className = "grid";
+      if (favorites.length) renderCards(favorites, favoriteGrid);
+      else favoriteGrid.innerHTML = '<div class="empty-state">No favorites saved yet. Use the ☆ Save button on any service card.</div>';
+      favoriteSection.appendChild(favoriteGrid);
+      return favoriteSection;
+    }
+
     function renderHomeSections(feed, allItems) {
       if (recentLaunches.length > 0) {
         const recentSection = document.createElement("section");
         recentSection.className = "dashboard-section home-section";
         recentSection.dataset.home = "true";
+        recentSection.dataset.homeKey = "recent";
         recentSection.appendChild(makeSectionHeader("Recently Launched", "Your most recently accessed services and shortcuts."));
         const recentGrid = document.createElement("div");
         recentGrid.className = "grid";
@@ -1105,21 +1413,7 @@
         feed.appendChild(recentSection);
       }
 
-      // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
-      // with the pinned bookmarklets held at the front so they survive any change to the saved list.
-      const savedFavorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
-      const pinned = pinnedFavorites.filter(item => !savedFavorites.some(saved => saved.id === item.id));
-      const favorites = [...pinned, ...savedFavorites];
-      const favoriteSection = document.createElement("section");
-      favoriteSection.className = "dashboard-section home-section";
-      favoriteSection.dataset.home = "true";
-      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points, plus pinned bookmarklets. Use ☆ Save on any card to change your list."));
-      const favoriteGrid = document.createElement("div");
-      favoriteGrid.className = "grid";
-      if (favorites.length) renderCards(favorites, favoriteGrid);
-      else favoriteGrid.innerHTML = '<div class="empty-state">No favorites saved yet. Use the ☆ Save button on any service card.</div>';
-      favoriteSection.appendChild(favoriteGrid);
-      feed.appendChild(favoriteSection);
+      feed.appendChild(buildFavoritesSection(allItems));
 
       const workflows = [
         { title: "Start coding session", desc: "Open your repository, launch a workspace, then bring in an AI assistant.", steps: ["GitHub", "Codespaces", "ChatGPT"], url: "https://github.com", tags: ["coding", "daily"] },
@@ -1129,6 +1423,7 @@
       const workflowSection = document.createElement("section");
       workflowSection.className = "dashboard-section home-section";
       workflowSection.dataset.home = "true";
+      workflowSection.dataset.homeKey = "workflows";
       workflowSection.appendChild(makeSectionHeader("Workflows", "Task-first launch sequences for common work."));
       const workflowGrid = document.createElement("div");
       workflowGrid.className = "grid";
@@ -1167,6 +1462,7 @@
       const taskSection = document.createElement("section");
       taskSection.className = "dashboard-section home-section";
       taskSection.dataset.home = "true";
+      taskSection.dataset.homeKey = "tasks";
       taskSection.appendChild(makeSectionHeader("Inference tasks", "Start from the outcome you want, not the provider name."));
       const taskGrid = document.createElement("div");
       taskGrid.className = "grid";
@@ -1337,6 +1633,7 @@
       feed.replaceChildren();
       const allItems = flattenItems();
       if (state.activeSection === "all") renderHomeSections(feed, allItems);
+      else if (state.activeSection === "favorites") feed.appendChild(buildFavoritesSection(allItems));
 
       Object.entries(database).forEach(([key, section]) => {
         const sectionElement = document.createElement("section");
@@ -1375,6 +1672,8 @@
       });
 
       Object.keys(database).forEach(key => { const count = document.getElementById(`cnt-${key}`); if (count) count.textContent = database[key].items.length; });
+      const favCount = document.getElementById("cnt-favorites");
+      if (favCount) favCount.textContent = getFavoritesList(allItems).length;
       // Re-apply any typed search-shortcut queries (also covers saved search cards shown in Favorites).
       Object.keys(database).forEach(key => { if (database[key].searchBox) updateTemplatedCards(key); });
     }
@@ -1384,7 +1683,7 @@
       const normalizedQuery = state.query.trim().toLowerCase();
       let resultCount = 0;
       document.querySelectorAll(".home-section").forEach(section => {
-        const allowed = state.activeSection === "all";
+        const allowed = state.activeSection === "all" || (state.activeSection === "favorites" && section.dataset.homeKey === "favorites");
         let matches = 0;
         section.querySelectorAll(".card").forEach(card => { const match = allowed && matchesQuery(card, normalizedQuery); card.classList.toggle("is-filtered", !match); if (match) matches++; });
         section.classList.toggle("is-hidden", !allowed || matches === 0);
@@ -1404,6 +1703,7 @@
       const clear = document.getElementById("clear-search");
       clear.style.display = state.query ? "block" : "none";
       if (state.query) meta.textContent = `${resultCount} ${resultCount === 1 ? "result" : "results"} for “${state.query}”${state.activeSection !== "all" ? " in this cluster" : ""}.`;
+      else if (state.activeSection === "favorites") meta.textContent = `${resultCount} favorites saved.`;
       else if (state.activeSection !== "all") meta.textContent = `${resultCount} tools in ${database[state.activeSection].title}.`;
       else meta.textContent = "Tip: search by tool, outcome, or a tag such as “coding”, “API”, or “web search”.";
     }
@@ -1570,6 +1870,402 @@
         });
       }
 
+    /* ----------------------------------------------------------------------------------------------------
+       "Working On" tools: every modal below is wired directly to a browser-side API call (GitHub, Google
+       Tasks, Google Calendar) using a token the user pastes in and that is kept only in localStorage, plus
+       two fully local tools (Pomodoro timer, Scratchpad) and a headlines fetch (Techmeme via RSS, Hacker
+       News via its public API). Nothing here talks to any server other than the API being used.
+    ---------------------------------------------------------------------------------------------------- */
+    function openModal(id) {
+      const dialog = document.getElementById(id);
+      if (dialog && typeof dialog.showModal === "function") dialog.showModal();
+    }
+
+    function setStatus(elementId, message, tone) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.textContent = message || "";
+      el.classList.toggle("is-error", tone === "error");
+      el.classList.toggle("is-success", tone === "success");
+    }
+
+    function initModalCloseButtons() {
+      document.querySelectorAll("dialog.modal").forEach(dialog => {
+        dialog.querySelectorAll("[data-close-modal]").forEach(btn => btn.addEventListener("click", () => dialog.close()));
+        // Clicking the ::backdrop (outside the modal-card) closes the dialog, matching native <dialog> expectations.
+        dialog.addEventListener("click", event => { if (event.target === dialog) dialog.close(); });
+      });
+    }
+
+    // ---- Tasks List (Google Tasks API) ----------------------------------------------------------------
+    function initGoogleTasksTool() {
+      const tokenInput = document.getElementById("gtasks-token");
+      const saved = (() => { try { return localStorage.getItem("dash-google-token") || ""; } catch (e) { return ""; } })();
+      if (tokenInput) tokenInput.value = saved;
+
+      document.getElementById("gtasks-save-token")?.addEventListener("click", () => {
+        try { localStorage.setItem("dash-google-token", tokenInput.value.trim()); } catch (e) {}
+        setStatus("gtasks-status", "Token saved to this browser.", "success");
+      });
+
+      async function loadTasks() {
+        const token = tokenInput.value.trim();
+        const list = document.getElementById("gtasks-list");
+        if (!token) { setStatus("gtasks-status", "Paste an access token first.", "error"); return; }
+        setStatus("gtasks-status", "Loading task lists…");
+        try {
+          const listsRes = await fetch("https://tasks.googleapis.com/tasks/v1/users/@me/lists", { headers: { Authorization: `Bearer ${token}` } });
+          if (!listsRes.ok) throw new Error(`Google Tasks API error (${listsRes.status})`);
+          const listsData = await listsRes.json();
+          const firstList = listsData.items?.[0];
+          if (!firstList) { setStatus("gtasks-status", "No task lists found on this account.", "error"); list.replaceChildren(); return; }
+          const tasksRes = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${firstList.id}/tasks?showCompleted=true`, { headers: { Authorization: `Bearer ${token}` } });
+          if (!tasksRes.ok) throw new Error(`Google Tasks API error (${tasksRes.status})`);
+          const tasksData = await tasksRes.json();
+          list.replaceChildren();
+          (tasksData.items || []).forEach(task => {
+            const row = document.createElement("label");
+            row.className = "task-item";
+            row.innerHTML = `<input type="checkbox" ${task.status === "completed" ? "checked" : ""} /><span><span>${task.title || "(untitled)"}</span>${task.notes ? `<div class="task-item-meta">${task.notes}</div>` : ""}</span>`;
+            const checkbox = row.querySelector("input");
+            checkbox.addEventListener("change", async () => {
+              try {
+                await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${firstList.id}/tasks/${task.id}`, {
+                  method: "PATCH",
+                  headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                  body: JSON.stringify({ status: checkbox.checked ? "completed" : "needsAction" })
+                });
+              } catch (e) { setStatus("gtasks-status", "Could not update task.", "error"); }
+            });
+            list.appendChild(row);
+          });
+          if (!tasksData.items?.length) list.innerHTML = '<div class="empty-state">No tasks in this list yet.</div>';
+          document.getElementById("gtasks-list").dataset.listId = firstList.id;
+          setStatus("gtasks-status", `Loaded “${firstList.title}”.`, "success");
+        } catch (error) {
+          setStatus("gtasks-status", error.message || "Could not load tasks.", "error");
+        }
+      }
+      document.getElementById("gtasks-load")?.addEventListener("click", loadTasks);
+
+      document.getElementById("gtasks-add-form")?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const token = tokenInput.value.trim();
+        const titleInput = document.getElementById("gtasks-new-title");
+        const title = titleInput.value.trim();
+        const listId = document.getElementById("gtasks-list").dataset.listId;
+        if (!token || !title) return;
+        if (!listId) { setStatus("gtasks-status", "Load tasks first so a list is selected.", "error"); return; }
+        try {
+          const res = await fetch(`https://tasks.googleapis.com/tasks/v1/lists/${listId}/tasks`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ title })
+          });
+          if (!res.ok) throw new Error(`Could not add task (${res.status})`);
+          titleInput.value = "";
+          setStatus("gtasks-status", "Task added.", "success");
+          loadTasks();
+        } catch (error) {
+          setStatus("gtasks-status", error.message, "error");
+        }
+      });
+    }
+
+    // ---- Work List (GitHub API — create files in a repo) ----------------------------------------------
+    function initGithubWorkTool() {
+      const tokenInput = document.getElementById("ghwork-token");
+      const saved = (() => { try { return localStorage.getItem("dash-github-token") || ""; } catch (e) { return ""; } })();
+      if (tokenInput) tokenInput.value = saved;
+
+      document.getElementById("ghwork-save-token")?.addEventListener("click", () => {
+        try { localStorage.setItem("dash-github-token", tokenInput.value.trim()); } catch (e) {}
+        setStatus("ghwork-status", "Token saved to this browser.", "success");
+      });
+
+      document.getElementById("ghwork-load-repos")?.addEventListener("click", async () => {
+        const token = tokenInput.value.trim();
+        const select = document.getElementById("ghwork-repo");
+        if (!token) { setStatus("ghwork-status", "Paste a personal access token first.", "error"); return; }
+        setStatus("ghwork-status", "Loading repositories…");
+        try {
+          const res = await fetch("https://api.github.com/user/repos?per_page=100&sort=updated", {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
+          });
+          if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
+          const repos = await res.json();
+          select.replaceChildren();
+          repos.forEach(repo => {
+            const option = document.createElement("option");
+            option.value = repo.full_name;
+            option.textContent = repo.full_name;
+            option.dataset.branch = repo.default_branch;
+            select.appendChild(option);
+          });
+          setStatus("ghwork-status", `Loaded ${repos.length} repositories.`, "success");
+        } catch (error) {
+          setStatus("ghwork-status", error.message, "error");
+        }
+      });
+
+      document.getElementById("ghwork-create")?.addEventListener("click", async () => {
+        const token = tokenInput.value.trim();
+        const select = document.getElementById("ghwork-repo");
+        const repo = select.value;
+        const path = document.getElementById("ghwork-path").value.trim().replace(/^\/+/, "");
+        const message = document.getElementById("ghwork-message").value.trim() || "Add file via dashboard";
+        const content = document.getElementById("ghwork-content").value;
+        if (!token || !repo || !path) { setStatus("ghwork-status", "Pick a repo and a file path first.", "error"); return; }
+        setStatus("ghwork-status", "Creating file…");
+        try {
+          const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`, {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+            body: JSON.stringify({ message, content: btoa(unescape(encodeURIComponent(content))) })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
+          setStatus("ghwork-status", `Created ${path} in ${repo}.`, "success");
+        } catch (error) {
+          setStatus("ghwork-status", error.message, "error");
+        }
+      });
+    }
+
+    // ---- Time-Block Schedule (Google Calendar API) -----------------------------------------------------
+    function initGoogleCalendarTool() {
+      const tokenInput = document.getElementById("gcal-token");
+      const saved = (() => { try { return localStorage.getItem("dash-google-token") || ""; } catch (e) { return ""; } })();
+      if (tokenInput) tokenInput.value = saved;
+
+      document.getElementById("gcal-save-token")?.addEventListener("click", () => {
+        try { localStorage.setItem("dash-google-token", tokenInput.value.trim()); } catch (e) {}
+        setStatus("gcal-status", "Token saved to this browser.", "success");
+      });
+
+      async function loadEvents() {
+        const token = tokenInput.value.trim();
+        const list = document.getElementById("gcal-list");
+        if (!token) { setStatus("gcal-status", "Paste an access token first.", "error"); return; }
+        setStatus("gcal-status", "Loading upcoming events…");
+        try {
+          const timeMin = new Date().toISOString();
+          const timeMax = new Date(Date.now() + 7 * 86400000).toISOString();
+          const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=15`;
+          const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+          if (!res.ok) throw new Error(`Google Calendar API error (${res.status})`);
+          const data = await res.json();
+          list.replaceChildren();
+          (data.items || []).forEach(event => {
+            const start = event.start?.dateTime || event.start?.date || "";
+            const row = document.createElement("div");
+            row.className = "task-item";
+            row.innerHTML = `<span><span>${event.summary || "(untitled event)"}</span><div class="task-item-meta">${start ? new Date(start).toLocaleString() : ""}</div></span>`;
+            list.appendChild(row);
+          });
+          if (!data.items?.length) list.innerHTML = '<div class="empty-state">No events in the next 7 days.</div>';
+          setStatus("gcal-status", `Loaded ${data.items?.length || 0} upcoming events.`, "success");
+        } catch (error) {
+          setStatus("gcal-status", error.message, "error");
+        }
+      }
+      document.getElementById("gcal-load")?.addEventListener("click", loadEvents);
+
+      document.getElementById("gcal-add-form")?.addEventListener("submit", async event => {
+        event.preventDefault();
+        const token = tokenInput.value.trim();
+        const title = document.getElementById("gcal-title").value.trim();
+        const date = document.getElementById("gcal-date").value;
+        const start = document.getElementById("gcal-start").value;
+        const end = document.getElementById("gcal-end").value;
+        if (!token || !title || !date || !start || !end) { setStatus("gcal-status", "Fill in every field.", "error"); return; }
+        try {
+          const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              summary: title,
+              start: { dateTime: new Date(`${date}T${start}`).toISOString() },
+              end: { dateTime: new Date(`${date}T${end}`).toISOString() }
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error?.message || `Could not add event (${res.status})`);
+          event.target.reset();
+          setStatus("gcal-status", "Event added.", "success");
+          loadEvents();
+        } catch (error) {
+          setStatus("gcal-status", error.message, "error");
+        }
+      });
+    }
+
+    // ---- Pomodoro / Focus Timer ------------------------------------------------------------------------
+    function initPomodoroTool() {
+      const display = document.getElementById("pomodoro-display");
+      let totalSeconds = 25 * 60;
+      let remaining = totalSeconds;
+      let timerId = null;
+      const render = () => {
+        const mins = String(Math.floor(remaining / 60)).padStart(2, "0");
+        const secs = String(remaining % 60).padStart(2, "0");
+        if (display) display.textContent = `${mins}:${secs}`;
+      };
+      const beep = () => {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          osc.frequency.value = 880;
+          osc.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.4);
+        } catch (e) { /* audio isn't essential */ }
+      };
+      document.querySelectorAll(".pomodoro-presets [data-minutes]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          clearInterval(timerId); timerId = null;
+          totalSeconds = Number(btn.dataset.minutes) * 60;
+          remaining = totalSeconds;
+          render();
+          setStatus("pomodoro-status", `Set to ${btn.dataset.minutes} minutes.`);
+        });
+      });
+      document.getElementById("pomodoro-start")?.addEventListener("click", () => {
+        if (timerId) return;
+        setStatus("pomodoro-status", "Running…");
+        timerId = setInterval(() => {
+          remaining -= 1;
+          if (remaining <= 0) {
+            clearInterval(timerId); timerId = null;
+            remaining = 0;
+            render();
+            beep();
+            setStatus("pomodoro-status", "Session complete!", "success");
+            showToast("Focus session complete!");
+            return;
+          }
+          render();
+        }, 1000);
+      });
+      document.getElementById("pomodoro-pause")?.addEventListener("click", () => {
+        clearInterval(timerId); timerId = null;
+        setStatus("pomodoro-status", "Paused.");
+      });
+      document.getElementById("pomodoro-reset")?.addEventListener("click", () => {
+        clearInterval(timerId); timerId = null;
+        remaining = totalSeconds;
+        render();
+        setStatus("pomodoro-status", "Reset.");
+      });
+      render();
+    }
+
+    // ---- Scratchpad / Quick Notes ----------------------------------------------------------------------
+    function initScratchpadTool() {
+      const textarea = document.getElementById("scratchpad-text");
+      if (!textarea) return;
+      try { textarea.value = localStorage.getItem("dash-scratchpad") || ""; } catch (e) {}
+      let saveTimer;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => {
+          try { localStorage.setItem("dash-scratchpad", textarea.value); } catch (e) {}
+          setStatus("scratchpad-status", "Saved locally.", "success");
+        }, 400);
+      });
+      document.getElementById("scratchpad-copy")?.addEventListener("click", () => copyText(textarea.value, document.getElementById("scratchpad-copy")));
+      const exportAs = extension => {
+        const blob = new Blob([textarea.value], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `scratchpad-${isoDaysAgo(0)}.${extension}`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      };
+      document.getElementById("scratchpad-export-txt")?.addEventListener("click", () => exportAs("txt"));
+      document.getElementById("scratchpad-export-md")?.addEventListener("click", () => exportAs("md"));
+      document.getElementById("scratchpad-clear")?.addEventListener("click", () => {
+        textarea.value = "";
+        try { localStorage.setItem("dash-scratchpad", ""); } catch (e) {}
+        setStatus("scratchpad-status", "Cleared.");
+      });
+    }
+
+    // ---- RSS / News Headlines (Techmeme + Hacker News) -------------------------------------------------
+    function initNewsFeedTool() {
+      let activeFeed = "techmeme";
+      async function loadHackerNews() {
+        const idsRes = await fetch("https://hacker-news.firebaseio.com/v0/topstories.json");
+        if (!idsRes.ok) throw new Error(`Hacker News API error (${idsRes.status})`);
+        const ids = (await idsRes.json()).slice(0, 10);
+        const items = await Promise.all(ids.map(id => fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`).then(r => r.json())));
+        return items.filter(Boolean).map(item => ({ title: item.title, url: item.url || `https://news.ycombinator.com/item?id=${item.id}`, source: `${item.score ?? 0} points · ${item.descendants ?? 0} comments` }));
+      }
+      async function loadTechmeme() {
+        const feedUrl = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://www.techmeme.com/feed.xml");
+        const res = await fetch(feedUrl);
+        if (!res.ok) throw new Error(`Techmeme feed error (${res.status})`);
+        const data = await res.json();
+        if (data.status !== "ok") throw new Error("Techmeme feed is unavailable right now.");
+        return (data.items || []).slice(0, 10).map(item => ({ title: item.title, url: item.link, source: item.pubDate ? new Date(item.pubDate).toLocaleString() : "Techmeme" }));
+      }
+      async function refresh() {
+        const list = document.getElementById("newsfeed-list");
+        setStatus("newsfeed-status", "Loading headlines…");
+        try {
+          const items = activeFeed === "techmeme" ? await loadTechmeme() : await loadHackerNews();
+          list.replaceChildren();
+          items.forEach(item => {
+            const row = document.createElement("div");
+            row.className = "news-item";
+            const link = document.createElement("a");
+            link.href = item.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.textContent = item.title;
+            const source = document.createElement("div");
+            source.className = "news-source"; source.textContent = item.source;
+            row.append(link, source);
+            list.appendChild(row);
+          });
+          if (!items.length) list.innerHTML = '<div class="empty-state">No headlines returned.</div>';
+          setStatus("newsfeed-status", `Loaded ${items.length} headlines from ${activeFeed === "techmeme" ? "Techmeme" : "Hacker News"}.`, "success");
+        } catch (error) {
+          const fallbackUrl = activeFeed === "techmeme" ? "https://www.techmeme.com" : "https://news.ycombinator.com";
+          list.innerHTML = `<div class="empty-state">Could not load headlines here (${error.message}). <a href="${fallbackUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);">Open ${activeFeed === "techmeme" ? "Techmeme" : "Hacker News"} directly ↗</a></div>`;
+          setStatus("newsfeed-status", "Live fetch failed — showing a direct link instead.", "error");
+        }
+      }
+      document.querySelectorAll(".news-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".news-tab").forEach(t => t.classList.toggle("active", t === tab));
+          activeFeed = tab.dataset.feed;
+          refresh();
+        });
+      });
+      document.getElementById("newsfeed-refresh")?.addEventListener("click", refresh);
+      // Load the first feed automatically the first time this modal is opened.
+      const newsDialog = document.getElementById("modal-newsfeed");
+      if (newsDialog) {
+        let loadedOnce = false;
+        const observer = new MutationObserver(() => {
+          if (newsDialog.open && !loadedOnce) { loadedOnce = true; refresh(); }
+        });
+        observer.observe(newsDialog, { attributes: true, attributeFilter: ["open"] });
+      }
+    }
+
+    function initWorkingOnTools() {
+      initModalCloseButtons();
+      initGoogleTasksTool();
+      initGithubWorkTool();
+      initGoogleCalendarTool();
+      initPomodoroTool();
+      initScratchpadTool();
+      initNewsFeedTool();
+    }
+
+    initWorkingOnTools();
     initialize();
   </script>
 </body>

@@ -127,10 +127,26 @@ Above the editor sits a one-line bar showing exactly where the note is going:
   last error — the same information as the status lines, without needing the
   GitHub panel open.
 
-`scratch` is also the **default selected repo**: when it exists it wins over a
-previously chosen repo (which stays in the dropdown), so notes keep landing in
-one predictable place. Only if `scratch` doesn't exist does the remembered
-choice take over.
+### `scratch` is always the default target
+
+The notes repo isn't something the dashboard *discovers* — it's the default it
+aims at. `<your-account>/scratch` is offered in the repository picker even when
+GitHub's listing doesn't mention it, marked **_(default)_**, and it is selected
+ahead of any previously used repo:
+
+- If GitHub's listing has it → selected.
+- If the listing lags behind a repo that was just created, or the app is
+  installed on *selected* repositories so `scratch` isn't in the installation →
+  it is still offered and selected, and saving writes to it.
+- If it doesn't exist at all → it's created (see above) and then selected.
+- If the app isn't allowed to create it → it stays selected and the panel says
+  exactly which permission to grant; nothing silently writes elsewhere.
+- Only an explicit pick in the dropdown changes the target for that session.
+
+If a save fails because the app genuinely can't reach `<account>/scratch`
+(e.g. the repo exists but was never added to the installation), the panel names
+the repo and links to **GitHub → Settings → Installations** to add it, then
+**Re-check connection** picks it up.
 
 ## Small screens
 
@@ -214,8 +230,9 @@ page you should never need it.
 | *"Couldn't confirm the installation"* | Click **Re-check connection**. If the app was deleted on GitHub, **Disconnect** and set up again. |
 | `Resource not accessible by integration` | The app isn't installed on that repository, or you removed **Contents: write**. Fix it in the app's installation settings. |
 | *"couldn't create the `scratch` repo"* | The app lacks **Repository creation: write**. Grant it in the app's permissions and accept it on the installation, create `scratch` yourself and add it to the app, or `Disconnect → Set up GitHub saving`. Saving to another repo still works. |
-| The repo dropdown has no `scratch` | Click **Use scratch repo** to create it, or **Re-check connection** after adding it to the installation by hand. |
+| The repo dropdown has no `scratch` | It should always be there, marked *(default)*. If saving to it fails, add the repo to the app's installation and click **Re-check connection** — or click **Use scratch repo** to create it. |
 | Notes keep landing in one file | The file path is fixed once you pick it — click **New dated file** for a fresh `notes-<date>-<time>.md`. |
+| Notes land in a repo that isn't `scratch` | Only an explicit dropdown pick does that, and only for the session — reopen the panel and `scratch` is selected again. If `scratch` isn't listed, it will still be offered as *(default)*. |
 | Repo dropdown is empty | The app isn't installed anywhere yet → **Install on a repository**. |
 | First save says the file already exists | Expected — it never guesses. **Pull latest** to adopt it, or **Overwrite anyway**. |
 | `409` / *"sha … does not match"* | The file changed at the same moment; save again or pull first. |

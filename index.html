@@ -3370,31 +3370,53 @@
 
       // Silent by default: the background verification pass shouldn't stomp on a message the user just earned
       // (e.g. "Connected as @you"). callers that want the summary pass announce: true.
+      // `owner/scratch` — the repo these notes belong in, whether or not GitHub's listing already shows it.
+      function scratchRepoFullName() {
+        const connection = ghConnection();
+        const owner = connection.kind === "app"
+          ? (connection.app.installation_account || connection.app.owner || "")
+          : "";
+        const remembered = ghReadStore(GH.keys.repo);
+        const base = owner || (remembered.includes("/") ? remembered.split("/")[0] : "");
+        return base ? `${base}/${SCRATCH_REPO}` : SCRATCH_REPO;
+      }
+
       function renderRepoOptions(repos) {
-        if (!repoSelect) return;
+        if (!repoSelect) return { scratch: false, scratchValue: "" };
         const previous = ghReadStore(GH.keys.repo) || repoSelect.value;
+        const scratchEntry = repos.find(repo => repo.name === SCRATCH_REPO) || null;
+        const scratchValue = scratchEntry ? scratchEntry.full_name : scratchRepoFullName();
+
         repoSelect.replaceChildren();
         if (!repos.length) {
-          const option = document.createElement("option");
-          option.value = "";
-          option.textContent = "No repositories yet — Use scratch repo creates one";
-          repoSelect.appendChild(option);
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "No repositories yet — Use scratch repo creates one";
+          repoSelect.appendChild(placeholder);
         }
         repos.forEach(repo => {
           const option = document.createElement("option");
           option.value = repo.full_name;
-          option.textContent = repo.full_name;
+          option.textContent = repo.name === SCRATCH_REPO ? `${repo.full_name} (default)` : repo.full_name;
           repoSelect.appendChild(option);
         });
-        const match = repos.find(repo => repo.full_name === previous);
-        const scratch = repos.find(repo => repo.name === SCRATCH_REPO);
-        // `scratch` is the default notes repo, so it wins over a stale remembered choice; only when it
-        // doesn't exist do we fall back to what was picked before, then to whatever is first.
-        if (scratch) repoSelect.value = scratch.full_name;
-        else if (match) repoSelect.value = match.full_name;
-        else if (repos.length) repoSelect.value = repos[0].full_name;
-        if (repos.length) ghWriteStore(GH.keys.repo, repoSelect.value);
-        return { scratch: Boolean(scratch) };
+        // The listing can lag behind a repo we just created, or omit it entirely when the app is installed on
+        // selected repositories. Either way `scratch` stays offered and selected — it is the default target,
+        // not something that has to be discovered first.
+        if (scratchValue && !repos.some(repo => repo.full_name === scratchValue)) {
+          const option = document.createElement("option");
+          option.value = scratchValue;
+          option.textContent = `${scratchValue} (default)`;
+          repoSelect.insertBefore(option, repoSelect.firstChild);
+        }
+        repoSelect.value = scratchValue || "";
+        if (!repoSelect.value) {
+          // Only reachable if there is no account to derive `owner/scratch` from (e.g. a pasted token).
+          const match = repos.find(repo => repo.full_name === previous);
+          repoSelect.value = match ? match.full_name : (repos.length ? repos[0].full_name : "");
+        }
+        if (repoSelect.value) ghWriteStore(GH.keys.repo, repoSelect.value);
+        return { scratch: Boolean(scratchEntry), scratchValue: repoSelect.value || scratchValue };
       }
 
       function showRepoHelp(html) {
@@ -3406,10 +3428,16 @@
       async function loadRepos({ announce = false, createScratch = true } = {}) {
         let hasScratch = false;
         try {
-          const res = await ghAuthorizedFetch("/installation/repositories?per_page=100");
+          // App installations list through the installation endpoint; a pasted token can't (it isn't an
+          // installation), so it lists the token owner's repos instead.
+          const connection = ghConnection();
+          const endpoint = connection.kind === "token"
+            ? "/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member"
+            : "/installation/repositories?per_page=100";
+          const res = await ghAuthorizedFetch(endpoint);
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
-          const repos = data.repositories || [];
+          const repos = Array.isArray(data) ? data : (data.repositories || []);
           if (!repoSelect) return;
           const result = renderRepoOptions(repos);
           hasScratch = Boolean(result && result.scratch);
@@ -3558,7 +3586,7 @@
             if (res.status === 409 || /does not match/i.test(data.message || "")) {
               throw new Error("GitHub rejected the save because the file changed at the same moment — try Save now again.");
             }
-            throw new Error(data.message || `GitHub API error (${res.status})`);
+            throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
           }
           rememberSha(data.content?.sha || null);
           conflictPaused = false;
@@ -3566,8 +3594,26 @@
           setFileStatus(`${remote ? "Updated" : "Created"} ${path} in ${repo} at ${new Date().toLocaleTimeString()}${auto ? " (autosave)" : ""}.`, "success");
           setBarState(`Synced to GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
         } catch (error) {
-          setFileStatus(error.message, "error");
-          setBarState(error.message, "error");
+          const inaccessible = error.status === 404 || error.status === 403;
+          if (inaccessible && repo) {
+            // The usual cause: the repo exists but the app isn't installed on it (e.g. a `scratch` repo made
+            // before the app, or added after installing). Say so and link straight to the fix.
+            const installationsUrl = ghConnection().kind === "app"
+              ? "https://github.com/settings/installations"
+              : "https://github.com/settings/tokens?type=beta";
+            const message = `The app can't write to ${repo}. Add it to the app's installation (or run Use scratch repo), then click Re-check connection.`;
+            setFileStatus(message, "error");
+            setBarState(`Can't write to ${repo}`, "error");
+            showRepoHelp(
+              `The notes target <code>${repo}</code> isn't available to the app (${error.message}). ` +
+              `<a href="${installationsUrl}" target="_blank" rel="noopener noreferrer">Add the repository to the app's installation</a>` +
+              `${repo.endsWith(`/${SCRATCH_REPO}`) ? `, or create <code>${repo}</code> first and add it` : ""}, ` +
+              `then click <strong>Re-check connection</strong>.`
+            );
+          } else {
+            setFileStatus(error.message, "error");
+            setBarState(error.message, "error");
+          }
         } finally {
           saving = false;
           if (saveBtn) saveBtn.disabled = false;

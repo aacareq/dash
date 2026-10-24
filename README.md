@@ -54,8 +54,9 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   in place via the Contents API, pause with a warning instead of overwriting a
   version that changed on GitHub (offering *Pull latest* or *Overwrite
   anyway*), and can autosave a few seconds after you stop typing. A private
-  repo called **`scratch`** is created automatically when it doesn't exist
-  yet and is the default selection, and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
+  repo called **`scratch`** is the default save target — offered and selected
+  even when GitHub's repo listing omits it, and created automatically when it
+  doesn't exist — and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
   *New dated file* button for another). Because the notes are markdown, the
   editor carries markdown tools — bold/italic/strikethrough, H1–H3,
   bulleted/numbered/task lists, quotes and dividers (with keyboard shortcuts

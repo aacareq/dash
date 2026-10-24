@@ -107,12 +107,14 @@ const ORG_INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "O
 const REPOS = { total_count: 2, repositories: [{ full_name: "octocat/notes" }, { full_name: "octocat/private-notes" }] };
 
 // A tiny stateful GitHub: manifest conversion, installations, installation tokens, repo creation, contents.
-function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false } = {}) {
+function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false, listOmitsScratch = false, denyWrites = false, tokenMode = false } = {}) {
   const state = {
     conversions: 0, tokenMints: 0, puts: [], file: existing, lastJwt: null, lastInstallJwt: null, issuedTokens: [],
-    createdRepos: [], createAttempts: 0
+    createdRepos: [], createAttempts: 0, installationCalls: 0, lastRepoList: null
   };
   const repoList = () => {
+    // App installed on selected repositories: the scratch repo exists on the account but isn't in the listing.
+    if (listOmitsScratch) return [{ full_name: "octocat/notes", name: "notes" }, { full_name: "octocat/private-notes", name: "private-notes" }];
     if (reposWithScratch) return [{ full_name: "octocat/notes", name: "notes" }, { full_name: "octocat/scratch", name: "scratch" }];
     if (reposWithoutScratch) {
       const created = state.createdRepos.length ? [{ full_name: "octocat/scratch", name: "scratch" }] : [];
@@ -152,10 +154,20 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
       return jsonRes({ token, expires_at: new Date(Date.now() + 3600 * 1000).toISOString() });
     }
     if (target.includes("/installation/repositories")) {
+      state.installationCalls = (state.installationCalls || 0) + 1;
+      if (tokenMode) return { ok: false, status: 403, json: async () => ({ message: "Resource not accessible by personal access token" }) };
       state.listAuth = options.headers?.Authorization?.replace("Bearer ", "");
       return jsonRes({ total_count: repoList().length, repositories: repoList() });
     }
+    if (target.includes("/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member") && method === "GET") {
+      state.lastRepoList = target.replace("https://api.github.com", "");
+      state.listAuth = options.headers?.Authorization?.replace("Bearer ", "");
+      return jsonRes(repoList());
+    }
     if (target.includes("/repos/")) {
+      if (denyWrites) {
+        return { ok: false, status: 404, json: async () => ({ message: "Not Found" }) };
+      }
       if (method === "PUT") {
         const body = JSON.parse(options.body);
         state.puts.push({ target, body, auth: options.headers?.Authorization });
@@ -546,7 +558,13 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   check("help links to the app's permissions", /settings\/apps\/dash-notes-example\/permissions/.test(help.innerHTML), help.innerHTML.slice(0, 160));
   check("help links to creating the repo by hand", /github\.com\/new\?name=scratch/.test(help.innerHTML));
   check("status mentions Repository creation", /Repository creation/.test(d17.getElementById("scratchpad-gh-status").textContent), d17.getElementById("scratchpad-gh-status").textContent);
-  check("saving to another repo is still possible", d17.getElementById("scratchpad-gh-target").hidden === false && d17.getElementById("scratchpad-gh-repo").value === "octocat/notes");
+  check("the save controls are still usable", d17.getElementById("scratchpad-gh-target").hidden === false);
+  check("scratch stays the selected default even though creation was refused", d17.getElementById("scratchpad-gh-repo").value === "octocat/scratch", d17.getElementById("scratchpad-gh-repo").value);
+  check("other repos are still offered", [...d17.querySelectorAll("#scratchpad-gh-repo option")].some(o => o.value === "octocat/notes"));
+  const otherOption = d17.querySelector('#scratchpad-gh-repo option[value="octocat/notes"]');
+  d17.getElementById("scratchpad-gh-repo").value = otherOption.value;
+  d17.getElementById("scratchpad-gh-repo").dispatchEvent(new win.Event("change", { bubbles: true }));
+  check("picking another repo manually works for this session", d17.getElementById("scratchpad-gh-repo").value === "octocat/notes");
   d17.getElementById("scratchpad-gh-scratch").click();
   await flush(); await flush();
   check("Use scratch repo retries the creation", github.state.createAttempts >= 2, String(github.state.createAttempts));
@@ -594,11 +612,12 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   check("the remembered repo is still in the list", [...d19.querySelectorAll("#scratchpad-gh-repo option")].some(o => o.value === "octocat/notes"));
   check("the choice is persisted as scratch", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
 
-  // Without a scratch repo, the remembered choice is respected (no silent hijacking).
+  // Even when the repo can't be listed or created, scratch remains the target — that's the whole point.
   github = makeGithub({ reposWithoutScratch: true, denyCreate: true });
   win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD, "dash-scratchpad-gh-repo": "octocat/notes" }, fetchImpl: github.handle });
   await flush(); await flush(); await flush();
-  check("falls back to the remembered repo when scratch can't exist", win.document.getElementById("scratchpad-gh-repo").value === "octocat/notes", win.document.getElementById("scratchpad-gh-repo").value);
+  check("scratch stays selected when it can't be created", win.document.getElementById("scratchpad-gh-repo").value === "octocat/scratch", win.document.getElementById("scratchpad-gh-repo").value);
+  check("…and the header agrees", win.document.getElementById("scratchpad-filebar-repo").textContent === "octocat/scratch", win.document.getElementById("scratchpad-filebar-repo").textContent);
 
   console.log("\n[20] the editor header shows the repo and file name");
   win = makeWindow();
@@ -709,6 +728,48 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   d21.getElementById("scratchpad-preview-toggle").click();
   await flush();
   check("emoji render in the preview untouched", d22.getElementById("scratchpad-preview").textContent.includes("🎉"));
+
+  console.log("\n[22] scratch is the save target even when GitHub's listing omits it");
+  // The real-world case: app installed on *selected* repositories, so /installation/repositories never lists
+  // the scratch repo (it was created after install, or is simply not in the installation).
+  github = makeGithub({ listOmitsScratch: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD, "dash-scratchpad-gh-repo": "octocat/notes" }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  const d23 = win.document;
+  check("a scratch option is offered anyway", [...d23.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).includes("octocat/scratch"),
+    [...d23.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(","));
+  check("it is marked as the default", /\(default\)/.test([...d23.querySelectorAll("#scratchpad-gh-repo option")].find(o => o.value === "octocat/scratch").textContent));
+  check("it is selected over the remembered repo", d23.getElementById("scratchpad-gh-repo").value === "octocat/scratch", d23.getElementById("scratchpad-gh-repo").value);
+  check("the header shows scratch", d23.getElementById("scratchpad-filebar-repo").textContent === "octocat/scratch");
+  check("the choice is persisted", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
+  d23.getElementById("scratchpad-text").value = "goes to scratch";
+  d23.getElementById("scratchpad-gh-save").click();
+  await flush(); await flush();
+  check("saving writes to the scratch repo", github.state.puts.length === 1 && github.state.puts[0].target === "https://api.github.com/repos/octocat/scratch/contents/" + d23.getElementById("scratchpad-gh-path").value,
+    JSON.stringify(github.state.puts.map(p => p.target)));
+  check("the save is reported as synced", /Synced to GitHub/.test(d23.getElementById("scratchpad-filebar-state").textContent), d23.getElementById("scratchpad-filebar-state").textContent);
+
+  console.log("\n[23] a pasted token lists its own repos and still defaults to scratch");
+  github = makeGithub({ tokenMode: true, reposWithScratch: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-token-v1": { access_token: "github_pat_test", login: "octocat" } }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  const d24 = win.document;
+  check("a token does not call the installation endpoint", github.state.installationCalls === 0, String(github.state.installationCalls));
+  check("the token lists /user/repos", github.state.lastRepoList === "/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member", github.state.lastRepoList);
+  check("repos populate for token mode", [...d24.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(",") === "octocat/notes,octocat/scratch", [...d24.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(","));
+  check("scratch is the default for token mode too", d24.getElementById("scratchpad-gh-repo").value === "octocat/scratch", d24.getElementById("scratchpad-gh-repo").value);
+
+  console.log("\n[24] if scratch exists but the app can't write to it, the panel says exactly what to do");
+  github = makeGithub({ listOmitsScratch: true, denyWrites: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  const d25 = win.document;
+  d25.getElementById("scratchpad-text").value = "blocked note";
+  d25.getElementById("scratchpad-gh-save").click();
+  await flush(); await flush();
+  check("the failure names the repo", /can't write to octocat\/scratch/.test(d25.getElementById("scratchpad-gh-file-status").textContent), d25.getElementById("scratchpad-gh-file-status").textContent);
+  check("the header flags it", /Can't write/.test(d25.getElementById("scratchpad-filebar-state").textContent), d25.getElementById("scratchpad-filebar-state").textContent);
+  check("help links to the installations page", /github\.com\/settings\/installations/.test(d25.getElementById("scratchpad-gh-repo-help").innerHTML), d25.getElementById("scratchpad-gh-repo-help").innerHTML.slice(0, 200));
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

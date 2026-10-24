@@ -31,16 +31,7 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   exportable scratchpad, and a multi-source news/headlines feed. The Google
   Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
   in this browser's `localStorage`) since the dashboard has no backend of its
-  own. The **Scratchpad** additionally has a *Back up these notes to GitHub*
-  panel that signs you in with GitHub's standard user-authorization flow
-  (OAuth2 authorization code **with PKCE**, so no client secret ever reaches
-  the browser) and commits the note to a file in a repo you choose — on
-  demand or automatically a few seconds after you stop typing. It updates the
-  same file in place via the Contents API's `sha`, pauses with a warning
-  instead of overwriting a version that changed on GitHub (offering *Pull
-  Latest* or *Overwrite Anyway*), and quietly refreshes an expiring token when
-  GitHub returns a refresh token. Setup walkthrough:
-  [`docs/scratchpad-github-oauth.md`](docs/scratchpad-github-oauth.md). The GitHub work list has a "Load Existing File" button that fetches a
+  own. The GitHub work list has a "Load Existing File" button that fetches a
   file's current content and version (SHA) from a chosen repo/path into the
   editor; saving then updates that same file in place (via the GitHub
   Contents API's `sha` field) instead of only ever being able to create new
@@ -53,7 +44,18 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   from another tab/device), the save is paused with a clear warning instead
   of silently overwriting that change, and you either reload the latest
   version or explicitly click "Overwrite Anyway" to confirm pushing your
-  edits over it.
+  edits over it. The **Scratchpad** is the exception: its *Save these notes to GitHub*
+  panel needs nothing copied from GitHub. One click has GitHub register a
+  private GitHub App owned by you (via GitHub's app-manifest flow, which hands
+  the page the app's key through a CORS-enabled endpoint), one install screen
+  scopes it to a repo, and from then on the page signs its own short-lived app
+  JWTs to mint one-hour installation tokens — so returning visitors never sign
+  in again, and no long-lived credential is ever stored. Notes are committed
+  in place via the Contents API, pause with a warning instead of overwriting a
+  version that changed on GitHub (offering *Pull latest* or *Overwrite
+  anyway*), and can autosave a few seconds after you stop typing. A pasted
+  token remains available as a fallback for `file://` pages. How it works:
+  [`docs/scratchpad-github-saving.md`](docs/scratchpad-github-saving.md).
 - **News / headlines feed** — tabs for Techmeme, Hacker News, Ars Technica,
   InfoWorld, and Lobste.rs. None of the plain-RSS sources (everything except
   Hacker News, which has its own CORS-enabled API) have a CORS header of

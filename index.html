@@ -344,6 +344,24 @@
     .scratch-editor { display: flex; gap: .75rem; align-items: stretch; min-width: 0; }
     .scratch-editor[hidden] { display: none; }
 
+    /* Clipboard history: a scrollable stack of captured clips with per-item actions. */
+    .clip-list { display: flex; flex-direction: column; gap: .45rem; max-height: 34dvh; overflow-y: auto; overscroll-behavior: contain; }
+    .clip-item { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .65rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; }
+    .clip-item.is-pinned { border-color: var(--accent); }
+    .clip-body { flex: 1 1 auto; min-width: 0; }
+    .clip-text {
+      margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .82rem; line-height: 1.45;
+      white-space: pre-wrap; overflow-wrap: anywhere; max-height: 5.5rem; overflow: hidden;
+    }
+    .clip-text.is-expanded { max-height: none; }
+    .clip-meta { margin: .3rem 0 0; font-size: .72rem; color: var(--text-muted); display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; }
+    .clip-badge { border: 1px solid var(--border); border-radius: 99px; padding: 0 .4rem; font-size: .66rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+    .clip-badge.is-pinned { color: #fff; background: var(--accent); border-color: var(--accent); }
+    .clip-actions { display: flex; gap: .25rem; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; }
+    .clip-actions .modal-btn { padding: .3rem .5rem; font-size: .74rem; }
+    .clip-empty { margin: 0; font-size: .82rem; color: var(--text-muted); }
+    .clip-empty[hidden] { display: none; }
+
     /* Emoji picker: a small anchored popover with search, grouped into rows. */
     .emoji-anchor { position: relative; display: inline-flex; }
     .emoji-popover {
@@ -449,6 +467,10 @@
       .emoji-popover { position: fixed; inset-inline: .6rem; right: auto; left: .6rem; width: auto; top: auto; bottom: .6rem;
         padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
       .emoji-scroll { max-height: 32dvh; }
+      .clip-list { max-height: 30dvh; }
+      .clip-actions { width: 100%; justify-content: flex-start; }
+      #clipboard-add-form { flex-wrap: wrap; }
+      #clipboard-add-form .form-input { flex: 1 1 100%; }
       .scratch-filebar { font-size: .74rem; padding: .35rem .5rem; }
       .scratch-filebar-repo { max-width: 60%; }
       .scratch-filebar-state { margin-left: 0; }
@@ -964,6 +986,49 @@
       </div>
     </dialog>
 
+    <dialog id="modal-clipboard" class="modal modal-wide">
+      <div class="modal-card">
+        <h3 class="modal-title">Clipboard History</h3>
+        <p class="modal-hint">
+          A browser can't watch the system clipboard in the background — it only gets text when you paste, copy
+          something on this page, or click <strong>Capture clipboard</strong> (which may ask permission). Everything
+          captured here stays in this browser until you save the collection to GitHub.
+        </p>
+
+        <div class="scratch-filebar" id="clipboard-filebar">
+          <span class="scratch-filebar-icon" aria-hidden="true">📋</span>
+          <span class="scratch-filebar-repo" id="clipboard-filebar-repo">Local only</span>
+          <span class="scratch-filebar-sep" id="clipboard-filebar-sep" hidden>/</span>
+          <span class="scratch-filebar-file" id="clipboard-filebar-file">clips-…​.md</span>
+          <span class="scratch-filebar-state" id="clipboard-filebar-state" role="status" aria-live="polite">Nothing saved yet</span>
+        </div>
+
+        <div class="modal-actions" style="justify-content:flex-start; flex-wrap:wrap;">
+          <button type="button" class="modal-btn submit" id="clipboard-capture">Capture clipboard</button>
+          <button type="button" class="modal-btn cancel" id="clipboard-save">Save collection</button>
+          <button type="button" class="modal-btn cancel" id="clipboard-new">New collection</button>
+          <button type="button" class="modal-btn cancel" id="clipboard-setup" hidden>Set up GitHub saving</button>
+        </div>
+        <p class="status-msg" id="clipboard-status"></p>
+
+        <form id="clipboard-add-form" class="inline-form">
+          <input type="text" id="clipboard-new-text" class="form-input" placeholder="Paste or type a clip, then press Enter…" autocomplete="off" />
+          <button type="submit" class="modal-btn submit">Add clip</button>
+        </form>
+
+        <div class="clip-list" id="clipboard-list"></div>
+        <p class="clip-empty" id="clipboard-empty">No clips yet — paste anywhere in this dialog, or use Capture clipboard.</p>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="clipboard-autosave" />
+          Autosave the collection to GitHub after each new clip
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
     <dialog id="modal-newsfeed" class="modal modal-wide">
       <div class="modal-card">
         <h3 class="modal-title">RSS / News Headlines</h3>
@@ -1223,6 +1288,14 @@
             best: "Fast, exportable, GitHub-backed notes",
             tags: ["notes", "scratchpad", "markdown", "export", "github"],
             aliases: ["quick notes", "notepad", "markdown editor", "notes to github", "github backup"]
+          },
+          {
+            name: "Clipboard History",
+            modal: "modal-clipboard",
+            desc: "Keeps more than one thing in the clipboard: capture what you paste or copy, pin the keepers, and save the whole collection to clips/clips-<date>.md in your scratch repo.",
+            best: "A clipboard that remembers the last few things",
+            tags: ["clipboard", "clips", "markdown", "github"],
+            aliases: ["clipboard manager", "clip history", "multi clipboard", "clips", "paste history"]
           },
           {
             name: "RSS / News Headlines",
@@ -2677,6 +2750,77 @@
       try { return Boolean(window.isSecureContext && window.crypto?.subtle); } catch (e) { return false; }
     }
 
+    // ---- Scratch repo + file helpers --------------------------------------------------------------------
+    // Shared by every tool that saves to GitHub (scratchpad, clipboard), so they all use the one connection:
+    // same app/token, same default repo, same contents API. Tools only add their own UI around these.
+    const GH_SCRATCH_REPO = "scratch";
+
+    // `<account>/scratch` — the default repo for dashboard files, whether or not GitHub's listing shows it.
+    function ghScratchRepoFullName() {
+      const connection = ghConnection();
+      const owner = connection.kind === "app" ? (connection.app.installation_account || connection.app.owner || "") : "";
+      const remembered = ghReadStore(GH.keys.repo);
+      const base = owner || (remembered.includes("/") ? remembered.split("/")[0] : "");
+      return base ? `${base}/${GH_SCRATCH_REPO}` : "";
+    }
+
+    function ghContentsPath(repo, path) {
+      return `/repos/${repo}/contents/${ghNormalizePath(path).split("/").map(encodeURIComponent).join("/")}`;
+    }
+
+    // `{ sha, content }` for a file, or null when it doesn't exist yet.
+    async function ghReadRepoFile(repo, path, branch) {
+      const res = await ghAuthorizedFetch(`${ghContentsPath(repo, path)}${branch ? `?ref=${encodeURIComponent(branch)}` : ""}`);
+      if (res.status === 404) return null;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
+      if (Array.isArray(data) || data.type !== "file") throw new Error("That path is a directory, not a file.");
+      return { sha: data.sha, content: ghDecodeBase64(data.content || ""), html_url: data.html_url || "" };
+    }
+
+    async function ghWriteRepoFile({ repo, path, content, message, branch, sha }) {
+      const body = { message: message || `Update ${path} via dashboard`, content: ghEncodeBase64(content) };
+      if (sha) body.sha = sha;
+      if (branch) body.branch = branch;
+      const res = await ghAuthorizedFetch(ghContentsPath(repo, path), {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
+      return data;
+    }
+
+    // Creates the private `scratch` repo (with an initial commit, so there is a default branch to write to).
+    // Returns { ok, repo } or { ok: false, error }; callers decide how to explain a refusal.
+    async function ghEnsureScratchRepo() {
+      const connection = ghConnection();
+      if (!connection.ready) return { ok: false, error: new Error("Connect GitHub first.") };
+      const owner = connection.kind === "app" ? (connection.app.installation_account || connection.app.owner || "") : "";
+      const accountType = connection.kind === "app" ? (connection.app.installation_type || "User") : "User";
+      const createPath = accountType === "Organization" && owner ? `/orgs/${owner}/repos` : "/user/repos";
+      const res = await ghAuthorizedFetch(createPath, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: GH_SCRATCH_REPO,
+          description: "Dashboard notes and clips (dash).",
+          private: true,
+          auto_init: true
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status }) };
+      return { ok: true, repo: data.full_name || ghScratchRepoFullName() || `${owner}/${GH_SCRATCH_REPO}`, created: true };
+    }
+
+    // 2026-10-24-1142 — the suffix dashboard files are named with, in the visitor's own timezone.
+    function ghTimestampSlug(date = new Date()) {
+      const pad = value => String(value).padStart(2, "0");
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
+    }
+
     // ---- base64url helpers (RFC 7515); plain btoa can't emit the URL-safe alphabet JWTs require) -----------------
     function ghBase64UrlFromBytes(bytes) {
       const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
@@ -3934,6 +4078,432 @@
       };
     }
 
+    // ---- Clipboard History -----------------------------------------------------------------------------
+    // A multi-item clipboard, as far as a web page is allowed to have one. There is no clipboard-change
+    // event and no background read, so items arrive one of three ways: a `paste` inside this dialog, a `copy`
+    // made on this page, or an explicit "Capture clipboard" click (which needs permission and a user gesture).
+    // The OS clipboard still holds exactly one item; this is our own history that can be copied back out.
+    const CLIPBOARD = {
+      keys: {
+        history: "dash-clipboard-history-v1",
+        path: "dash-clipboard-path",
+        autosave: "dash-clipboard-autosave",
+        sha: "dash-clipboard-sha-v1"
+      },
+      maxItems: 100,
+      maxTextLength: 20000,
+      clipDir: "clips"
+    };
+
+    // One markdown block per clip: a heading with its position/time/pin state, then the text inside a fence
+    // long enough not to collide with backticks in the clip itself. Fences keep code and lists intact and stop
+    // a clip full of markdown from rewriting the file.
+    function renderClipsMarkdown(items, { startedAt = Date.now() } = {}) {
+      const stamp = date => new Date(date).toLocaleString();
+      const heading = `# Clips — ${stamp(startedAt)}`;
+      const body = items.map((item, index) => {
+        const text = String(item.text || "");
+        const fence = text.includes("```") ? "````" : "```";
+        const pinned = item.pinned ? " · 📌 pinned" : "";
+        return `## ${index + 1} · ${stamp(item.createdAt)}${pinned}\n\n${fence}text\n${text}\n${fence}`;
+      });
+      return [heading, `_${items.length} clip${items.length === 1 ? "" : "s"} · saved ${stamp(Date.now())}_`, body.join("\n\n---\n\n")]
+        .filter(Boolean)
+        .join("\n\n") + "\n";
+    }
+
+    function initClipboardTool() {
+      const dialog = document.getElementById("modal-clipboard");
+      const list = document.getElementById("clipboard-list");
+      const empty = document.getElementById("clipboard-empty");
+      const addForm = document.getElementById("clipboard-add-form");
+      const addInput = document.getElementById("clipboard-new-text");
+      const captureBtn = document.getElementById("clipboard-capture");
+      const saveBtn = document.getElementById("clipboard-save");
+      const newBtn = document.getElementById("clipboard-new");
+      const setupBtn = document.getElementById("clipboard-setup");
+      const autosaveToggle = document.getElementById("clipboard-autosave");
+      const barRepo = document.getElementById("clipboard-filebar-repo");
+      const barSep = document.getElementById("clipboard-filebar-sep");
+      const barFile = document.getElementById("clipboard-filebar-file");
+      const barState = document.getElementById("clipboard-filebar-state");
+      if (!dialog || !list) return null;
+
+      // (named distinctly: a bare `setStatus` here would shadow the shared helper and recurse forever)
+      const setClipStatus = (message, tone) => setStatus("clipboard-status", message, tone);
+
+      // { startedAt, items: [{ id, text, createdAt, pinned }] } — `startedAt` names the collection's file.
+      function readHistory() {
+        const stored = ghReadJson(CLIPBOARD.keys.history, null);
+        if (stored && Array.isArray(stored.items)) return stored;
+        return { startedAt: Date.now(), items: [] };
+      }
+      let history = readHistory();
+      let saveTimer;
+      let saveState = { text: "Nothing saved yet", tone: "" };
+      let lastSavedSha = ghReadStore(CLIPBOARD.keys.sha) || "";
+      let saving = false;
+
+      const clipFileName = () => `${CLIPBOARD.clipDir}/clips-${ghTimestampSlug(new Date(history.startedAt))}.md`;
+      function filePath() {
+        const stored = ghReadStore(CLIPBOARD.keys.path);
+        return stored || clipFileName();
+      }
+
+      function persist() { ghWriteJson(CLIPBOARD.keys.history, history); }
+
+      function setBarState(text, tone = "") {
+        saveState = { text, tone };
+        paintBar();
+      }
+      function paintBar() {
+        const connection = ghConnection();
+        const repo = ghReadStore(GH.keys.repo) || ghScratchRepoFullName();
+        const ready = connection.ready && repo;
+        if (barRepo) {
+          barRepo.textContent = ready ? repo : (connection.kind === "none" ? "Local only" : "Choose a repository");
+          barRepo.title = ready ? repo : "Clips are only kept in this browser until GitHub saving is set up";
+        }
+        if (barSep) barSep.hidden = !ready;
+        if (barFile) {
+          barFile.textContent = filePath();
+          barFile.title = filePath();
+        }
+        if (barState) {
+          barState.textContent = saveState.text;
+          barState.classList.toggle("is-saved", saveState.tone === "success");
+          barState.classList.toggle("is-error", saveState.tone === "error");
+        }
+        if (setupBtn) setupBtn.hidden = connection.ready;
+      }
+
+      const timeLabel = ms => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      function renderList() {
+        list.replaceChildren();
+        const items = history.items;
+        if (!items.length) {
+          if (empty) empty.hidden = false;
+          return;
+        }
+        if (empty) empty.hidden = true;
+        // Pinned clips float to the top; otherwise newest first.
+        [...items].sort((a, b) => (b.pinned - a.pinned) || (b.createdAt - a.createdAt)).forEach(item => {
+          const row = document.createElement("div");
+          row.className = `clip-item${item.pinned ? " is-pinned" : ""}`;
+          row.dataset.id = item.id;
+
+          const body = document.createElement("div");
+          body.className = "clip-body";
+          const text = document.createElement("p");
+          text.className = "clip-text";
+          text.textContent = item.text;
+          text.title = "Click to expand";
+          text.addEventListener("click", () => text.classList.toggle("is-expanded"));
+          const meta = document.createElement("p");
+          meta.className = "clip-meta";
+          const when = document.createElement("span");
+          when.textContent = `${timeLabel(item.createdAt)} · ${item.text.length.toLocaleString()} chars`;
+          meta.appendChild(when);
+          if (item.pinned) {
+            const badge = document.createElement("span");
+            badge.className = "clip-badge is-pinned";
+            badge.textContent = "Pinned";
+            meta.appendChild(badge);
+          }
+          body.append(text, meta);
+
+          const actions = document.createElement("div");
+          actions.className = "clip-actions";
+          const makeAction = (label, title, handler, extraClass = "cancel") => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `modal-btn ${extraClass}`;
+            button.textContent = label;
+            button.title = title;
+            button.dataset.action = label.toLowerCase();
+            button.addEventListener("click", () => handler(button));
+            return button;
+          };
+          actions.appendChild(makeAction("Copy", "Put this clip back on the clipboard", () => copyClip(item)));
+          actions.appendChild(makeAction(item.pinned ? "Unpin" : "Pin", item.pinned ? "Unpin this clip" : "Keep this clip at the top", () => togglePin(item.id)));
+          actions.appendChild(makeAction("Delete", "Remove this clip from the history", () => deleteClip(item.id)));
+          row.append(body, actions);
+          list.appendChild(row);
+        });
+      }
+
+      // ---- capture paths ---------------------------------------------------------------------------
+      function normalise(text) {
+        return String(text || "").replace(/\r\n?/g, "\n").trim();
+      }
+
+      function addClip(rawText, { source = "manual", quiet = false } = {}) {
+        const text = normalise(rawText);
+        if (!text) { setClipStatus("Nothing to add — the clip was empty.", "error"); return false; }
+        const clipped = text.length > CLIPBOARD.maxTextLength ? text.slice(0, CLIPBOARD.maxTextLength) : text;
+        const duplicate = history.items.find(item => item.text === clipped);
+        if (duplicate) {
+          setClipStatus("That clip is already in the history.", "");
+          if (!quiet) highlight(duplicate.id);
+          return false;
+        }
+        history.items.push({ id: `clip_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, text: clipped, createdAt: Date.now(), pinned: false });
+        // Keep the history bounded: oldest unpinned clips fall off first.
+        if (history.items.length > CLIPBOARD.maxItems) {
+          const unpinned = history.items.filter(item => !item.pinned).sort((a, b) => a.createdAt - b.createdAt);
+          const excess = history.items.length - CLIPBOARD.maxItems;
+          unpinned.slice(0, excess).forEach(item => { history.items = history.items.filter(other => other.id !== item.id); });
+        }
+        persist();
+        renderList();
+        const truncated = clipped.length < text.length ? " (truncated to 20,000 characters)" : "";
+        setClipStatus(`Captured from ${source}${truncated}. ${history.items.length} clip${history.items.length === 1 ? "" : "s"} in this collection.`, "success");
+        setBarState("Unsaved clips");
+        scheduleAutosave();
+        return true;
+      }
+
+      function highlight(id) {
+        const row = list.querySelector(`[data-id="${id}"]`);
+        if (!row) return;
+        row.scrollIntoView({ block: "nearest" });
+        row.classList.add("is-pinned");
+        setTimeout(() => { if (!history.items.find(item => item.id === id)?.pinned) row.classList.remove("is-pinned"); }, 900);
+      }
+
+      function togglePin(id) {
+        history.items = history.items.map(item => (item.id === id ? { ...item, pinned: !item.pinned } : item));
+        persist();
+        renderList();
+        scheduleAutosave();
+      }
+
+      function deleteClip(id) {
+        const item = history.items.find(entry => entry.id === id);
+        history.items = history.items.filter(entry => entry.id !== id);
+        persist();
+        renderList();
+        setClipStatus(item ? "Clip removed." : "", "");
+        scheduleAutosave();
+      }
+
+      async function copyClip(item) {
+        const text = item.text;
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            // Fallback for browsers without the async clipboard API: a temporary, off-screen selection.
+            const scratch = document.createElement("textarea");
+            scratch.value = text;
+            scratch.setAttribute("readonly", "");
+            scratch.style.position = "fixed";
+            scratch.style.opacity = "0";
+            document.body.appendChild(scratch);
+            scratch.select();
+            document.execCommand("copy");
+            scratch.remove();
+          }
+          setClipStatus("Copied back to the clipboard.", "success");
+        } catch (error) {
+          setClipStatus(`Couldn't write to the clipboard: ${error.message || "permission denied"}.`, "error");
+        }
+      }
+
+      // The only way to sample the system clipboard without a paste event. Browsers gate this behind a
+      // permission prompt (and only in a secure context with a user gesture), so every failure mode is
+      // explained rather than swallowed.
+      async function captureClipboard() {
+        if (!navigator.clipboard?.readText) {
+          setClipStatus("This browser can't read the clipboard from a page. Paste into the box below (Ctrl/⌘+V) instead — that always works.", "error");
+          addInput.focus();
+          return;
+        }
+        try {
+          const text = await navigator.clipboard.readText();
+          if (!normalise(text)) { setClipStatus("The clipboard is empty.", ""); return; }
+          if (addClip(text, { source: "the clipboard" })) addInput.value = "";
+        } catch (error) {
+          const denied = /denied|not allowed|permission/i.test(error?.message || "");
+          setClipStatus(
+            denied
+              ? "Clipboard access was blocked. Allow the clipboard permission for this site, or just paste into the box below."
+              : `Couldn't read the clipboard (${error?.message || "unknown error"}). Pasting into the box below always works.`,
+            "error"
+          );
+          addInput.focus();
+        }
+      }
+
+      // ---- saving to GitHub --------------------------------------------------------------------------
+      function scheduleAutosave() {
+        if (!autosaveToggle?.checked) return;
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(() => saveCollection({ auto: true }), 3000);
+      }
+
+      function rememberSha(sha) {
+        lastSavedSha = sha || "";
+        ghWriteStore(CLIPBOARD.keys.sha, lastSavedSha);
+      }
+
+      async function saveCollection({ auto = false } = {}) {
+        if (saving) return;
+        const connection = ghConnection();
+        if (!connection.ready) {
+          setBarState("Not connected", "error");
+          setClipStatus("Set up GitHub saving first — it's the same one-click connection the Scratchpad uses.", "error");
+          if (setupBtn) setupBtn.hidden = false;
+          return;
+        }
+        if (!history.items.length) { setClipStatus("There are no clips to save yet.", ""); return; }
+        saving = true;
+        if (saveBtn) saveBtn.disabled = true;
+        try {
+          let repo = ghReadStore(GH.keys.repo) || ghScratchRepoFullName();
+          if (!repo) {
+            setBarState("Can't write", "error");
+            setClipStatus("GitHub is connected but no repository is known yet. Open the Scratchpad panel once to pick one.", "error");
+            return;
+          }
+          const path = filePath();
+          const content = renderClipsMarkdown(history.items, { startedAt: history.startedAt });
+          if (!auto) setClipStatus("Saving the collection to GitHub…");
+
+          let remote = null;
+          try {
+            remote = await ghReadRepoFile(repo, path, ghReadStore(GH.keys.branch));
+          } catch (error) {
+            // A brand-new `scratch` repo may not be reachable yet, or may not exist at all.
+            if (error.status !== 404 && error.status !== 403) throw error;
+            if (error.status === 403 && /not found/i.test(error.message)) remote = null;
+          }
+
+          if (!remote && !ghReadStore(GH.keys.repo)) {
+            // Nothing at the default location: make sure the scratch repo itself exists before giving up.
+            const ensured = await ghEnsureScratchRepo().catch(() => ({ ok: false }));
+            if (ensured.ok) {
+              repo = ensured.repo;
+              ghWriteStore(GH.keys.repo, repo);
+            }
+          }
+
+          let data;
+          try {
+            data = await ghWriteRepoFile({
+              repo,
+              path,
+              content,
+              branch: ghReadStore(GH.keys.branch),
+              sha: remote?.sha,
+              message: `Clips — ${history.items.length} item${history.items.length === 1 ? "" : "s"} (${new Date().toLocaleString()})`
+            });
+          } catch (error) {
+            if (error.status === 409) {
+              // Someone/something else wrote this file between our read and write: re-read and retry once.
+              const fresh = await ghReadRepoFile(repo, path).catch(() => null);
+              data = await ghWriteRepoFile({ repo, path, content, sha: fresh?.sha, message: `Clips — ${history.items.length} items (retry)` });
+            } else {
+              throw error;
+            }
+          }
+
+          rememberSha(data.content?.sha || "");
+          paintBar();
+          setBarState(`Saved ${history.items.length} clip${history.items.length === 1 ? "" : "s"} · ${timeLabel(Date.now())}`, "success");
+          setClipStatus(`Saved ${path} in ${repo}${auto ? " (autosave)" : ""}.`, "success");
+        } catch (error) {
+          const unreachable = error.status === 404 || error.status === 403;
+          setBarState(unreachable ? "Can't write to the repo" : "Save failed", "error");
+          setClipStatus(
+            unreachable
+              ? `The app can't write to this repo (${error.message}). Add it to the app's installation, or run Use scratch repo in the Scratchpad, then save again.`
+              : error.message,
+            "error"
+          );
+        } finally {
+          saving = false;
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      }
+
+      // ---- wiring -------------------------------------------------------------------------------------
+      function startNewCollection() {
+        if (history.items.length) {
+          const unsaved = saveState.tone !== "success";
+          const message = unsaved
+            ? "Start a new collection? The clips in this one haven't been saved to GitHub yet."
+            : "Start a new collection? This clears the list here (the saved file stays in the repo).";
+          if (!window.confirm(message)) return;
+        }
+        history = { startedAt: Date.now(), items: [] };
+        persist();
+        ghWriteStore(CLIPBOARD.keys.path, "");
+        rememberSha("");
+        renderList();
+        setBarState("Nothing saved yet");
+        setClipStatus("New collection started — it saves to a fresh clips-<date-time>.md.", "success");
+        paintBar();
+      }
+
+      captureBtn?.addEventListener("click", captureClipboard);
+      saveBtn?.addEventListener("click", () => saveCollection());
+      newBtn?.addEventListener("click", startNewCollection);
+      setupBtn?.addEventListener("click", () => {
+        dialog.close();
+        openModal("modal-scratchpad");
+        document.getElementById("scratchpad-gh-panel")?.setAttribute("open", "");
+      });
+
+      addForm?.addEventListener("submit", event => {
+        event.preventDefault();
+        if (addClip(addInput.value, { source: "the box" })) addInput.value = "";
+      });
+
+      // Paste anywhere in the dialog: the one capture path that never needs a permission prompt.
+      dialog.addEventListener("paste", event => {
+        const text = event.clipboardData?.getData("text/plain") || "";
+        if (!text) return;
+        event.preventDefault();
+        addClip(text, { source: "a paste" });
+      });
+
+      // Copies made inside the dashboard are fair game too — the selection is right there on screen.
+      document.addEventListener("copy", () => {
+        if (!dialog.open) return;
+        setTimeout(() => {
+          const selection = String(window.getSelection?.() || "").trim();
+          if (selection) addClip(selection, { source: "a copy on this page", quiet: true });
+        }, 0);
+      });
+
+      autosaveToggle?.addEventListener("change", () => {
+        ghWriteStore(CLIPBOARD.keys.autosave, String(autosaveToggle.checked));
+        setClipStatus(autosaveToggle.checked ? "Autosave on — the collection is pushed after each new clip." : "Autosave off — use Save collection.", "");
+      });
+
+      // Reset timers/render when the tool opens; the bar may also need a repaint if GitHub was connected
+      // in another tool since the dashboard loaded.
+      let wasOpen = false;
+      const observer = new MutationObserver(() => {
+        if (dialog.open && !wasOpen) {
+          history = readHistory();
+          renderList();
+          paintBar();
+          addInput?.focus();
+        }
+        wasOpen = dialog.open;
+      });
+      observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
+
+      if (autosaveToggle) autosaveToggle.checked = ghReadStore(CLIPBOARD.keys.autosave) === "true";
+      paintBar();
+      renderList();
+
+      return { addClip, saveCollection, renderList, getHistory: () => history };
+    }
+
     // ---- RSS / News Headlines (Techmeme, Hacker News, Ars Technica, InfoWorld, Lobste.rs) ---------------
     // Every feed except Hacker News (which has its own CORS-enabled API) is plain RSS/Atom with no CORS
     // header, so they all share one proxy-fallback pipeline — adding a new site is just one FEEDS entry.
@@ -4125,6 +4695,7 @@
       initGoogleCalendarTool();
       initPomodoroTool();
       initScratchpadTool();
+      initClipboardTool();
       initNewsFeedTool();
     }
 

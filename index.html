@@ -296,6 +296,47 @@
     .inline-form-grid input[type="text"] { grid-column: 1 / -1; }
     .inline-form-grid button { grid-column: 1 / -1; }
     .scratch-textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; line-height: 1.5; }
+
+    /* Scratchpad markdown editor: a wrapping toolbar over a textarea that can sit beside a live preview. */
+    .md-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
+    .md-toolbar-group { display: flex; gap: .25rem; padding-right: .35rem; border-right: 1px solid var(--border); }
+    .md-toolbar-group:last-child { border-right: 0; padding-right: 0; }
+    .md-toolbar-spacer { flex: 1 1 0; min-width: 0; }
+    .md-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .2rem;
+      min-height: 32px; min-width: 32px; padding: .3rem .5rem; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
+      font-size: .8rem; font-weight: 700; line-height: 1; cursor: pointer; white-space: nowrap;
+    }
+    .md-btn:hover { border-color: var(--accent); }
+    .md-btn:active { transform: translateY(1px); }
+    .md-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .md-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .md-strike { text-decoration: line-through; }
+    .scratch-editor { display: flex; gap: .75rem; align-items: stretch; min-width: 0; }
+    .scratch-editor > textarea#scratchpad-text { flex: 1 1 58%; min-width: 0; min-height: 34dvh; }
+    .md-preview {
+      flex: 1 1 42%; min-width: 0; min-height: 34dvh; max-height: 52dvh; overflow-y: auto;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: .8rem .9rem; font-size: .9rem; line-height: 1.6; overflow-wrap: anywhere;
+    }
+    .md-preview:empty::before { content: "Nothing to preview yet — start typing on the left."; color: var(--text-muted); font-size: .82rem; }
+    .md-preview h1, .md-preview h2, .md-preview h3 { margin: .2rem 0 .5rem; line-height: 1.25; }
+    .md-preview h1 { font-size: 1.35rem; }
+    .md-preview h2 { font-size: 1.15rem; }
+    .md-preview h3 { font-size: 1rem; }
+    .md-preview p { margin: .35rem 0; }
+    .md-preview ul, .md-preview ol { margin: .35rem 0; padding-left: 1.3rem; }
+    .md-preview li { margin: .15rem 0; }
+    .md-preview li.md-task { display: flex; align-items: flex-start; gap: .45rem; list-style: none; margin-left: -1rem; }
+    .md-preview li.md-task input[type="checkbox"] { margin-top: .35rem; accent-color: var(--accent); }
+    .md-preview hr { border: 0; border-top: 1px solid var(--border); margin: .8rem 0; }
+    .md-preview blockquote { margin: .5rem 0; padding-left: .7rem; border-left: 3px solid var(--accent); color: var(--text-muted); }
+    .md-preview code { background: var(--tag-bg); padding: .08rem .3rem; border-radius: 5px; font-size: .82em; }
+    .md-preview pre { background: var(--tag-bg); padding: .6rem .7rem; border-radius: 8px; overflow-x: auto; }
+    .md-preview pre code { background: none; padding: 0; }
+    .md-preview a { color: var(--accent); }
+    .md-preview del { color: var(--text-muted); }
     /* Scratchpad → GitHub sync: a collapsed panel so the plain local notes pad stays the default experience. */
     .gh-sync { border: 1px solid var(--border); border-radius: 10px; padding: .7rem .9rem; background: var(--bg); }
     .gh-sync > summary { cursor: pointer; font-size: .85rem; font-weight: 750; color: var(--text); }
@@ -314,8 +355,52 @@
     .gh-sync-advanced[open] > summary { color: var(--text); }
     .gh-sync-body .status-msg { margin: 0; }
     #scratchpad-gh-account:empty { display: none; }
+    .path-row { display: flex; gap: .4rem; align-items: stretch; min-width: 0; }
+    .path-row .form-input { flex: 1 1 auto; min-width: 0; }
+    .path-row .modal-btn { white-space: nowrap; }
+    .gh-sync-repo-help {
+      font-size: .8rem; line-height: 1.5; color: var(--text-muted);
+      border: 1px dashed var(--border); border-radius: 8px; padding: .55rem .7rem;
+    }
+    .gh-sync-repo-help a { color: var(--accent); }
     /* The scratchpad is the tallest modal once the GitHub panel is expanded — let it scroll inside the viewport. */
-    #modal-scratchpad .modal-card { max-height: 88vh; overflow-y: auto; }
+    #modal-scratchpad .modal-card { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
+
+    /* Responsive behaviour for the notes tool: preview drops under the editor on tablets, and on phones the
+       dialog becomes a full-height sheet with bigger tap targets and a single-column GitHub panel. */
+    @media (max-width: 900px) {
+      .scratch-editor { flex-direction: column; }
+      .scratch-editor > textarea#scratchpad-text { min-height: 30dvh; }
+      .md-preview { min-height: 22dvh; max-height: 40dvh; }
+    }
+    @media (max-width: 640px) {
+      #modal-scratchpad,
+      #modal-scratchpad.modal-wide { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; }
+      #modal-scratchpad .modal-card {
+        padding: .9rem; border-radius: 0; height: 100%; max-height: 100dvh;
+        gap: .7rem; padding-bottom: max(.9rem, env(safe-area-inset-bottom));
+      }
+      #modal-scratchpad .modal-title { font-size: 1.05rem; }
+      .md-toolbar { gap: .25rem; }
+      .md-toolbar-group { border-right: 0; padding-right: 0; }
+      .md-toolbar-spacer { display: none; }
+      .md-btn { min-height: 36px; min-width: 36px; padding: .35rem .55rem; font-size: .82rem; }
+      .scratch-editor > textarea#scratchpad-text { min-height: 26dvh; }
+      .md-preview { min-height: 20dvh; max-height: 34dvh; }
+      .gh-sync-details { grid-template-columns: 1fr; }
+      .gh-sync { padding: .65rem .75rem; }
+      .gh-sync .modal-actions { gap: .4rem; }
+      .gh-sync .modal-actions .modal-btn { flex: 1 1 45%; }
+      #modal-scratchpad .modal-actions .modal-btn { flex: 1 1 30%; }
+      .path-row { flex-wrap: wrap; }
+      .path-row .modal-btn { flex: 1 1 auto; }
+      .news-tabs { gap: .35rem; }
+    }
+    @media (max-width: 380px) {
+      .md-btn { min-width: 32px; padding: .3rem .4rem; font-size: .76rem; }
+      .md-toolbar-group[aria-label="Insert"] .md-btn { font-size: 0; gap: 0; }
+      .md-toolbar-group[aria-label="Insert"] .md-btn::first-letter { font-size: .95rem; }
+    }
     .pomodoro-display { font-size: 3.4rem; font-weight: 800; text-align: center; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
     .pomodoro-presets { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
     .news-tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
@@ -692,7 +777,37 @@
     <dialog id="modal-scratchpad" class="modal modal-wide">
       <div class="modal-card">
         <h3 class="modal-title">Scratchpad / Quick Notes</h3>
-        <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="12" placeholder="Jot anything here… it autosaves to this browser."></textarea>
+        <!-- Markdown tools: write markdown without remembering the syntax. Every button acts on the current
+             selection (or inserts at the caret) and supports the matching keyboard shortcut. -->
+        <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
+          <div class="md-toolbar-group" role="group" aria-label="Text styling">
+            <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B" aria-label="Bold"><strong>B</strong></button>
+            <button type="button" class="md-btn" data-md="italic" title="Italic — Ctrl/⌘+I" aria-label="Italic"><em>I</em></button>
+            <button type="button" class="md-btn" data-md="strike" title="Strikethrough — Ctrl/⌘+Shift+X" aria-label="Strikethrough"><span class="md-strike">S</span></button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Headings">
+            <button type="button" class="md-btn" data-md="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+            <button type="button" class="md-btn" data-md="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+            <button type="button" class="md-btn" data-md="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Lists">
+            <button type="button" class="md-btn" data-md="ul" title="Bulleted list" aria-label="Bulleted list">• List</button>
+            <button type="button" class="md-btn" data-md="ol" title="Numbered list" aria-label="Numbered list">1. List</button>
+            <button type="button" class="md-btn" data-md="task" title="Task list with checkboxes" aria-label="Task list">☑ Task</button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Insert">
+            <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
+            <button type="button" class="md-btn" data-md="hr" title="Divider" aria-label="Horizontal divider">― Divider</button>
+          </div>
+          <div class="md-toolbar-spacer"></div>
+          <div class="md-toolbar-group" role="group" aria-label="View">
+            <button type="button" class="md-btn md-toggle" id="scratchpad-preview-toggle" aria-pressed="false" title="Show a live preview with tickable task checkboxes">👁 Preview</button>
+          </div>
+        </div>
+        <div class="scratch-editor" id="scratchpad-editor">
+          <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="14" placeholder="Jot anything here… it autosaves to this browser. Markdown works — use the buttons above or just type." aria-label="Scratchpad notes"></textarea>
+          <div class="md-preview" id="scratchpad-preview" hidden></div>
+        </div>
         <p class="status-msg" id="scratchpad-status"></p>
         <div class="modal-actions" style="justify-content:flex-start; flex-wrap:wrap;">
           <button type="button" class="modal-btn cancel" id="scratchpad-copy">Copy All</button>
@@ -728,7 +843,10 @@
                   <select id="scratchpad-gh-repo" class="form-input"><option value="">Loading repositories…</option></select>
                 </label>
                 <label class="form-label">File path
-                  <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes/scratchpad.md" autocomplete="off" spellcheck="false" />
+                  <span class="path-row">
+                    <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes-2026-10-24-1142.md" autocomplete="off" spellcheck="false" />
+                    <button type="button" class="modal-btn cancel" id="scratchpad-gh-new-file" title="Start a new note file named with today's date and time">New dated file</button>
+                  </span>
                 </label>
                 <label class="form-label">Branch (optional)
                   <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
@@ -737,8 +855,10 @@
               <div class="modal-actions">
                 <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save now</button>
                 <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull latest</button>
+                <button type="button" class="modal-btn cancel" id="scratchpad-gh-scratch" title="Create a private repo called scratch, or switch to it if it already exists">Use scratch repo</button>
                 <button type="button" class="modal-btn submit" id="scratchpad-gh-overwrite" hidden>Overwrite anyway</button>
               </div>
+              <div class="gh-sync-repo-help" id="scratchpad-gh-repo-help" hidden></div>
               <label class="checkbox-row">
                 <input type="checkbox" id="scratchpad-gh-autosave" />
                 Autosave to GitHub a few seconds after I stop typing
@@ -1025,10 +1145,10 @@
           {
             name: "Scratchpad / Quick Notes",
             modal: "modal-scratchpad",
-            desc: "A quick notes pad that autosaves locally, exports to text or markdown, and can commit the notes to your own GitHub repo — one-click setup, no token to paste.",
+            desc: "A markdown notes pad with formatting tools and a live preview that autosaves locally, exports to text or markdown, and commits dated notes to your own GitHub repo — one-click setup, no token to paste.",
             best: "Fast, exportable, GitHub-backed notes",
-            tags: ["notes", "scratchpad", "export", "github", "oauth"],
-            aliases: ["quick notes", "notepad", "notes to github", "github backup"]
+            tags: ["notes", "scratchpad", "markdown", "export", "github"],
+            aliases: ["quick notes", "notepad", "markdown editor", "notes to github", "github backup"]
           },
           {
             name: "RSS / News Headlines",
@@ -2630,6 +2750,232 @@
       });
     }
 
+    // ---- Scratchpad markdown tools ---------------------------------------------------------------------
+    // The saved notes are almost always .md files, so the editor gets the syntax people actually reach for:
+    // bold/italic/strike, H1–H3, bullet/numbered/task lists, quotes and dividers — applied to the selection
+    // (or inserted at the caret) with the usual keyboard shortcuts, plus an optional live preview whose task
+    // checkboxes tick the underlying `- [ ]` lines in place.
+    const MD_PREVIEW_KEY = "dash-scratchpad-preview";
+
+    function scratchpadDatedFileName(date = new Date()) {
+      const pad = value => String(value).padStart(2, "0");
+      return `notes-${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}.md`;
+    }
+
+    // Escape first, then decorate: the preview never trusts note content, so a pasted <script> stays text.
+    function renderScratchpadMarkdown(source) {
+      const escapeHtml = text => String(text).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+      const inline = text => escapeHtml(text)
+        .replace(/`([^`]+)`/g, (_, code) => `<code>${code}</code>`)
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+        .replace(/(^|[^*])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+        .replace(/(^|[^_\w])_([^_\n]+)_/g, "$1<em>$2</em>")
+        .replace(/~~([^~]+)~~/g, "<del>$1</del>")
+        .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, (_, label, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`);
+
+      const lines = String(source || "").replace(/\r\n?/g, "\n").split("\n");
+      let html = "";
+      let listTag = null;
+      let inCode = false;
+      const codeBuffer = [];
+      const closeList = () => { if (listTag) { html += `</${listTag}>`; listTag = null; } };
+      const openList = tag => { if (listTag !== tag) { closeList(); html += `<${tag}>`; listTag = tag; } };
+
+      lines.forEach((line, index) => {
+        if (/^\s*```/.test(line)) {
+          if (inCode) { html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`; codeBuffer.length = 0; inCode = false; }
+          else { closeList(); inCode = true; }
+          return;
+        }
+        if (inCode) { codeBuffer.push(line); return; }
+        if (!line.trim()) { closeList(); return; }
+        if (/^\s*(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) { closeList(); html += "<hr>"; return; }
+        const heading = line.match(/^\s*(#{1,6})\s+(.*)$/);
+        if (heading) {
+          closeList();
+          const level = Math.min(heading[1].length, 6);
+          html += `<h${level}>${inline(heading[2])}</h${level}>`;
+          return;
+        }
+        const quote = line.match(/^\s*>\s?(.*)$/);
+        if (quote) { closeList(); html += `<blockquote>${inline(quote[1])}</blockquote>`; return; }
+        const task = line.match(/^\s*[-*+]\s+\[([ xX])\]\s*(.*)$/);
+        if (task) {
+          openList("ul");
+          html += `<li class="md-task"><input type="checkbox" data-md-line="${index}" aria-label="Toggle task"${task[1].toLowerCase() === "x" ? " checked" : ""} /><span>${inline(task[2]) || "&nbsp;"}</span></li>`;
+          return;
+        }
+        const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
+        if (bullet) { openList("ul"); html += `<li>${inline(bullet[1])}</li>`; return; }
+        const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
+        if (numbered) { openList("ol"); html += `<li>${inline(numbered[1])}</li>`; return; }
+        closeList();
+        html += `<p>${inline(line)}</p>`;
+      });
+      if (inCode && codeBuffer.length) html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`;
+      closeList();
+      return html;
+    }
+
+    function initScratchpadMarkdown(textarea) {
+      const toolbar = document.querySelector(".md-toolbar");
+      const preview = document.getElementById("scratchpad-preview");
+      const previewToggle = document.getElementById("scratchpad-preview-toggle");
+      if (!textarea || !toolbar) return null;
+
+      // Selection/insert helpers. `execCommand("insertText")` is used when available because it keeps the
+      // browser's native undo stack intact (setRangeText/value writes don't).
+      function applyEdit(start, end, text, selectStart, selectEnd) {
+        textarea.focus();
+        textarea.setSelectionRange(start, end);
+        let inserted = false;
+        try { inserted = document.execCommand && document.execCommand("insertText", false, text); } catch (e) { inserted = false; }
+        if (!inserted) {
+          textarea.setRangeText(text, start, end, "end");
+          textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        if (typeof selectStart === "number") textarea.setSelectionRange(selectStart, typeof selectEnd === "number" ? selectEnd : selectStart);
+      }
+
+      function wrapSelection(marker, placeholder) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const selected = textarea.value.slice(start, end);
+        // Already wrapped? (e.g. clicking Bold twice) — unwrap instead of stacking markers.
+        const outside = textarea.value.slice(Math.max(0, start - marker.length), start);
+        const trailing = textarea.value.slice(end, end + marker.length);
+        if (outside === marker && trailing === marker) {
+          applyEdit(start - marker.length, end + marker.length, selected, start - marker.length, start - marker.length + selected.length);
+          return;
+        }
+        if (selected && selected.startsWith(marker) && selected.endsWith(marker) && selected.length > marker.length * 2) {
+          const inner = selected.slice(marker.length, -marker.length);
+          applyEdit(start, end, inner, start, start + inner.length);
+          return;
+        }
+        const body = selected || placeholder;
+        applyEdit(start, end, `${marker}${body}${marker}`, start + marker.length, start + marker.length + body.length);
+      }
+
+      // `exact` decides "this tool is already applied" (so a second click toggles it off); `strip` removes
+      // whatever list/heading marker was there so switching between them replaces rather than stacks.
+      const LINE_TOOLS = {
+        h1: { prefix: "# ", exact: /^\s{0,3}#(?!#)\s+/, strip: /^\s{0,3}#{1,6}\s+/ },
+        h2: { prefix: "## ", exact: /^\s{0,3}#{2}(?!#)\s+/, strip: /^\s{0,3}#{1,6}\s+/ },
+        h3: { prefix: "### ", exact: /^\s{0,3}#{3}(?!#)\s+/, strip: /^\s{0,3}#{1,6}\s+/ },
+        ul: { prefix: "- ", exact: /^\s*[-*+]\s+(?!\[[ xX]\])/, strip: /^\s*(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.)]\s+)/ },
+        task: { prefix: "- [ ] ", exact: /^\s*[-*+]\s+\[[ xX]\]\s+/, strip: /^\s*(?:[-*+]\s+\[[ xX]\]\s*|[-*+]\s+|\d+[.)]\s+)/ },
+        ol: { prefix: "1. ", exact: /^\s*\d+[.)]\s+/, strip: /^\s*(?:[-*+]\s+(?:\[[ xX]\]\s*)?|\d+[.)]\s+)/ },
+        quote: { prefix: "> ", exact: /^\s*>\s?/, strip: /^\s*>\s?/ }
+      };
+
+      // Line-based tools work on every line the selection touches and toggle off when they're already applied.
+      function toggleLinePrefix(kind) {
+        const tool = LINE_TOOLS[kind];
+        if (!tool) return;
+        const value = textarea.value;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const blockStart = value.lastIndexOf("\n", start - 1) + 1;
+        let blockEnd = value.indexOf("\n", end);
+        if (blockEnd === -1) blockEnd = value.length;
+        const lines = value.slice(blockStart, blockEnd).split("\n");
+        const nonEmpty = lines.filter(line => line.trim());
+        // Already exactly this marker on every line? Then the click means "take it off".
+        const already = nonEmpty.length > 0 && nonEmpty.every(line => tool.exact.test(line));
+
+        let counter = 0;
+        const next = lines.map(line => {
+          if (!line.trim()) return line;
+          if (already) return line.replace(tool.exact, "").replace(/^\s+/, "");
+          const body = line.replace(tool.strip, "").replace(/^\s+/, "");
+          if (kind === "ol") {
+            counter += 1;
+            return `${counter}. ${body}`;
+          }
+          return `${tool.prefix}${body}`;
+        });
+
+        const replacement = next.join("\n");
+        applyEdit(blockStart, blockEnd, replacement, blockStart, blockStart + replacement.length);
+      }
+
+      function insertDivider() {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+        const lead = before && !before.endsWith("\n") ? "\n\n" : "";
+        const tail = after.startsWith("\n") ? "" : "\n";
+        const text = `${lead}---${tail}`;
+        applyEdit(start, end, text, start + text.length, start + text.length);
+      }
+
+      function runTool(tool) {
+        if (tool === "bold") wrapSelection("**", "bold text");
+        else if (tool === "italic") wrapSelection("*", "italic text");
+        else if (tool === "strike") wrapSelection("~~", "strikethrough");
+        else if (tool === "hr") insertDivider();
+        else if (LINE_TOOLS[tool]) toggleLinePrefix(tool);
+      }
+
+      // ---- live preview ----
+      const renderPreview = () => { if (preview && !preview.hidden) preview.innerHTML = renderScratchpadMarkdown(textarea.value); };
+      const setPreviewVisible = visible => {
+        if (!preview || !previewToggle) return;
+        preview.hidden = !visible;
+        previewToggle.setAttribute("aria-pressed", String(visible));
+        if (visible) renderPreview();
+        try { localStorage.setItem(MD_PREVIEW_KEY, String(visible)); } catch (e) {}
+      };
+
+      let previewTimer;
+      textarea.addEventListener("input", () => {
+        if (!preview || preview.hidden) return;
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(renderPreview, 180);
+      });
+      previewToggle?.addEventListener("click", () => setPreviewVisible(preview ? preview.hidden : false));
+
+      // Ticking a checkbox in the preview edits the matching `- [ ]` line in the source, then re-renders.
+      preview?.addEventListener("change", event => {
+        const box = event.target.closest('input[type="checkbox"][data-md-line]');
+        if (!box) return;
+        const lineIndex = Number(box.dataset.mdLine);
+        const lines = textarea.value.split("\n");
+        if (!lines[lineIndex]) return;
+        lines[lineIndex] = lines[lineIndex].replace(/^(\s*[-*+]\s+)\[[ xX]\]/, (_, lead) => `${lead}[${box.checked ? "x" : " "}]`);
+        textarea.value = lines.join("\n");
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        renderPreview();
+      });
+
+      // ---- wiring ----
+      toolbar.querySelectorAll("[data-md]").forEach(button => {
+        // Keep the textarea's selection: mousedown would otherwise blur it before the click handler runs.
+        button.addEventListener("mousedown", event => event.preventDefault());
+        button.addEventListener("click", () => runTool(button.dataset.md));
+      });
+      textarea.addEventListener("keydown", event => {
+        const mod = event.metaKey || event.ctrlKey;
+        if (!mod) return;
+        const key = event.key.toLowerCase();
+        const shortcuts = { b: "bold", i: "italic", x: event.shiftKey ? "strike" : "", e: "ul" };
+        const tool = shortcuts[key];
+        if (!tool) return;
+        event.preventDefault();
+        runTool(tool);
+      });
+
+      // Remember the preview choice between visits.
+      let wantPreview = false;
+      try { wantPreview = localStorage.getItem(MD_PREVIEW_KEY) === "true"; } catch (e) {}
+      if (wantPreview) setPreviewVisible(true);
+
+      return { renderPreview, setPreviewVisible };
+    }
+
     function initScratchpadTool() {
       const textarea = document.getElementById("scratchpad-text");
       if (!textarea) return;
@@ -2661,10 +3007,13 @@
       };
       document.getElementById("scratchpad-export-txt")?.addEventListener("click", () => exportAs("txt"));
       document.getElementById("scratchpad-export-md")?.addEventListener("click", () => exportAs("md"));
+      const markdown = initScratchpadMarkdown(textarea);
+
       document.getElementById("scratchpad-clear")?.addEventListener("click", () => {
         textarea.value = "";
         try { localStorage.setItem("dash-scratchpad", ""); } catch (e) {}
         setStatus("scratchpad-status", "Cleared.");
+        markdown?.renderPreview();
       });
 
       ghSync = initScratchpadGithubSync(textarea);
@@ -2690,6 +3039,9 @@
       const tokenInput = document.getElementById("scratchpad-gh-token");
       const tokenSaveBtn = document.getElementById("scratchpad-gh-token-save");
       const tokenClearBtn = document.getElementById("scratchpad-gh-token-clear");
+      const newFileBtn = document.getElementById("scratchpad-gh-new-file");
+      const scratchBtn = document.getElementById("scratchpad-gh-scratch");
+      const repoHelp = document.getElementById("scratchpad-gh-repo-help");
       if (!panel || !setupBtn) return null;
 
       const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
@@ -2701,6 +3053,11 @@
       let saving = false;
       let ghSaveTimer;
       let reposLoaded = false;
+      let scratchAttempted = false;
+
+      // The notes live in a repo called `scratch` unless the user picks another one; it is created
+      // automatically (private, with an initial commit) the first time it isn't found.
+      const SCRATCH_REPO = "scratch";
 
       // Each (repo, branch, path) combo remembers the blob SHA it last synced, which is what makes an in-place
       // update possible — and what lets a save notice that someone else changed the file in the meantime.
@@ -2733,6 +3090,7 @@
         if (forgetBtn) forgetBtn.hidden = connection.kind === "none";
         if (tokenClearBtn) tokenClearBtn.hidden = connection.kind !== "token";
         if (target) target.hidden = !connection.ready;
+        if (scratchBtn) scratchBtn.hidden = !connection.ready;
 
         if (connection.kind === "app") {
           accountBadge.textContent = connection.installationId
@@ -2763,37 +3121,125 @@
 
       // Silent by default: the background verification pass shouldn't stomp on a message the user just earned
       // (e.g. "Connected as @you"). callers that want the summary pass announce: true.
-      async function loadRepos({ announce = false } = {}) {
-        if (reposLoaded) return;
+      function renderRepoOptions(repos) {
+        if (!repoSelect) return;
+        const previous = ghReadStore(GH.keys.repo) || repoSelect.value;
+        repoSelect.replaceChildren();
+        if (!repos.length) {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "No repositories yet — Use scratch repo creates one";
+          repoSelect.appendChild(option);
+        }
+        repos.forEach(repo => {
+          const option = document.createElement("option");
+          option.value = repo.full_name;
+          option.textContent = repo.full_name;
+          repoSelect.appendChild(option);
+        });
+        const match = repos.find(repo => repo.full_name === previous);
+        const scratch = repos.find(repo => repo.name === SCRATCH_REPO);
+        // Prefer the remembered repo, then `scratch` (the notes repo), then whatever is first.
+        if (match) repoSelect.value = match.full_name;
+        else if (scratch) repoSelect.value = scratch.full_name;
+        else if (repos.length) repoSelect.value = repos[0].full_name;
+        if (repos.length) ghWriteStore(GH.keys.repo, repoSelect.value);
+        return { scratch: Boolean(scratch) };
+      }
+
+      function showRepoHelp(html) {
+        if (!repoHelp) return;
+        repoHelp.hidden = !html;
+        repoHelp.innerHTML = html || "";
+      }
+
+      async function loadRepos({ announce = false, createScratch = true } = {}) {
+        let hasScratch = false;
         try {
           const res = await ghAuthorizedFetch("/installation/repositories?per_page=100");
           const data = await res.json().catch(() => ({}));
           if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
           const repos = data.repositories || [];
           if (!repoSelect) return;
-          const previous = ghReadStore(GH.keys.repo) || repoSelect.value;
-          repoSelect.replaceChildren();
-          if (!repos.length) {
-            const option = document.createElement("option");
-            option.value = "";
-            option.textContent = "No repositories — install the app on one";
-            repoSelect.appendChild(option);
-          }
-          repos.forEach(repo => {
-            const option = document.createElement("option");
-            option.value = repo.full_name;
-            option.textContent = repo.full_name;
-            repoSelect.appendChild(option);
-          });
-          const match = repos.find(repo => repo.full_name === previous);
-          if (match) repoSelect.value = match.full_name;
-          else if (repos.length) repoSelect.value = repos[0].full_name;
-          if (repos.length) ghWriteStore(GH.keys.repo, repoSelect.value);
+          const result = renderRepoOptions(repos);
+          hasScratch = Boolean(result && result.scratch);
           reposLoaded = true;
+          // Only a real scratch repo means the earlier "couldn't create it" note is out of date.
+          if (hasScratch) showRepoHelp("");
           if (announce) setGhStatus(`${repos.length} repositor${repos.length === 1 ? "y" : "ies"} available to this app.`, "success");
-          else if (!repos.length) setGhStatus("The app isn't installed on any repository yet — click Install on a repository.", "error");
+          else if (!repos.length) setGhStatus("No repositories are available yet — the app can create one for you.", "");
         } catch (error) {
           setGhStatus(error.message, "error");
+          return;
+        }
+        // No `scratch` repo yet? Create it once, automatically — it's where these notes are meant to live.
+        if (!hasScratch && createScratch) await ensureScratchRepo({ automatic: true });
+      }
+
+      // Creates the private `scratch` repo (with an initial commit so there is a default branch to write to)
+      // and switches to it. Needs the app's `repository_creation: write` permission; if GitHub refuses, the
+      // panel explains what to click instead of failing silently.
+      async function ensureScratchRepo({ automatic = false } = {}) {
+        if (!ghConnection().ready) return;
+        if (automatic && scratchAttempted) return;
+        scratchAttempted = true;
+        const connection = ghConnection();
+        const owner = connection.kind === "app" ? (connection.app.installation_account || connection.app.owner || "") : "";
+        const accountType = connection.kind === "app" ? (connection.app.installation_type || "User") : "User";
+        const createPath = accountType === "Organization" && owner ? `/orgs/${owner}/repos` : "/user/repos";
+        setGhStatus(`Creating a private “${SCRATCH_REPO}” repository…`);
+        showRepoHelp("");
+        try {
+          const res = await ghAuthorizedFetch(createPath, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: SCRATCH_REPO,
+              description: "Scratchpad notes from the dash dashboard.",
+              private: true,
+              auto_init: true
+            })
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
+          const fullName = data.full_name || `${owner || (connection.app && connection.app.owner) || ""}/${SCRATCH_REPO}`;
+          ghWriteStore(GH.keys.repo, fullName);
+          reposLoaded = false;
+          await loadRepos({ createScratch: false });
+          if (repoSelect) {
+            // A brand-new repo can take a moment to show up in the installation's list, so make sure the
+            // freshly created one is selectable either way.
+            if (![...repoSelect.options].some(option => option.value === fullName)) {
+              const option = document.createElement("option");
+              option.value = fullName;
+              option.textContent = fullName;
+              repoSelect.appendChild(option);
+            }
+            repoSelect.value = fullName;
+          }
+          setGhStatus(`Ready — notes are saved to the private “${SCRATCH_REPO}” repo (${fullName}).`, "success");
+          showRepoHelp("");
+        } catch (error) {
+          const app = ghReadStore(GH.keys.app) ? ghReadJson(GH.keys.app, null) : null;
+          const slug = app && (app.slug || app.name);
+          const settingsUrl = slug ? `https://github.com/settings/apps/${encodeURIComponent(slug)}/permissions` : "https://github.com/settings/apps";
+          const newRepoUrl = "https://github.com/new?name=" + encodeURIComponent(SCRATCH_REPO) + "&private=1";
+          const alreadyExists = error.status === 422 && /already exists/i.test(error.message);
+          const usableRepo = repoSelect && repoSelect.value;
+          if (alreadyExists) {
+            setGhStatus(`A repository named “${SCRATCH_REPO}” already exists but this app can't see it. Add it to the app's installation, then click Re-check connection.${usableRepo ? ` Saving to ${usableRepo} still works.` : ""}`, "error");
+          } else if (automatic && usableRepo) {
+            // Saving is already possible, so don't make this look like a failure — it's a tip.
+            setGhStatus(`Tip: the “${SCRATCH_REPO}” repo wasn't found and the app couldn't create it (${error.message}). Notes still save to ${usableRepo} — see below to enable Repository creation: write.`);
+          } else {
+            setGhStatus(`GitHub wouldn't let the app create the “${SCRATCH_REPO}” repo (${error.message}).`, "error");
+          }
+          showRepoHelp(
+            `To let the app make its own <code>${SCRATCH_REPO}</code> repo: grant <strong>Repository creation: write</strong> in ` +
+            `<a href="${settingsUrl}" target="_blank" rel="noopener noreferrer">the app's permissions</a> and accept it on the installation — ` +
+            `or <a href="${newRepoUrl}" target="_blank" rel="noopener noreferrer">create “${SCRATCH_REPO}” yourself</a> and add it to the app. ` +
+            `Then click <strong>Re-check connection</strong>. Tip: apps created before this feature shipped need <strong>Disconnect → Set up GitHub saving</strong> to get the new permission automatically.`
+          );
         }
       }
 
@@ -2930,7 +3376,9 @@
           public: false,
           request_oauth_on_install: false,
           setup_on_update: false,
-          default_permissions: { contents: "write", metadata: "read" },
+          // Contents to write the notes; repository_creation (least privilege, not full administration) so
+          // the app can make the private `scratch` repo the first time it's missing.
+          default_permissions: { contents: "write", metadata: "read", repository_creation: "write" },
           default_events: []
         };
         const form = document.createElement("form");
@@ -3036,7 +3484,6 @@
           reposLoaded = false;
           render();
           if (!quiet) setGhStatus(`Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
-          else setGhStatus("");
         } catch (error) {
           render();
           setGhStatus(`Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
@@ -3044,7 +3491,8 @@
       }
 
       // ---- wiring ---------------------------------------------------------------------------------------
-      pathInput.value = ghReadStore(GH.keys.path) || "notes/scratchpad.md";
+      // Each note gets its own dated markdown file (notes-YYYY-MM-DD-HHMM.md) unless one was chosen before.
+      pathInput.value = ghReadStore(GH.keys.path) || scratchpadDatedFileName();
       branchInput.value = ghReadStore(GH.keys.branch);
       // Default to autosaving once GitHub is set up — "notes just get saved" is the point. Unchecking is
       // remembered, so only an explicit "false" turns it off.
@@ -3052,7 +3500,7 @@
 
       setupBtn.addEventListener("click", startSetup);
       installBtn?.addEventListener("click", startInstall);
-      checkBtn?.addEventListener("click", () => { reposLoaded = false; resolveInstallation(); });
+      checkBtn?.addEventListener("click", () => { reposLoaded = false; scratchAttempted = false; resolveInstallation(); });
       forgetBtn?.addEventListener("click", () => {
         ghForgetApp();
         try { localStorage.removeItem(GH.keys.token); } catch (e) {}
@@ -3067,6 +3515,19 @@
       saveBtn?.addEventListener("click", () => saveNotes());
       pullBtn?.addEventListener("click", pullNotes);
       overwriteBtn?.addEventListener("click", () => saveNotes({ forced: true }));
+
+      // "New dated file": names the next note after the current date/time, so a day's notes don't overwrite
+      // yesterday's. Existing content stays put — it's saved to the new file on the next save.
+      newFileBtn?.addEventListener("click", () => {
+        pathInput.value = scratchpadDatedFileName();
+        ghWriteStore(GH.keys.path, pathInput.value);
+        conflictPaused = false;
+        showOverwrite(false);
+        setFileStatus(`Next save creates ${pathInput.value}.`);
+        pathInput.focus();
+        pathInput.select();
+      });
+      scratchBtn?.addEventListener("click", () => { scratchAttempted = false; ensureScratchRepo(); });
 
       repoSelect?.addEventListener("change", () => { ghWriteStore(GH.keys.repo, repoSelect.value); conflictPaused = false; showOverwrite(false); setFileStatus(""); });
       pathInput.addEventListener("change", () => { ghWriteStore(GH.keys.path, ghNormalizePath(pathInput.value)); conflictPaused = false; showOverwrite(false); });
@@ -3134,10 +3595,11 @@
           await resolveInstallation();
           return;
         }
+        // A registered app that already has an installation is verified before anything else touches the
+        // API, so repo/scratch handling uses GitHub's own view of the installation (account type included)
+        // instead of racing it, and a stale installation surfaces before the first save rather than after.
+        if (ghConnection().kind === "app") await resolveInstallation(null, { quiet: true });
         render();
-        // A registered app that already has an installation can be verified silently in the background, so a
-        // stale/removed installation shows up before the first save rather than as a failed commit.
-        if (ghConnection().kind === "app") resolveInstallation(null, { quiet: true });
       })();
 
       // Called from the textarea's debounce: commit quietly, but never behind the user's back once a conflict

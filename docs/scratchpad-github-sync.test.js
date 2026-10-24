@@ -54,6 +54,8 @@ function makeWindow({ url = SITE, pending = null, storage = null, session = null
       Object.defineProperty(window, "isSecureContext", { configurable: true, value: true });
       window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
       window.confirm = () => vcs.confirmAnswer;
+      // jsdom has no execCommand, so the toolbar's fallback path (setRangeText) is what gets exercised here.
+      window.document.execCommand = () => false;
       window.__captureAssign = target => vcs.assigned.push(target);
       if (window.HTMLDialogElement) {
         window.HTMLDialogElement.prototype.showModal = function showModal() { this.open = true; };
@@ -100,21 +102,47 @@ function verifyAppJwt(jwt) {
 }
 
 const APP_RECORD = { app_id: 987654, slug: "dash-notes-example", name: "dash notes", owner: "octocat", pem: appPem, installation_id: 424242, installation_account: "octocat", created_at: Date.now() };
-const INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "User" };
+const USER_INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "User" };
+const ORG_INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "Organization" };
 const REPOS = { total_count: 2, repositories: [{ full_name: "octocat/notes" }, { full_name: "octocat/private-notes" }] };
 
-// A tiny stateful GitHub: manifest conversion, installations, installation tokens, contents.
-function makeGithub({ existing = null } = {}) {
-  const state = { conversions: 0, tokenMints: 0, puts: [], file: existing, lastJwt: null, lastInstallJwt: null, issuedTokens: [] };
+// A tiny stateful GitHub: manifest conversion, installations, installation tokens, repo creation, contents.
+function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false } = {}) {
+  const state = {
+    conversions: 0, tokenMints: 0, puts: [], file: existing, lastJwt: null, lastInstallJwt: null, issuedTokens: [],
+    createdRepos: [], createAttempts: 0
+  };
+  const repoList = () => {
+    if (reposWithScratch) return [{ full_name: "octocat/notes", name: "notes" }, { full_name: "octocat/scratch", name: "scratch" }];
+    if (reposWithoutScratch) {
+      const created = state.createdRepos.length ? [{ full_name: "octocat/scratch", name: "scratch" }] : [];
+      return [{ full_name: "octocat/notes", name: "notes" }, ...created];
+    }
+    // By default the notes repo already exists, so scratch creation only fires in the tests that ask for it.
+    return [{ full_name: "octocat/notes", name: "notes" }, { full_name: "octocat/private-notes", name: "private-notes" }, { full_name: "octocat/scratch", name: "scratch" }];
+  };
   async function handle(target, options = {}) {
     const method = (options.method || "GET").toUpperCase();
+    if ((target === "https://api.github.com/user/repos" || /^https:\/\/api\.github\.com\/orgs\/[^/]+\/repos$/.test(target)) && method === "POST") {
+      state.createAttempts += 1;
+      if (denyCreate) {
+        return { ok: false, status: 403, json: async () => ({ message: "Resource not accessible by integration" }) };
+      }
+      const body = JSON.parse(options.body || "{}");
+      state.createdRepos.push({
+        ...body,
+        path: target.replace("https://api.github.com", ""),
+        full_name: `${orgAccount ? "octocat" : "octocat"}/${body.name}`
+      });
+      return jsonRes({ full_name: `octocat/${body.name}`, name: body.name, private: true, default_branch: "main" }, true, 201);
+    }
     if (target.startsWith("https://api.github.com/app-manifests/")) {
       state.conversions += 1;
       return jsonRes({ id: 987654, slug: "dash-notes-example", name: "dash notes", owner: { login: "octocat" }, pem: appPem, html_url: "https://github.com/apps/dash-notes-example", client_id: "Iv1.abc", client_secret: "shhh", webhook_secret: null });
     }
     if (target.includes("/app/installations") && method === "GET") {
       state.lastJwt = options.headers?.Authorization?.replace("Bearer ", "");
-      return jsonRes([INSTALL]);
+      return jsonRes([orgAccount ? ORG_INSTALL : USER_INSTALL]);
     }
     if (target.includes("/access_tokens") && method === "POST") {
       state.tokenMints += 1;
@@ -125,7 +153,7 @@ function makeGithub({ existing = null } = {}) {
     }
     if (target.includes("/installation/repositories")) {
       state.listAuth = options.headers?.Authorization?.replace("Bearer ", "");
-      return jsonRes(REPOS);
+      return jsonRes({ total_count: repoList().length, repositories: repoList() });
     }
     if (target.includes("/repos/")) {
       if (method === "PUT") {
@@ -168,7 +196,10 @@ function makeGithub({ existing = null } = {}) {
   const manifestField = submission.entries.find(([k]) => k === "manifest");
   const manifest = JSON.parse(manifestField ? manifestField[1] : "{}");
   check("manifest redirects back to this page", manifest.redirect_url === SITE && (manifest.callback_urls || []).includes(SITE), JSON.stringify(manifest.redirect_url));
-  check("app requests only Contents write", JSON.stringify(manifest.default_permissions) === JSON.stringify({ contents: "write", metadata: "read" }), JSON.stringify(manifest.default_permissions));
+  check("app requests only what it needs (contents + least-privilege repo creation)",
+    JSON.stringify(manifest.default_permissions) === JSON.stringify({ contents: "write", metadata: "read", repository_creation: "write" }),
+    JSON.stringify(manifest.default_permissions));
+  check("app does not ask for full repository administration", !("administration" in (manifest.default_permissions || {})));
   check("app is private with no webhook events", manifest.public === false && Array.isArray(manifest.default_events) && manifest.default_events.length === 0);
   check("manifest returns the page after the install screen", manifest.setup_url === SITE, JSON.stringify(manifest.setup_url));
   const pendingState = JSON.parse(win.sessionStorage.getItem("dash-scratchpad-gh-app-pending-v2") || "{}");
@@ -206,7 +237,8 @@ function makeGithub({ existing = null } = {}) {
   check("installation id persisted", installed.installation_id === 424242, JSON.stringify(installed.installation_id));
   check("installation account recorded", installed.installation_account === "octocat");
   check("badge says connected", /Connected/.test(d3.getElementById("scratchpad-gh-account").textContent), d3.getElementById("scratchpad-gh-account").textContent);
-  check("repo picker is populated", [...d3.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(",") === "octocat/notes,octocat/private-notes");
+  check("repo picker is populated", [...d3.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(",") === "octocat/notes,octocat/private-notes,octocat/scratch", [...d3.querySelectorAll("#scratchpad-gh-repo option")].map(o => o.value).join(","));
+  check("the notes repo (scratch) is preselected", d3.getElementById("scratchpad-gh-repo").value === "octocat/scratch", d3.getElementById("scratchpad-gh-repo").value);
   check("save controls revealed", d3.getElementById("scratchpad-gh-target").hidden === false);
   check("Set up button retired", d3.getElementById("scratchpad-gh-setup").hidden === true);
   check("a real app JWT was signed for the installations call", verifyAppJwt(github.state.lastJwt).ok && verifyAppJwt(github.state.lastJwt).issuedAtSane,
@@ -299,7 +331,7 @@ function makeGithub({ existing = null } = {}) {
   await flush(); await flush();
   check("no navigation was attempted on load", win.__vc.assigned.length === 0, JSON.stringify(win.__vc.assigned));
   check("no setup/install prompt is shown", win.document.getElementById("scratchpad-gh-setup").hidden && win.document.getElementById("scratchpad-gh-install").hidden);
-  check("repo picker ready without clicking anything", win.document.querySelectorAll("#scratchpad-gh-repo option").length === 2);
+  check("repo picker ready without clicking anything", win.document.querySelectorAll("#scratchpad-gh-repo option").length === 3, String(win.document.querySelectorAll("#scratchpad-gh-repo option").length));
   check("connection verified in the background", github.state.lastJwt !== null && verifyAppJwt(github.state.lastJwt).ok);
   const staleApp = { ...APP_RECORD, installation_token: "ghs_stale", installation_token_expires_at: Date.now() - 1000, installation_token_id: 424242 };
   github = makeGithub();
@@ -342,13 +374,13 @@ function makeGithub({ existing = null } = {}) {
   check("local autosave wrote localStorage", win.localStorage.getItem("dash-scratchpad") === "plain local note");
   check("local status confirms the save", /Saved locally/.test(d8.getElementById("scratchpad-status").textContent));
 
-  win = makeWindow({ fetchImpl: async target => (target.endsWith("/user") ? jsonRes({ login: "tokenuser" }) : jsonRes(REPOS)) });
+  win = makeWindow({ fetchImpl: async target => (target.endsWith("/user") ? jsonRes({ login: "tokenuser" }) : jsonRes({ total_count: 1, repositories: [{ full_name: "tokenuser/notes", name: "notes" }] })) });
   await flush();
   const d9 = win.document;
   d9.getElementById("scratchpad-gh-token").value = "github_pat_example";
   d9.getElementById("scratchpad-gh-token-save").click();
   await flush(); await flush(); await flush();
-  check("token validated against /user", /@tokenuser/.test(d9.getElementById("scratchpad-gh-status").textContent), d9.getElementById("scratchpad-gh-status").textContent);
+  check("token validated against /user", /tokenuser/.test(d9.getElementById("scratchpad-gh-account").textContent), d9.getElementById("scratchpad-gh-account").textContent);
   check("token mode reveals the save controls", d9.getElementById("scratchpad-gh-target").hidden === false);
   check("token mode offers Remove", d9.getElementById("scratchpad-gh-token-clear").hidden === false);
   check("token recorded in storage", JSON.parse(win.localStorage.getItem("dash-scratchpad-gh-token-v1") || "{}").access_token === "github_pat_example");
@@ -361,6 +393,190 @@ function makeGithub({ existing = null } = {}) {
   check("app record removed", win.localStorage.getItem("dash-scratchpad-gh-app-v2") === null);
   check("Set up button returns", win.document.getElementById("scratchpad-gh-setup").hidden === false);
   check("save controls hidden again", win.document.getElementById("scratchpad-gh-target").hidden === true);
+
+  console.log("\n[12] the note file is named with the date and time");
+  win = makeWindow();
+  await flush();
+  check("file path defaults to a dated markdown name", /^notes-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(win.document.getElementById("scratchpad-gh-path").value),
+    win.document.getElementById("scratchpad-gh-path").value);
+  const datedStem = win.document.getElementById("scratchpad-gh-path").value;
+  win.document.getElementById("scratchpad-gh-path").value = "notes/custom.md";
+  win.document.getElementById("scratchpad-gh-path").dispatchEvent(new win.Event("change", { bubbles: true }));
+  win.document.getElementById("scratchpad-gh-new-file").click();
+  await flush();
+  const regenerated = win.document.getElementById("scratchpad-gh-path").value;
+  check("New dated file regenerates the name", /^notes-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(regenerated) && regenerated !== "notes/custom.md", regenerated);
+  check("the new name is remembered", win.localStorage.getItem("dash-scratchpad-gh-path") === regenerated);
+  check("dated name was produced by the helper", typeof datedStem === "string" && datedStem.startsWith("notes-"));
+
+  console.log("\n[13] markdown toolbar edits the note");
+  win = makeWindow();
+  await flush();
+  const d13 = win.document;
+  const ta13 = d13.getElementById("scratchpad-text");
+  const click = name => d13.querySelector(`.md-toolbar [data-md="${name}"]`).click();
+  const setSelection = (start, end = start) => { ta13.setSelectionRange(start, end); };
+  d13.querySelector('[data-md="bold"]').dispatchEvent(new win.Event("mousedown", { bubbles: true, cancelable: true }));
+
+  ta13.value = "hello world";
+  setSelection(6, 11);
+  click("bold");
+  check("bold wraps the selection", ta13.value === "hello **world**", JSON.stringify(ta13.value));
+  check("selection left on the bolded text", ta13.selectionStart === 8 && ta13.selectionEnd === 13, `${ta13.selectionStart}-${ta13.selectionEnd}`);
+  click("bold");
+  check("bold again unwraps", ta13.value === "hello world", JSON.stringify(ta13.value));
+
+  ta13.value = "slanted";
+  setSelection(0, 7);
+  click("italic");
+  check("italic wraps the selection", ta13.value === "*slanted*", JSON.stringify(ta13.value));
+  ta13.value = "gone";
+  setSelection(0, 4);
+  click("strike");
+  check("strikethrough wraps the selection", ta13.value === "~~gone~~", JSON.stringify(ta13.value));
+
+  ta13.value = "insert here";
+  setSelection(7);
+  click("bold");
+  check("empty selection inserts a placeholder and selects it", ta13.value === "insert **bold text**here" && ta13.selectionStart === 9 && ta13.selectionEnd === 18, JSON.stringify(ta13.value));
+
+  ta13.value = "Title";
+  setSelection(0, 5);
+  click("h1");
+  check("H1 prefixes the line", ta13.value === "# Title", JSON.stringify(ta13.value));
+  click("h2");
+  check("H2 replaces the level instead of stacking", ta13.value === "## Title", JSON.stringify(ta13.value));
+  click("h3");
+  check("H3 replaces the level", ta13.value === "### Title", JSON.stringify(ta13.value));
+  click("h3");
+  check("clicking the same heading toggles it off", ta13.value === "Title", JSON.stringify(ta13.value));
+
+  ta13.value = "one\ntwo";
+  setSelection(0, 7);
+  click("ul");
+  check("bulleted list prefixes every selected line", ta13.value === "- one\n- two", JSON.stringify(ta13.value));
+  click("task");
+  check("task list replaces the bullet marker", ta13.value === "- [ ] one\n- [ ] two", JSON.stringify(ta13.value));
+  click("ol");
+  check("numbered list converts and counts up", ta13.value === "1. one\n2. two", JSON.stringify(ta13.value));
+  click("ol");
+  check("numbered list toggles off", ta13.value === "one\ntwo", JSON.stringify(ta13.value));
+
+  ta13.value = "";
+  setSelection(0);
+  click("hr");
+  check("divider inserted", /^---\n?$/.test(ta13.value), JSON.stringify(ta13.value));
+
+  ta13.value = "local edit";
+  setSelection(6);
+  click("bold");
+  check("toolbar edits count as typing (local autosave fires)",
+    await new Promise(resolve => setTimeout(() => resolve(win.localStorage.getItem("dash-scratchpad") === "local **bold text**edit"), 600)),
+    win.localStorage.getItem("dash-scratchpad"));
+
+  const boldButton = d13.querySelector('[data-md="bold"]');
+  const press = new win.KeyboardEvent("keydown", { key: "b", ctrlKey: true, bubbles: true, cancelable: true });
+  ta13.value = "hotkey";
+  setSelection(0, 6);
+  ta13.dispatchEvent(press);
+  check("Ctrl+B bolds", ta13.value === "**hotkey**", JSON.stringify(ta13.value));
+  check("Ctrl+B is prevented from reaching the browser", press.defaultPrevented === true);
+
+  console.log("\n[14] live markdown preview, with tickable task checkboxes");
+  win = makeWindow();
+  await flush();
+  const d14 = win.document;
+  const ta14 = d14.getElementById("scratchpad-text");
+  const preview = d14.getElementById("scratchpad-preview");
+  const toggle = d14.getElementById("scratchpad-preview-toggle");
+  check("preview starts hidden", preview.hidden === true && toggle.getAttribute("aria-pressed") === "false");
+  ta14.value = "# Heading\n\nSome **bold**, *italic* and ~~struck~~ text.\n\n- bullet\n1. numbered\n\n- [ ] open task\n- [x] done task\n\n---";
+  toggle.click();
+  await flush();
+  check("preview shows", preview.hidden === false && toggle.getAttribute("aria-pressed") === "true");
+  check("heading rendered", preview.querySelector("h1") && preview.querySelector("h1").textContent === "Heading", preview.innerHTML.slice(0, 120));
+  check("bold / italic / strike rendered", preview.querySelector("strong") && preview.querySelector("em") && preview.querySelector("del"));
+  check("lists rendered", preview.querySelector("ul li") && preview.querySelector("ol li"));
+  check("divider rendered", !!preview.querySelector("hr"));
+  const boxes = preview.querySelectorAll('input[type="checkbox"][data-md-line]');
+  check("task checkboxes rendered with their line numbers", boxes.length === 2, String(boxes.length));
+  check("checked task reflects the source", boxes[1].checked === true && boxes[0].checked === false);
+  boxes[0].checked = true;
+  boxes[0].dispatchEvent(new win.Event("change", { bubbles: true }));
+  await flush();
+  check("ticking a preview checkbox edits the source", /- \[x\] open task/.test(ta14.value), JSON.stringify(ta14.value));
+  check("the other task is untouched", /- \[x\] done task/.test(ta14.value));
+  check("edit propagates to local autosave", await new Promise(r => setTimeout(() => r(win.localStorage.getItem("dash-scratchpad").includes("- [x] open task")), 600)));
+
+  ta14.value = '<img src=x onerror="alert(1)"> **ok**';
+  ta14.dispatchEvent(new win.Event("input", { bubbles: true }));
+  await new Promise(r => setTimeout(r, 400));
+  check("raw HTML in notes is escaped, not executed", preview.querySelector("img") === null && /&lt;img/.test(preview.innerHTML), preview.innerHTML.slice(0, 100));
+
+  console.log("\n[15] a missing `scratch` repo is created automatically");
+  github = makeGithub({ reposWithoutScratch: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  check("POST /user/repos asked for a private scratch repo", github.state.createdRepos.length === 1 && github.state.createdRepos[0].name === "scratch" && github.state.createdRepos[0].private === true, JSON.stringify(github.state.createdRepos));
+  check("repo is initialised so it has a default branch", github.state.createdRepos[0]?.auto_init === true);
+  check("new repo becomes the selection", win.document.getElementById("scratchpad-gh-repo").value === "octocat/scratch", win.document.getElementById("scratchpad-gh-repo").value);
+  check("selection is remembered", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
+  check("the panel ends up pointing at the scratch repo", /scratch/.test(win.document.getElementById("scratchpad-gh-repo").value), win.document.getElementById("scratchpad-gh-repo").value);
+  check("no error help is shown on success", win.document.getElementById("scratchpad-gh-repo-help").hidden === true);
+
+  console.log("\n[16] an existing `scratch` repo is used as-is, and org installs create in the org");
+  github = makeGithub({ reposWithScratch: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  check("nothing is created when scratch already exists", github.state.createdRepos.length === 0);
+  check("scratch is preferred over other repos", win.document.getElementById("scratchpad-gh-repo").value === "octocat/scratch", win.document.getElementById("scratchpad-gh-repo").value);
+
+  github = makeGithub({ reposWithoutScratch: true, orgAccount: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": { ...APP_RECORD, installation_type: "Organization" } }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  check("org installs create via /orgs/{org}/repos", github.state.createdRepos[0]?.path === "/orgs/octocat/repos", JSON.stringify(github.state.createdRepos));
+
+  console.log("\n[17] if the app may not create repos, the panel explains the fix but keeps working");
+  github = makeGithub({ reposWithoutScratch: true, denyCreate: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  const d17 = win.document;
+  const help = d17.getElementById("scratchpad-gh-repo-help");
+  check("help is shown", help.hidden === false);
+  check("help links to the app's permissions", /settings\/apps\/dash-notes-example\/permissions/.test(help.innerHTML), help.innerHTML.slice(0, 160));
+  check("help links to creating the repo by hand", /github\.com\/new\?name=scratch/.test(help.innerHTML));
+  check("status mentions Repository creation", /Repository creation/.test(d17.getElementById("scratchpad-gh-status").textContent), d17.getElementById("scratchpad-gh-status").textContent);
+  check("saving to another repo is still possible", d17.getElementById("scratchpad-gh-target").hidden === false && d17.getElementById("scratchpad-gh-repo").value === "octocat/notes");
+  d17.getElementById("scratchpad-gh-scratch").click();
+  await flush(); await flush();
+  check("Use scratch repo retries the creation", github.state.createAttempts >= 2, String(github.state.createAttempts));
+
+  console.log("\n[18] the layout is responsive and the controls are touch-sized");
+  win = makeWindow();
+  await flush();
+  const d18 = win.document;
+  const css = [...d18.querySelectorAll("style")].map(node => node.textContent).join("\n");
+  check("phone breakpoint exists", /@media \(max-width: 640px\)/.test(css));
+  check("tablet breakpoint exists", /@media \(max-width: 900px\)/.test(css));
+  check("the dialog becomes a full-height sheet on phones", /#modal-scratchpad[\s\S]{0,200}height: 100dvh/.test(css), "no 100dvh rule found");
+  check("preview stacks under the editor on narrow screens", /@media \(max-width: 900px\)[\s\S]{0,200}flex-direction: column/.test(css));
+  const mediaBlock = (query) => {
+    const at = css.indexOf(`@media (${query})`);
+    if (at === -1) return "";
+    let depth = 0;
+    for (let i = css.indexOf("{", at); i < css.length; i += 1) {
+      if (css[i] === "{") depth += 1;
+      else if (css[i] === "}") { depth -= 1; if (depth === 0) return css.slice(at, i + 1); }
+    }
+    return css.slice(at);
+  };
+  const phone = mediaBlock("max-width: 640px");
+  check("buttons stay finger-sized on phones", /min-height: 36px/.test(phone), phone.slice(0, 200));
+  check("the GitHub panel collapses to one column", /gh-sync-details \{ grid-template-columns: 1fr/.test(phone));
+  check("list rows wrap on phones so nothing overflows", /flex-wrap: wrap|grid-template-columns: 1fr/.test(phone));
+  check("toolbar is a wrapping flex row", /\.md-toolbar \{[^}]*flex-wrap: wrap/.test(css) && d18.querySelector(".md-toolbar").children.length > 1);
+  check("editor area is a flex pair", /\.scratch-editor \{[^}]*display: flex/.test(css));
+  check("every markdown tool is present", ["bold", "italic", "strike", "h1", "h2", "h3", "ul", "ol", "task", "hr", "quote"].every(tool => d18.querySelector(`.md-toolbar [data-md="${tool}"]`)), "");
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

@@ -296,6 +296,21 @@
     .inline-form-grid input[type="text"] { grid-column: 1 / -1; }
     .inline-form-grid button { grid-column: 1 / -1; }
     .scratch-textarea { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; resize: vertical; line-height: 1.5; }
+    /* Scratchpad → GitHub sync: a collapsed panel so the plain local notes pad stays the default experience. */
+    .gh-sync { border: 1px solid var(--border); border-radius: 10px; padding: .7rem .9rem; background: var(--bg); }
+    .gh-sync > summary { cursor: pointer; font-size: .85rem; font-weight: 750; color: var(--text); }
+    .gh-sync > summary::marker { color: var(--accent); }
+    .gh-sync-body { display: flex; flex-direction: column; gap: .6rem; margin-top: .8rem; }
+    .gh-sync-body .token-row { align-items: flex-end; flex-wrap: wrap; }
+    .gh-sync-badge { font-size: .78rem; font-weight: 700; color: var(--text-muted); }
+    .gh-sync-badge.is-connected { color: #34d399; }
+    .gh-sync-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .6rem; }
+    .checkbox-row { display: flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 650; color: var(--text-muted); }
+    .checkbox-row input { accent-color: var(--accent); }
+    .gh-sync .modal-actions { margin-top: 0; flex-wrap: wrap; justify-content: flex-start; }
+    .gh-sync .form-input[readonly] { color: var(--text-muted); font-size: .8rem; }
+    /* The scratchpad is the tallest modal once the GitHub panel is expanded — let it scroll inside the viewport. */
+    #modal-scratchpad .modal-card { max-height: 88vh; overflow-y: auto; }
     .pomodoro-display { font-size: 3.4rem; font-weight: 800; text-align: center; letter-spacing: 1px; font-variant-numeric: tabular-nums; }
     .pomodoro-presets { display: flex; gap: .5rem; justify-content: center; flex-wrap: wrap; }
     .news-tabs { display: flex; gap: .5rem; flex-wrap: wrap; }
@@ -680,6 +695,66 @@
           <button type="button" class="modal-btn cancel" id="scratchpad-export-md">Export .md</button>
           <button type="button" class="modal-btn cancel" id="scratchpad-clear">Clear</button>
         </div>
+
+        <!-- Notes → GitHub backup. Standard OAuth2 authorization-code flow with PKCE (S256), done entirely in
+             the browser: no client secret and no backend ever touch this page. -->
+        <details class="gh-sync" id="scratchpad-gh-panel">
+          <summary>Back up these notes to GitHub</summary>
+          <div class="gh-sync-body">
+            <p class="modal-hint">
+              Signs you in with GitHub's standard user-authorization flow (authorization code + PKCE, no client
+              secret needed) and commits this note to a file in a repo you own. One-time setup: create a
+              <a href="https://github.com/settings/applications/new" target="_blank" rel="noopener noreferrer">GitHub OAuth App</a>
+              (or a <a href="https://github.com/settings/apps/new" target="_blank" rel="noopener noreferrer">GitHub App</a>),
+              set its <strong>Authorization callback URL</strong> to the value below, then paste its Client ID here.
+              Tokens stay in this browser's local storage.
+            </p>
+            <div class="token-row">
+              <label class="form-label" style="flex:1;">Client ID (OAuth App or GitHub App)
+                <input type="text" id="scratchpad-gh-client-id" class="form-input" placeholder="Iv1.0123456789abcdef" autocomplete="off" spellcheck="false" />
+              </label>
+              <label class="form-label" style="flex:1;">App type
+                <select id="scratchpad-gh-app-type" class="form-input">
+                  <option value="oauth_app">OAuth App (repo scope)</option>
+                  <option value="github_app">GitHub App (offline_access / refresh tokens)</option>
+                </select>
+              </label>
+            </div>
+            <label class="form-label">Authorization callback URL (register this in GitHub)
+              <input type="text" id="scratchpad-gh-redirect" class="form-input" readonly />
+            </label>
+            <div class="modal-actions">
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-connect">Connect GitHub</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-disconnect">Disconnect</button>
+              <span class="gh-sync-badge" id="scratchpad-gh-account">Not connected</span>
+            </div>
+            <p class="status-msg" id="scratchpad-gh-status"></p>
+            <div class="gh-sync-details">
+              <label class="form-label">Repository (owner/repo)
+                <input type="text" id="scratchpad-gh-repo" class="form-input" list="scratchpad-gh-repo-list" placeholder="octocat/notes" autocomplete="off" spellcheck="false" />
+                <datalist id="scratchpad-gh-repo-list"></datalist>
+              </label>
+              <label class="form-label">File path
+                <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes/scratchpad.md" autocomplete="off" spellcheck="false" />
+              </label>
+              <label class="form-label">Branch (optional)
+                <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
+              </label>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-load-repos">Load My Repos</button>
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save to GitHub</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull Latest</button>
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-overwrite" hidden>Overwrite Anyway</button>
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="scratchpad-gh-autosave" />
+              Autosave to GitHub a few seconds after I stop typing
+            </label>
+            <p class="status-msg" id="scratchpad-gh-file-status"></p>
+          </div>
+        </details>
+
         <div class="modal-actions">
           <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
         </div>
@@ -941,10 +1016,10 @@
           {
             name: "Scratchpad / Quick Notes",
             modal: "modal-scratchpad",
-            desc: "A quick notes pad that autosaves locally and exports to a text or markdown file.",
-            best: "Fast, exportable notes",
-            tags: ["notes", "scratchpad", "export"],
-            aliases: ["quick notes", "notepad"]
+            desc: "A quick notes pad that autosaves locally, exports to text or markdown, and can sign in with GitHub (OAuth2 + PKCE) to commit the notes to a repo.",
+            best: "Fast, exportable, GitHub-backed notes",
+            tags: ["notes", "scratchpad", "export", "github", "oauth"],
+            aliases: ["quick notes", "notepad", "notes to github", "github backup"]
           },
           {
             name: "RSS / News Headlines",
@@ -2360,10 +2435,158 @@
     }
 
     // ---- Scratchpad / Quick Notes ----------------------------------------------------------------------
+    // Notes autosave to this browser, and can optionally be committed to a GitHub repo. The GitHub side uses
+    // the standard OAuth2 user-authorization (authorization code) flow: redirect to GitHub, come back with a
+    // one-time `code`, and exchange it for a user access token. Because this page is a public client with no
+    // backend, PKCE (S256) stands in for the client secret and a random `state` guards against CSRF. Supports
+    // both classic OAuth Apps (`repo` scope) and GitHub Apps (`offline_access`, which returns an expiring
+    // 8-hour token plus a rotating refresh token).
+    const GH_OAUTH = {
+      authorizeUrl: "https://github.com/login/oauth/authorize",
+      tokenUrl: "https://github.com/login/oauth/access_token",
+      apiUrl: "https://api.github.com",
+      keys: {
+        clientId: "dash-scratchpad-gh-client-id",
+        appType: "dash-scratchpad-gh-app-type",
+        token: "dash-scratchpad-gh-token-v1",
+        pending: "dash-scratchpad-gh-oauth-pending",
+        repo: "dash-scratchpad-gh-repo",
+        path: "dash-scratchpad-gh-path",
+        branch: "dash-scratchpad-gh-branch",
+        autosave: "dash-scratchpad-gh-autosave",
+        shas: "dash-scratchpad-gh-file-shas-v1"
+      }
+    };
+
+    function ghReadStore(key, fallback = "") {
+      try { const raw = localStorage.getItem(key); return raw === null ? fallback : raw; } catch (e) { return fallback; }
+    }
+    function ghWriteStore(key, value) { try { localStorage.setItem(key, value); } catch (e) {} }
+    function ghReadJson(key, fallback) {
+      try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { return fallback; }
+    }
+    function ghWriteJson(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} }
+
+    // ---- PKCE helpers (RFC 7636): a 43-char base64url verifier and its SHA-256 base64url challenge -------------
+    function ghBase64Url(bytes) {
+      const view = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+      let binary = "";
+      for (let i = 0; i < view.length; i += 1) binary += String.fromCharCode(view[i]);
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+    function ghRandomToken(byteLength) {
+      const bytes = new Uint8Array(byteLength);
+      window.crypto.getRandomValues(bytes);
+      return ghBase64Url(bytes);
+    }
+    async function ghCodeChallenge(verifier) {
+      const digest = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
+      return ghBase64Url(digest);
+    }
+    function ghRedirectUri() {
+      if (!window.location.origin || window.location.origin === "null") return "";
+      return `${window.location.origin}${window.location.pathname}`;
+    }
+    function ghEncodeBase64(text) { return btoa(unescape(encodeURIComponent(text))); }
+    function ghDecodeBase64(base64) { return decodeURIComponent(escape(atob(String(base64).replace(/\n/g, "")))); }
+    function ghNormalizePath(value) { return String(value || "").trim().replace(/^\/+/, "").replace(/\/+$/, ""); }
+
+    // ---- Token storage: one record per browser, refreshed transparently when GitHub hands back a refresh token --
+    function ghReadToken() {
+      const record = ghReadJson(GH_OAUTH.keys.token, null);
+      return record && record.access_token ? record : null;
+    }
+    function ghWriteToken(record) {
+      try {
+        if (record) localStorage.setItem(GH_OAUTH.keys.token, JSON.stringify(record));
+        else localStorage.removeItem(GH_OAUTH.keys.token);
+      } catch (e) { /* storage is optional; sync then simply can't persist the session */ }
+    }
+    function ghTokenIsExpired(record) {
+      // Treat a token as stale a minute before it actually expires so a slow save can't race the deadline.
+      return Boolean(record && record.expires_at) && Date.now() > record.expires_at - 60000;
+    }
+    function ghTokenRecordFrom(data, extra = {}) {
+      const now = Date.now();
+      return {
+        access_token: data.access_token,
+        token_type: data.token_type || "bearer",
+        scope: data.scope || "",
+        expires_at: data.expires_in ? now + Number(data.expires_in) * 1000 : null,
+        refresh_token: data.refresh_token || null,
+        refresh_token_expires_at: data.refresh_token_expires_in ? now + Number(data.refresh_token_expires_in) * 1000 : null,
+        ...extra
+      };
+    }
+
+    // GitHub's token endpoint is CORS-enabled for this JSON request, which is exactly what makes a secret-less
+    // browser flow possible: client_id + code + code_verifier (or client_id + refresh_token) is all it takes.
+    async function ghTokenRequest(payload) {
+      const res = await fetch(GH_OAUTH.tokenUrl, {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.error) {
+        throw new Error(data.error_description || data.error || `GitHub token request failed (${res.status})`);
+      }
+      return data;
+    }
+
+    async function ghGetAccessToken({ forceRefresh = false } = {}) {
+      const record = ghReadToken();
+      if (!record) throw new Error("Connect GitHub first.");
+      if (!forceRefresh && !ghTokenIsExpired(record)) return record.access_token;
+
+      if (!record.refresh_token || (record.refresh_token_expires_at && Date.now() > record.refresh_token_expires_at)) {
+        // A classic OAuth App token without a refresh token simply can't be renewed in the browser; a 401 then
+        // means GitHub no longer accepts it (revoked, or the app's tokens were rotated elsewhere).
+        throw new Error(forceRefresh
+          ? "GitHub rejected this token — it may have been revoked. Click Connect GitHub to sign in again."
+          : "Your GitHub session has expired — click Connect GitHub to sign in again.");
+      }
+      const clientId = ghReadStore(GH_OAUTH.keys.clientId);
+      if (!clientId) throw new Error("Save your OAuth app's Client ID first, then reconnect.");
+      let data;
+      try {
+        data = await ghTokenRequest({ client_id: clientId, grant_type: "refresh_token", refresh_token: record.refresh_token });
+      } catch (error) {
+        ghWriteToken(null);
+        throw new Error(`GitHub session expired (${error.message}) — click Connect GitHub to sign in again.`);
+      }
+      // Refresh tokens are single-use: GitHub returns a brand-new pair, so persist it immediately.
+      const next = ghTokenRecordFrom(data, { login: record.login || "", app_type: record.app_type || "" });
+      ghWriteToken(next);
+      return next.access_token;
+    }
+
+    // Every GitHub call goes through here so an expired/revoked token gets one silent refresh-and-retry.
+    async function ghApiFetch(path, options = {}, { retry = true } = {}) {
+      const token = await ghGetAccessToken();
+      const res = await fetch(`${GH_OAUTH.apiUrl}${path}`, {
+        ...options,
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${token}`,
+          ...(options.headers || {})
+        }
+      });
+      if (res.status === 401 && retry) {
+        await ghGetAccessToken({ forceRefresh: true });
+        return ghApiFetch(path, options, { retry: false });
+      }
+      return res;
+    }
+
     function initScratchpadTool() {
       const textarea = document.getElementById("scratchpad-text");
       if (!textarea) return;
       try { textarea.value = localStorage.getItem("dash-scratchpad") || ""; } catch (e) {}
+
+      // Initialised below — the debounce handler calls into it once it exists, so local notes keep working
+      // even if the GitHub panel is unavailable.
+      let ghSync = null;
       let saveTimer;
       textarea.addEventListener("input", () => {
         clearTimeout(saveTimer);
@@ -2371,6 +2594,7 @@
           try { localStorage.setItem("dash-scratchpad", textarea.value); } catch (e) {}
           setStatus("scratchpad-status", "Saved locally.", "success");
         }, 400);
+        ghSync?.handleLocalEdit();
       });
       document.getElementById("scratchpad-copy")?.addEventListener("click", () => copyText(textarea.value, document.getElementById("scratchpad-copy")));
       const exportAs = extension => {
@@ -2391,6 +2615,382 @@
         try { localStorage.setItem("dash-scratchpad", ""); } catch (e) {}
         setStatus("scratchpad-status", "Cleared.");
       });
+
+      ghSync = initScratchpadGithubSync(textarea);
+    }
+
+    // ---- Scratchpad → GitHub (OAuth2 authorization code + PKCE) -----------------------------------------
+    function initScratchpadGithubSync(textarea) {
+      const panel = document.getElementById("scratchpad-gh-panel");
+      const clientInput = document.getElementById("scratchpad-gh-client-id");
+      const appTypeSelect = document.getElementById("scratchpad-gh-app-type");
+      const redirectInput = document.getElementById("scratchpad-gh-redirect");
+      const connectBtn = document.getElementById("scratchpad-gh-connect");
+      const disconnectBtn = document.getElementById("scratchpad-gh-disconnect");
+      const accountBadge = document.getElementById("scratchpad-gh-account");
+      const repoInput = document.getElementById("scratchpad-gh-repo");
+      const repoList = document.getElementById("scratchpad-gh-repo-list");
+      const pathInput = document.getElementById("scratchpad-gh-path");
+      const branchInput = document.getElementById("scratchpad-gh-branch");
+      const loadReposBtn = document.getElementById("scratchpad-gh-load-repos");
+      const saveBtn = document.getElementById("scratchpad-gh-save");
+      const pullBtn = document.getElementById("scratchpad-gh-pull");
+      const overwriteBtn = document.getElementById("scratchpad-gh-overwrite");
+      const autosaveCheckbox = document.getElementById("scratchpad-gh-autosave");
+      if (!panel || !clientInput) return null;
+
+      const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
+      const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
+
+      // `conflictPaused` holds a save back once GitHub's copy has moved on; autosave stays out of the way until
+      // the user either pulls the newer file or explicitly overwrites it.
+      let conflictPaused = false;
+      let saving = false;
+      let ghSaveTimer;
+
+      function renderAccount() {
+        const record = ghReadToken();
+        if (record) {
+          accountBadge.textContent = record.login ? `Connected as @${record.login}` : "Connected";
+          accountBadge.classList.add("is-connected");
+          if (connectBtn) connectBtn.textContent = "Reconnect";
+          if (disconnectBtn) disconnectBtn.disabled = false;
+        } else {
+          accountBadge.textContent = "Not connected";
+          accountBadge.classList.remove("is-connected");
+          if (connectBtn) connectBtn.textContent = "Connect GitHub";
+          if (disconnectBtn) disconnectBtn.disabled = true;
+        }
+      }
+
+      // Each (repo, branch, path) combo remembers the blob SHA it last synced, which is what makes an in-place
+      // update possible — and what lets a save notice that someone else changed the file in the meantime.
+      function fileKey() {
+        const repo = repoInput?.value.trim() || "";
+        const path = ghNormalizePath(pathInput?.value);
+        const branch = branchInput?.value.trim() || "";
+        return repo && path ? `${repo}@${branch || "default"}:${path}` : "";
+      }
+      function storedSha() {
+        const key = fileKey();
+        return key ? (ghReadJson(GH_OAUTH.keys.shas, {}) || {})[key] || null : null;
+      }
+      function rememberSha(sha) {
+        const key = fileKey();
+        if (!key) return;
+        const map = ghReadJson(GH_OAUTH.keys.shas, {}) || {};
+        if (sha) map[key] = sha;
+        else delete map[key];
+        ghWriteJson(GH_OAUTH.keys.shas, map);
+      }
+
+      function showOverwrite(visible) {
+        if (overwriteBtn) overwriteBtn.hidden = !visible;
+      }
+
+      function contentsPath(repo, path) {
+        return `/repos/${repo}/contents/${path.split("/").map(encodeURIComponent).join("/")}`;
+      }
+
+      // One shared lookup used by Save, Pull, and the pre-save conflict check, so all three agree on exactly
+      // what "the current GitHub version" means.
+      async function fetchRemoteNotes() {
+        const repo = repoInput.value.trim();
+        const path = ghNormalizePath(pathInput.value);
+        const branch = branchInput.value.trim();
+        const res = await ghApiFetch(`${contentsPath(repo, path)}${branch ? `?ref=${encodeURIComponent(branch)}` : ""}`);
+        if (res.status === 404) return null;
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || `GitHub API error (${res.status})`);
+        if (Array.isArray(data) || data.type !== "file") throw new Error("That path is a directory, not a file.");
+        return { sha: data.sha, content: ghDecodeBase64(data.content || ""), html_url: data.html_url || "" };
+      }
+
+      function targetIsValid({ quiet = false } = {}) {
+        const repo = repoInput.value.trim();
+        const path = ghNormalizePath(pathInput.value);
+        if (!repo || !path) { if (!quiet) setFileStatus("Set the repository and file path first.", "error"); return false; }
+        if (!/^[^/\s]+\/[^/\s]+$/.test(repo)) { if (!quiet) setFileStatus("Repository should be owner/repo, e.g. octocat/notes.", "error"); return false; }
+        return true;
+      }
+
+      async function saveNotes({ forced = false, auto = false } = {}) {
+        if (saving) return;
+        if (!ghReadToken()) {
+          if (panel) panel.open = true;
+          setFileStatus("Connect GitHub first.", "error");
+          return;
+        }
+        if (!targetIsValid()) return;
+        const repo = repoInput.value.trim();
+        const path = ghNormalizePath(pathInput.value);
+        const branch = branchInput.value.trim();
+        const content = textarea.value;
+
+        saving = true;
+        if (saveBtn) saveBtn.disabled = true;
+        try {
+          if (!auto) setFileStatus("Checking the file hasn't changed on GitHub…");
+          const remote = await fetchRemoteNotes();
+          const knownSha = storedSha();
+
+          if (!forced && remote && remote.sha !== knownSha) {
+            conflictPaused = true;
+            showOverwrite(true);
+            setFileStatus(
+              knownSha
+                ? `${path} changed on GitHub since the last sync. Click Pull Latest to bring that version in, or Overwrite Anyway to save these notes over it.`
+                : `A file already exists at ${path} in ${repo}. Click Pull Latest to load it, or Overwrite Anyway to replace it with these notes.`,
+              "error"
+            );
+            return;
+          }
+
+          const body = {
+            message: `Scratchpad notes — ${new Date().toISOString()}`,
+            content: ghEncodeBase64(content)
+          };
+          if (remote) body.sha = remote.sha;
+          if (branch) body.branch = branch;
+
+          const res = await ghApiFetch(contentsPath(repo, path), {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            if (res.status === 409 || /does not match/i.test(data.message || "")) {
+              throw new Error("GitHub rejected the save because the file changed at the same moment. Click Save to GitHub to try again after pulling the latest version.");
+            }
+            throw new Error(data.message || `GitHub API error (${res.status})`);
+          }
+
+          rememberSha(data.content?.sha || null);
+          conflictPaused = false;
+          showOverwrite(false);
+          const verb = remote ? "Updated" : "Created";
+          setFileStatus(`${verb} ${path} in ${repo} at ${new Date().toLocaleTimeString()}${auto ? " (autosave)" : ""}.`, "success");
+        } catch (error) {
+          setFileStatus(error.message, "error");
+        } finally {
+          saving = false;
+          if (saveBtn) saveBtn.disabled = false;
+        }
+      }
+
+      async function pullNotes() {
+        if (!ghReadToken()) { panel.open = true; setFileStatus("Connect GitHub first.", "error"); return; }
+        if (!targetIsValid()) return;
+        const repo = repoInput.value.trim();
+        const path = ghNormalizePath(pathInput.value);
+        try {
+          setFileStatus("Fetching the latest notes from GitHub…");
+          const remote = await fetchRemoteNotes();
+          if (!remote) {
+            rememberSha(null);
+            conflictPaused = false;
+            showOverwrite(false);
+            setFileStatus(`Nothing is saved at ${path} in ${repo} yet — Save to GitHub will create it.`);
+            return;
+          }
+          const local = textarea.value;
+          if (local && local !== remote.content && !window.confirm("Replace the notes in this editor with the version on GitHub? Anything only in the editor will be lost.")) {
+            setFileStatus("Pull cancelled — the editor was left untouched.");
+            return;
+          }
+          textarea.value = remote.content;
+          try { localStorage.setItem("dash-scratchpad", remote.content); } catch (e) {}
+          rememberSha(remote.sha);
+          conflictPaused = false;
+          showOverwrite(false);
+          setStatus("scratchpad-status", "Loaded the GitHub version.");
+          setFileStatus(`Pulled ${path} from ${repo} at ${new Date().toLocaleTimeString()}.`, "success");
+        } catch (error) {
+          setFileStatus(error.message, "error");
+        }
+      }
+
+      async function loadRepos() {
+        if (!ghReadToken()) { setGhStatus("Connect GitHub first.", "error"); return; }
+        setGhStatus("Loading your repositories…");
+        try {
+          const res = await ghApiFetch("/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member");
+          const repos = await res.json().catch(() => []);
+          if (!res.ok) throw new Error(repos.message || `GitHub API error (${res.status})`);
+          if (!Array.isArray(repos)) throw new Error("Unexpected response from GitHub.");
+          repoList?.replaceChildren();
+          repos.forEach(repo => {
+            const option = document.createElement("option");
+            option.value = repo.full_name;
+            repoList?.appendChild(option);
+          });
+          setGhStatus(`Loaded ${repos.length} repositories — start typing in the Repository field to pick one.`, "success");
+        } catch (error) {
+          setGhStatus(error.message, "error");
+        }
+      }
+
+      // Step 1 of the flow: send the browser to GitHub with a PKCE challenge and a CSRF `state`. The verifier
+      // itself never leaves this tab (sessionStorage) until the code comes back.
+      async function startAuth() {
+        const clientId = clientInput.value.trim();
+        const appType = appTypeSelect?.value || "oauth_app";
+        if (!clientId) { setGhStatus("Paste your OAuth app's Client ID first.", "error"); return; }
+        const redirectUri = ghRedirectUri();
+        if (!redirectUri) {
+          setGhStatus("GitHub sign-in needs the dashboard served over http(s), not opened as a file — open the live site or run a local server.", "error");
+          return;
+        }
+        if (!window.isSecureContext || !window.crypto?.subtle) {
+          setGhStatus("GitHub sign-in needs a secure page (https:// or http://localhost) so PKCE hashing is available.", "error");
+          return;
+        }
+        try {
+          const verifier = ghRandomToken(32);
+          const state = ghRandomToken(16);
+          const challenge = await ghCodeChallenge(verifier);
+          try {
+            sessionStorage.setItem(GH_OAUTH.keys.pending, JSON.stringify({ verifier, state, redirectUri, clientId, appType, startedAt: Date.now() }));
+          } catch (e) {
+            setGhStatus("This browser blocked session storage, so the sign-in can't be completed. Allow storage for this site and try again.", "error");
+            return;
+          }
+          ghWriteStore(GH_OAUTH.keys.clientId, clientId);
+          ghWriteStore(GH_OAUTH.keys.appType, appType);
+          const params = new URLSearchParams({
+            client_id: clientId,
+            redirect_uri: redirectUri,
+            state,
+            code_challenge: challenge,
+            code_challenge_method: "S256",
+            allow_signup: "false",
+            prompt: "select_account",
+            // OAuth Apps get repo access through a scope. GitHub Apps ignore scopes and only understand
+            // `offline_access`, which is what asks for an expiring token plus a refresh token.
+            scope: appType === "github_app" ? "offline_access" : "repo"
+          });
+          setGhStatus("Redirecting to GitHub to authorize…");
+          window.location.assign(`${GH_OAUTH.authorizeUrl}?${params.toString()}`);
+        } catch (error) {
+          setGhStatus(error.message, "error");
+        }
+      }
+
+      // Step 2: we're back from GitHub with a one-time code. Verify `state`, exchange code + verifier for a
+      // token (no client secret — that's the whole point of PKCE), then tidy the URL so a refresh can't
+      // replay the code.
+      async function handleAuthCallback() {
+        let url;
+        try { url = new URL(window.location.href); } catch (e) { return; }
+        const code = url.searchParams.get("code");
+        const returnedState = url.searchParams.get("state");
+        const oauthError = url.searchParams.get("error");
+        if (!code && !oauthError) return;
+
+        let pending = null;
+        try { pending = JSON.parse(sessionStorage.getItem(GH_OAUTH.keys.pending) || "null"); } catch (e) { pending = null; }
+        // A `code`/`error` with no matching pending flow isn't ours — leave those query params alone.
+        if (!pending && !oauthError) return;
+        if (oauthError && !pending && !returnedState) return;
+
+        try { window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.hash}`); } catch (e) {}
+        try { sessionStorage.removeItem(GH_OAUTH.keys.pending); } catch (e) {}
+
+        panel.open = true;
+        openModal("modal-scratchpad");
+
+        if (oauthError) {
+          setGhStatus(
+            oauthError === "access_denied" ? "GitHub authorization was cancelled." : `GitHub sign-in failed: ${url.searchParams.get("error_description") || oauthError}`,
+            "error"
+          );
+          return;
+        }
+        if (!pending || !returnedState || pending.state !== returnedState) {
+          setGhStatus("Sign-in couldn't be verified because the state value didn't match this browser session. Click Connect GitHub to try again.", "error");
+          return;
+        }
+
+        setGhStatus("Exchanging the authorization code for a token…");
+        try {
+          const data = await ghTokenRequest({
+            client_id: pending.clientId,
+            code,
+            redirect_uri: pending.redirectUri,
+            code_verifier: pending.verifier,
+            grant_type: "authorization_code"
+          });
+          const record = ghTokenRecordFrom(data, { app_type: pending.appType || "" });
+          ghWriteToken(record);
+          try {
+            const userRes = await fetch(`${GH_OAUTH.apiUrl}/user`, { headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${record.access_token}` } });
+            if (userRes.ok) {
+              const user = await userRes.json();
+              record.login = user.login || "";
+              ghWriteToken(record);
+            }
+          } catch (e) { /* the login is cosmetic — sync still works without it */ }
+          renderAccount();
+          const lifetime = record.expires_at ? " The token expires in 8 hours and refreshes itself." : "";
+          setGhStatus(`Connected${record.login ? ` as @${record.login}` : ""}.${lifetime}`, "success");
+          setFileStatus(
+            repoInput.value.trim() && ghNormalizePath(pathInput.value)
+              ? "Signed in — Save to GitHub will commit these notes (use Pull Latest first if the file already exists)."
+              : "Signed in — choose a repository and file path, then Save to GitHub."
+          );
+        } catch (error) {
+          setGhStatus(`Sign-in failed: ${error.message}`, "error");
+        }
+      }
+
+      // ---- wiring ---------------------------------------------------------------------------------------
+      redirectInput.value = ghRedirectUri() || "Serve the dashboard over http(s) to enable GitHub sign-in";
+      clientInput.value = ghReadStore(GH_OAUTH.keys.clientId);
+      if (appTypeSelect) appTypeSelect.value = ghReadStore(GH_OAUTH.keys.appType) || "oauth_app";
+      repoInput.value = ghReadStore(GH_OAUTH.keys.repo);
+      pathInput.value = ghReadStore(GH_OAUTH.keys.path) || "notes/scratchpad.md";
+      branchInput.value = ghReadStore(GH_OAUTH.keys.branch);
+      if (autosaveCheckbox) autosaveCheckbox.checked = ghReadStore(GH_OAUTH.keys.autosave) === "true";
+      renderAccount();
+
+      connectBtn?.addEventListener("click", startAuth);
+      disconnectBtn?.addEventListener("click", () => {
+        ghWriteToken(null);
+        try { sessionStorage.removeItem(GH_OAUTH.keys.pending); } catch (e) {}
+        renderAccount();
+        setGhStatus("Disconnected — the token was removed from this browser. To invalidate it on GitHub's side too, revoke the app under GitHub → Settings → Applications.", "success");
+        setFileStatus("GitHub backup is off until you connect again.");
+      });
+
+      loadReposBtn?.addEventListener("click", loadRepos);
+      saveBtn?.addEventListener("click", () => saveNotes());
+      pullBtn?.addEventListener("click", pullNotes);
+      overwriteBtn?.addEventListener("click", () => saveNotes({ forced: true }));
+
+      clientInput.addEventListener("change", () => ghWriteStore(GH_OAUTH.keys.clientId, clientInput.value.trim()));
+      appTypeSelect?.addEventListener("change", () => ghWriteStore(GH_OAUTH.keys.appType, appTypeSelect.value));
+      repoInput?.addEventListener("change", () => ghWriteStore(GH_OAUTH.keys.repo, repoInput.value.trim()));
+      pathInput?.addEventListener("change", () => ghWriteStore(GH_OAUTH.keys.path, ghNormalizePath(pathInput.value)));
+      branchInput?.addEventListener("change", () => ghWriteStore(GH_OAUTH.keys.branch, branchInput.value.trim()));
+      autosaveCheckbox?.addEventListener("change", () => {
+        ghWriteStore(GH_OAUTH.keys.autosave, String(autosaveCheckbox.checked));
+        if (autosaveCheckbox.checked) setFileStatus("Autosave is on — notes are committed a few seconds after you stop typing.");
+        else setFileStatus("Autosave is off — use Save to GitHub when you want to commit.");
+      });
+
+      handleAuthCallback();
+
+      // Called from the textarea's debounce: commit quietly, but never behind the user's back once a conflict
+      // has been flagged (that would either clobber the other version or spam errors on every keystroke).
+      return {
+        handleLocalEdit() {
+          if (!autosaveCheckbox?.checked || conflictPaused || saving) return;
+          if (!ghReadToken() || !targetIsValid({ quiet: true })) return;
+          clearTimeout(ghSaveTimer);
+          ghSaveTimer = setTimeout(() => saveNotes({ auto: true }), 3000);
+        }
+      };
     }
 
     // ---- RSS / News Headlines (Techmeme, Hacker News, Ars Technica, InfoWorld, Lobste.rs) ---------------

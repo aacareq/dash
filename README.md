@@ -31,7 +31,16 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   exportable scratchpad, and a multi-source news/headlines feed. The Google
   Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
   in this browser's `localStorage`) since the dashboard has no backend of its
-  own. The GitHub work list has a "Load Existing File" button that fetches a
+  own. The **Scratchpad** additionally has a *Back up these notes to GitHub*
+  panel that signs you in with GitHub's standard user-authorization flow
+  (OAuth2 authorization code **with PKCE**, so no client secret ever reaches
+  the browser) and commits the note to a file in a repo you choose — on
+  demand or automatically a few seconds after you stop typing. It updates the
+  same file in place via the Contents API's `sha`, pauses with a warning
+  instead of overwriting a version that changed on GitHub (offering *Pull
+  Latest* or *Overwrite Anyway*), and quietly refreshes an expiring token when
+  GitHub returns a refresh token. Setup walkthrough:
+  [`docs/scratchpad-github-oauth.md`](docs/scratchpad-github-oauth.md). The GitHub work list has a "Load Existing File" button that fetches a
   file's current content and version (SHA) from a chosen repo/path into the
   editor; saving then updates that same file in place (via the GitHub
   Contents API's `sha` field) instead of only ever being able to create new

@@ -313,7 +313,58 @@
     .md-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
     .md-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
     .md-strike { text-decoration: line-through; }
+    /* Slim header over the editor: which repo/file the note goes to, and where the last save landed. */
+    .scratch-filebar {
+      display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+      padding: .4rem .6rem; border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card-bg); font-size: .78rem; line-height: 1.4; min-width: 0;
+    }
+    .scratch-filebar-icon { flex: 0 0 auto; }
+    .scratch-filebar-repo {
+      font-weight: 750; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%;
+    }
+    .scratch-filebar-sep { color: var(--text-muted); flex: 0 0 auto; }
+    .scratch-filebar-file {
+      color: var(--text); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 8rem;
+    }
+    .scratch-filebar-state {
+      margin-left: auto; color: var(--text-muted); font-size: .74rem; font-weight: 650; flex: 0 0 auto;
+      white-space: nowrap;
+    }
+    .scratch-filebar-state.is-saved { color: #34d399; }
+    .scratch-filebar-state.is-error { color: #f87171; }
+    .empty-files {
+      display: flex; flex-direction: column; gap: .6rem; align-items: flex-start;
+      padding: .9rem 1rem; border: 1px dashed var(--border); border-radius: 10px; background: var(--card-bg);
+    }
+    .empty-files[hidden] { display: none; }
+    .empty-files-title { margin: 0; font-size: .9rem; font-weight: 750; }
+    .empty-files-copy { margin: 0; font-size: .82rem; line-height: 1.5; color: var(--text-muted); }
     .scratch-editor { display: flex; gap: .75rem; align-items: stretch; min-width: 0; }
+    .scratch-editor[hidden] { display: none; }
+
+    /* Emoji picker: a small anchored popover with search, grouped into rows. */
+    .emoji-anchor { position: relative; display: inline-flex; }
+    .emoji-popover {
+      position: absolute; z-index: 8; top: calc(100% + .35rem); right: 0;
+      width: min(22rem, calc(100vw - 3rem));
+      background: var(--sidebar-bg); border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .45); padding: .55rem; display: flex; flex-direction: column; gap: .45rem;
+    }
+    .emoji-popover[hidden] { display: none; }
+    .emoji-search { width: 100%; }
+    .emoji-scroll { max-height: 13rem; overflow-y: auto; display: flex; flex-direction: column; gap: .35rem; overscroll-behavior: contain; }
+    .emoji-category { font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); margin: .2rem 0 0; }
+    .emoji-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2rem, 1fr)); gap: .15rem; }
+    .emoji-btn {
+      border: 1px solid transparent; background: transparent; border-radius: 7px; cursor: pointer;
+      font-size: 1.05rem; line-height: 1; padding: .32rem 0; min-height: 32px;
+    }
+    .emoji-btn:hover, .emoji-btn:focus-visible { background: var(--card-bg); border-color: var(--accent); outline: none; }
+    .emoji-empty { font-size: .8rem; color: var(--text-muted); padding: .4rem .2rem; }
+    .emoji-hint { font-size: .72rem; color: var(--text-muted); }
+
     .scratch-editor > textarea#scratchpad-text { flex: 1 1 58%; min-width: 0; min-height: 34dvh; }
     .md-preview {
       flex: 1 1 42%; min-width: 0; min-height: 34dvh; max-height: 52dvh; overflow-y: auto;
@@ -395,6 +446,12 @@
       .path-row { flex-wrap: wrap; }
       .path-row .modal-btn { flex: 1 1 auto; }
       .news-tabs { gap: .35rem; }
+      .emoji-popover { position: fixed; inset-inline: .6rem; right: auto; left: .6rem; width: auto; top: auto; bottom: .6rem;
+        padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
+      .emoji-scroll { max-height: 32dvh; }
+      .scratch-filebar { font-size: .74rem; padding: .35rem .5rem; }
+      .scratch-filebar-repo { max-width: 60%; }
+      .scratch-filebar-state { margin-left: 0; }
     }
     @media (max-width: 380px) {
       .md-btn { min-width: 32px; padding: .3rem .4rem; font-size: .76rem; }
@@ -798,11 +855,28 @@
           <div class="md-toolbar-group" role="group" aria-label="Insert">
             <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
             <button type="button" class="md-btn" data-md="hr" title="Divider" aria-label="Horizontal divider">― Divider</button>
+            <span class="emoji-anchor">
+              <button type="button" class="md-btn" id="scratchpad-emoji-btn" aria-haspopup="dialog" aria-expanded="false"
+                      aria-controls="scratchpad-emoji-picker" title="Add an emoji" aria-label="Add an emoji">😊 Emoji</button>
+              <div class="emoji-popover" id="scratchpad-emoji-picker" role="dialog" aria-label="Emoji picker" hidden>
+                <input type="search" id="scratchpad-emoji-search" class="form-input emoji-search" placeholder="Search emoji… (e.g. check, tada, fire)" autocomplete="off" aria-label="Search emoji" />
+                <div class="emoji-scroll" id="scratchpad-emoji-list"></div>
+                <p class="emoji-hint">Click one to drop it in at the cursor. Esc closes.</p>
+              </div>
+            </span>
           </div>
           <div class="md-toolbar-spacer"></div>
           <div class="md-toolbar-group" role="group" aria-label="View">
             <button type="button" class="md-btn md-toggle" id="scratchpad-preview-toggle" aria-pressed="false" title="Show a live preview with tickable task checkboxes">👁 Preview</button>
           </div>
+        </div>
+        <!-- Where this note is going: repo, file name, and the last save. Reads "Local only" until GitHub is set up. -->
+        <div class="scratch-filebar" id="scratchpad-filebar">
+          <span class="scratch-filebar-icon" aria-hidden="true">📄</span>
+          <span class="scratch-filebar-repo" id="scratchpad-filebar-repo">Local only</span>
+          <span class="scratch-filebar-sep" id="scratchpad-filebar-sep" hidden>/</span>
+          <span class="scratch-filebar-file" id="scratchpad-filebar-file">—</span>
+          <span class="scratch-filebar-state" id="scratchpad-filebar-state" role="status" aria-live="polite">Saved locally</span>
         </div>
         <div class="scratch-editor" id="scratchpad-editor">
           <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="14" placeholder="Jot anything here… it autosaves to this browser. Markdown works — use the buttons above or just type." aria-label="Scratchpad notes"></textarea>
@@ -1145,7 +1219,7 @@
           {
             name: "Scratchpad / Quick Notes",
             modal: "modal-scratchpad",
-            desc: "A markdown notes pad with formatting tools and a live preview that autosaves locally, exports to text or markdown, and commits dated notes to your own GitHub repo — one-click setup, no token to paste.",
+            desc: "A markdown notes pad with formatting tools, emoji and a live preview that autosaves locally, exports to text or markdown, and commits dated notes to your own GitHub repo — one-click setup, no token to paste.",
             best: "Fast, exportable, GitHub-backed notes",
             tags: ["notes", "scratchpad", "markdown", "export", "github"],
             aliases: ["quick notes", "notepad", "markdown editor", "notes to github", "github backup"]
@@ -2818,6 +2892,133 @@
       return html;
     }
 
+    // ---- Scratchpad emoji picker ----------------------------------------------------------------------
+    // Notes are often written in a hurry, and emoji are part of the language of quick notes. A small
+    // searchable popover beats fishing in the OS picker: every entry carries search keywords, so "check",
+    // "tada" or "fire" finds the right glyph. Inserting goes through the same edit path as the toolbar, so
+    // selection handling, undo and the autosave listeners all behave identically.
+    const SCRATCHPAD_EMOJI = [
+      { category: "Often used", items: [
+        ["✅", "check done tick complete"], ["❌", "x cross no fail"], ["⚠️", "warning caution"],
+        ["🔥", "fire hot lit"], ["✨", "sparkles new shine"], ["🎉", "tada party celebrate"],
+        ["🚀", "rocket ship launch ship it"], ["💡", "idea bulb tip"], ["📌", "pin pinned important"],
+        ["⭐", "star favourite favorite important"], ["🐛", "bug defect"], ["🛠️", "tools fix repair wrench"],
+        ["📝", "memo note write"], ["📅", "calendar date schedule"], ["⏰", "alarm clock reminder time"],
+        ["🎯", "target goal focus"]
+      ]},
+      { category: "Faces", items: [
+        ["😊", "smile happy"], ["😄", "grin happy laugh"], ["🙂", "slight smile ok"],
+        ["😅", "sweat smile phew"], ["😂", "joy laugh tears"], ["🤔", "thinking hmm"],
+        ["😐", "neutral meh"], ["😴", "sleep tired"], ["🥳", "party face celebrate"],
+        ["😎", "cool sunglasses"], ["🤯", "mind blown wow"], ["😬", "grimace awkward"],
+        ["🙃", "upside down sarcasm"], ["🫠", "melting overwhelmed"], ["🤝", "handshake deal agree"]
+      ]},
+      { category: "Gestures", items: [
+        ["👍", "thumbs up yes approve"], ["👎", "thumbs down no reject"], ["👏", "clap applause"],
+        ["🙌", "raised hands hooray"], ["🙏", "please thanks pray"], ["💪", "strong muscle"],
+        ["👀", "eyes look review"], ["👋", "wave hello bye"], ["🤞", "fingers crossed hope"]
+      ]},
+      { category: "Work", items: [
+        ["💻", "laptop code dev"], ["🖥️", "desktop monitor"], ["⌨️", "keyboard typing"],
+        ["📱", "phone mobile"], ["📊", "chart metrics graph"], ["📈", "chart up growth"],
+        ["📉", "chart down decline"], ["🗂️", "folders files organise"], ["📁", "folder directory"],
+        ["🔗", "link url"], ["🔒", "lock secure private"], ["🔑", "key access"],
+        ["🧪", "test experiment lab"], ["⚙️", "gear settings config"], ["🧹", "broom cleanup"],
+        ["📦", "package build release"], ["🏷️", "tag label"], ["📋", "clipboard list copy"]
+      ]},
+      { category: "Symbols", items: [
+        ["✔️", "check tick yes"], ["➕", "plus add"], ["➖", "minus remove"],
+        ["➡️", "arrow right next"], ["⬅️", "arrow left back"], ["⬆️", "arrow up"],
+        ["⬇️", "arrow down"], ["🔄", "refresh sync repeat"], ["⏳", "hourglass waiting pending"],
+        ["🚧", "construction wip blocked"], ["❓", "question unknown"], ["❗", "exclamation important"],
+        ["💬", "comment chat"], ["📣", "megaphone announce"]
+      ]}
+    ];
+
+    function initScratchpadEmoji(insertEmoji) {
+      const button = document.getElementById("scratchpad-emoji-btn");
+      const picker = document.getElementById("scratchpad-emoji-picker");
+      const list = document.getElementById("scratchpad-emoji-list");
+      const search = document.getElementById("scratchpad-emoji-search");
+      if (!button || !picker || !list || !search) return null;
+
+      const allItems = SCRATCHPAD_EMOJI.flatMap(group => group.items.map(([char, keywords]) => ({ char, keywords, category: group.category })));
+
+      // Render the grouped grid, or a flat "results" grid while searching.
+      function render(query) {
+        const needle = String(query || "").trim().toLowerCase();
+        const matches = needle ? allItems.filter(item => item.keywords.includes(needle) || item.char === needle) : allItems;
+        list.replaceChildren();
+        if (!matches.length) {
+          const empty = document.createElement("p");
+          empty.className = "emoji-empty";
+          empty.textContent = "No emoji match that search.";
+          list.appendChild(empty);
+          return;
+        }
+        const groups = needle
+          ? [{ category: "Results", items: matches }]
+          : SCRATCHPAD_EMOJI;
+        groups.forEach(group => {
+          const heading = document.createElement("p");
+          heading.className = "emoji-category";
+          heading.textContent = group.category;
+          const grid = document.createElement("div");
+          grid.className = "emoji-grid";
+          group.items.forEach(entry => {
+            const [char, keywords] = Array.isArray(entry) ? entry : [entry.char, entry.keywords];
+            const option = document.createElement("button");
+            option.type = "button";
+            option.className = "emoji-btn";
+            option.textContent = char;
+            option.title = keywords.split(" ").slice(0, 3).join(", ");
+            option.setAttribute("aria-label", `${keywords.split(" ")[0]} emoji`);
+            // mousedown would steal the caret from the textarea, so insert on mousedown and skip the click.
+            option.addEventListener("mousedown", event => {
+              event.preventDefault();
+              insertEmoji(char);
+              close();
+            });
+            grid.appendChild(option);
+          });
+          list.append(heading, grid);
+        });
+      }
+
+      function open() {
+        picker.hidden = false;
+        button.setAttribute("aria-expanded", "true");
+        search.value = "";
+        render("");
+        search.focus();
+      }
+      function close() {
+        picker.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+      }
+      const isOpen = () => !picker.hidden;
+
+      button.addEventListener("mousedown", event => event.preventDefault());
+      button.addEventListener("click", () => (isOpen() ? close() : open()));
+      search.addEventListener("input", () => render(search.value));
+      search.addEventListener("keydown", event => {
+        if (event.key === "Escape") { event.stopPropagation(); close(); button.focus(); }
+        // Enter picks the first match, so "fire" + Enter works without reaching for the mouse.
+        if (event.key === "Enter") {
+          const first = list.querySelector(".emoji-btn");
+          if (first) { event.preventDefault(); insertEmoji(first.textContent); close(); }
+        }
+      });
+      picker.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
+      document.addEventListener("click", event => {
+        if (!isOpen()) return;
+        if (event.target.closest("#scratchpad-emoji-picker, #scratchpad-emoji-btn")) return;
+        close();
+      });
+
+      return { open, close, isOpen };
+    }
+
     function initScratchpadMarkdown(textarea) {
       const toolbar = document.querySelector(".md-toolbar");
       const preview = document.getElementById("scratchpad-preview");
@@ -2912,6 +3113,13 @@
         applyEdit(start, end, text, start + text.length, start + text.length);
       }
 
+      // Emoji go through the same edit helper as the toolbar: insert at the caret, or replace the selection.
+      function insertEmoji(char) {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        applyEdit(start, end, char, start + char.length, start + char.length);
+      }
+
       function runTool(tool) {
         if (tool === "bold") wrapSelection("**", "bold text");
         else if (tool === "italic") wrapSelection("*", "italic text");
@@ -2968,12 +3176,14 @@
         runTool(tool);
       });
 
+      const emoji = initScratchpadEmoji(insertEmoji);
+
       // Remember the preview choice between visits.
       let wantPreview = false;
       try { wantPreview = localStorage.getItem(MD_PREVIEW_KEY) === "true"; } catch (e) {}
       if (wantPreview) setPreviewVisible(true);
 
-      return { renderPreview, setPreviewVisible };
+      return { renderPreview, setPreviewVisible, insertEmoji, emoji };
     }
 
     function initScratchpadTool() {
@@ -2990,6 +3200,7 @@
         saveTimer = setTimeout(() => {
           try { localStorage.setItem("dash-scratchpad", textarea.value); } catch (e) {}
           setStatus("scratchpad-status", "Saved locally.", "success");
+          ghSync?.markLocalSave();
         }, 400);
         ghSync?.handleLocalEdit();
       });
@@ -3017,6 +3228,7 @@
       });
 
       ghSync = initScratchpadGithubSync(textarea);
+      document.getElementById("modal-scratchpad")?.addEventListener("close", () => markdown?.emoji?.close());
     }
 
     // ---- Scratchpad → GitHub (App-manifest setup, then installation tokens) ------------------------------
@@ -3042,6 +3254,10 @@
       const newFileBtn = document.getElementById("scratchpad-gh-new-file");
       const scratchBtn = document.getElementById("scratchpad-gh-scratch");
       const repoHelp = document.getElementById("scratchpad-gh-repo-help");
+      const filebarRepo = document.getElementById("scratchpad-filebar-repo");
+      const filebarSep = document.getElementById("scratchpad-filebar-sep");
+      const filebarFile = document.getElementById("scratchpad-filebar-file");
+      const filebarState = document.getElementById("scratchpad-filebar-state");
       if (!panel || !setupBtn) return null;
 
       const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
@@ -3058,6 +3274,38 @@
       // The notes live in a repo called `scratch` unless the user picks another one; it is created
       // automatically (private, with an initial commit) the first time it isn't found.
       const SCRATCH_REPO = "scratch";
+
+      // ---- the header over the editor: repo / file / last save -------------------------------------
+      let barState = { text: "Saved locally", tone: "" };
+      function setBarState(text, tone = "") {
+        barState = { text, tone };
+        paintFileBar();
+      }
+      function paintFileBar() {
+        if (!filebarRepo) return;
+        const connection = ghConnection();
+        const repo = repoSelect && repoSelect.value;
+        const path = ghNormalizePath(pathInput && pathInput.value);
+        const connected = connection.ready && repo;
+        filebarRepo.textContent = connected
+          ? repo
+          : connection.kind === "app" && !connection.installationId
+            ? "Not installed yet"
+            : connection.kind === "none"
+              ? "Local only"
+              : "Choose a repository";
+        filebarRepo.title = connected ? repo : "Notes are only kept in this browser until GitHub saving is set up";
+        if (filebarSep) filebarSep.hidden = !connected;
+        if (filebarFile) {
+          filebarFile.textContent = path || "—";
+          filebarFile.title = path || "";
+        }
+        if (filebarState) {
+          filebarState.textContent = barState.text;
+          filebarState.classList.toggle("is-saved", barState.tone === "success");
+          filebarState.classList.toggle("is-error", barState.tone === "error");
+        }
+      }
 
       // Each (repo, branch, path) combo remembers the blob SHA it last synced, which is what makes an in-place
       // update possible — and what lets a save notice that someone else changed the file in the meantime.
@@ -3116,6 +3364,7 @@
             hint.textContent = "Connected. Notes are committed with short-lived installation tokens that this page mints and renews by itself — no sign-in, no stored long-lived credential.";
           }
         }
+        paintFileBar();
         if (connection.ready && !reposLoaded) loadRepos();
       }
 
@@ -3139,9 +3388,10 @@
         });
         const match = repos.find(repo => repo.full_name === previous);
         const scratch = repos.find(repo => repo.name === SCRATCH_REPO);
-        // Prefer the remembered repo, then `scratch` (the notes repo), then whatever is first.
-        if (match) repoSelect.value = match.full_name;
-        else if (scratch) repoSelect.value = scratch.full_name;
+        // `scratch` is the default notes repo, so it wins over a stale remembered choice; only when it
+        // doesn't exist do we fall back to what was picked before, then to whatever is first.
+        if (scratch) repoSelect.value = scratch.full_name;
+        else if (match) repoSelect.value = match.full_name;
         else if (repos.length) repoSelect.value = repos[0].full_name;
         if (repos.length) ghWriteStore(GH.keys.repo, repoSelect.value);
         return { scratch: Boolean(scratch) };
@@ -3164,6 +3414,7 @@
           const result = renderRepoOptions(repos);
           hasScratch = Boolean(result && result.scratch);
           reposLoaded = true;
+          paintFileBar();
           // Only a real scratch repo means the earlier "couldn't create it" note is out of date.
           if (hasScratch) showRepoHelp("");
           if (announce) setGhStatus(`${repos.length} repositor${repos.length === 1 ? "y" : "ies"} available to this app.`, "success");
@@ -3217,6 +3468,7 @@
             }
             repoSelect.value = fullName;
           }
+          paintFileBar();
           setGhStatus(`Ready — notes are saved to the private “${SCRATCH_REPO}” repo (${fullName}).`, "success");
           showRepoHelp("");
         } catch (error) {
@@ -3312,8 +3564,10 @@
           conflictPaused = false;
           showOverwrite(false);
           setFileStatus(`${remote ? "Updated" : "Created"} ${path} in ${repo} at ${new Date().toLocaleTimeString()}${auto ? " (autosave)" : ""}.`, "success");
+          setBarState(`Synced to GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
         } catch (error) {
           setFileStatus(error.message, "error");
+          setBarState(error.message, "error");
         } finally {
           saving = false;
           if (saveBtn) saveBtn.disabled = false;
@@ -3347,6 +3601,7 @@
           showOverwrite(false);
           setStatus("scratchpad-status", "Loaded the GitHub version.");
           setFileStatus(`Pulled ${path} from ${repo} at ${new Date().toLocaleTimeString()}.`, "success");
+          setBarState(`Loaded from GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
         } catch (error) {
           setFileStatus(error.message, "error");
         }
@@ -3524,13 +3779,27 @@
         conflictPaused = false;
         showOverwrite(false);
         setFileStatus(`Next save creates ${pathInput.value}.`);
+        setBarState("New file — saves on next sync");
         pathInput.focus();
         pathInput.select();
       });
       scratchBtn?.addEventListener("click", () => { scratchAttempted = false; ensureScratchRepo(); });
 
-      repoSelect?.addEventListener("change", () => { ghWriteStore(GH.keys.repo, repoSelect.value); conflictPaused = false; showOverwrite(false); setFileStatus(""); });
-      pathInput.addEventListener("change", () => { ghWriteStore(GH.keys.path, ghNormalizePath(pathInput.value)); conflictPaused = false; showOverwrite(false); });
+      repoSelect?.addEventListener("change", () => {
+        ghWriteStore(GH.keys.repo, repoSelect.value);
+        conflictPaused = false;
+        showOverwrite(false);
+        setFileStatus("");
+        setBarState("Not saved to this repo yet");
+      });
+      pathInput.addEventListener("change", () => {
+        ghWriteStore(GH.keys.path, ghNormalizePath(pathInput.value));
+        conflictPaused = false;
+        showOverwrite(false);
+        setBarState("Not saved to this file yet");
+      });
+      // Typing a new path should update the header immediately, without waiting for blur.
+      pathInput.addEventListener("input", paintFileBar);
       branchInput.addEventListener("change", () => { ghWriteStore(GH.keys.branch, branchInput.value.trim()); conflictPaused = false; showOverwrite(false); });
       autosaveCheckbox?.addEventListener("change", () => {
         ghWriteStore(GH.keys.autosave, String(autosaveCheckbox.checked));
@@ -3604,7 +3873,12 @@
 
       // Called from the textarea's debounce: commit quietly, but never behind the user's back once a conflict
       // has been flagged (that would either clobber the other version or spam errors on every keystroke).
+      paintFileBar();
+
       return {
+        markLocalSave() { if (!String(barState.text).startsWith("Synced")) setBarState("Saved locally", "success"); },
+        paintFileBar,
+        setBarState,
         handleLocalEdit() {
           if (!autosaveCheckbox?.checked || conflictPaused || saving) return;
           if (!ghConnection().ready || !targetIsValid({ quiet: true })) return;

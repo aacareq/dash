@@ -53,8 +53,17 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   in again, and no long-lived credential is ever stored. Notes are committed
   in place via the Contents API, pause with a warning instead of overwriting a
   version that changed on GitHub (offering *Pull latest* or *Overwrite
-  anyway*), and can autosave a few seconds after you stop typing. A pasted
-  token remains available as a fallback for `file://` pages. How it works:
+  anyway*), and can autosave a few seconds after you stop typing. A private
+  repo called **`scratch`** is created automatically when it doesn't exist
+  yet, and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
+  *New dated file* button for another). Because the notes are markdown, the
+  editor carries markdown tools — bold/italic/strikethrough, H1–H3,
+  bulleted/numbered/task lists, quotes and dividers (with keyboard shortcuts
+  and Ctrl/⌘+B/I/X) — plus a live **preview** whose task checkboxes tick the
+  underlying `- [ ]` lines. The whole tool reflows for small screens: preview
+  under the editor on tablets, and a full-height sheet with 36px tap targets
+  on phones. A pasted token remains available as a fallback for `file://`
+  pages. How it works:
   [`docs/scratchpad-github-saving.md`](docs/scratchpad-github-saving.md).
 - **News / headlines feed** — tabs for Techmeme, Hacker News, Ars Technica,
   InfoWorld, and Lobste.rs. None of the plain-RSS sources (everything except

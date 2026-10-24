@@ -53,13 +53,72 @@ again — one click, one install screen.
    pre-filled) → **Create GitHub App**.
 3. GitHub sends you straight to the install screen for that app → pick
    *Only select repositories* (recommended) or all → **Install**.
-4. You land back on the dashboard, already connected. Choose a **file path**
-   (default `notes/scratchpad.md`); the repository dropdown lists only what the
-   app can write to. **Autosave** is already on — notes are committed a few
-   seconds after you stop typing; uncheck it to commit only via **Save now**.
+4. You land back on the dashboard, already connected. The repository
+   dropdown lists only what the app can write to, and a private repo called
+   **`scratch`** is created for you if you don't have one yet (see below).
+   **Autosave** is already on — notes are committed a few seconds after you
+   stop typing; uncheck it to commit only via **Save now**.
 5. From now on, opening the dashboard needs no sign-in at all: the panel
    verifies the installation in the background and mints a fresh installation
    token whenever it needs one.
+
+## The `scratch` repo and dated note files
+
+- **`scratch` is created automatically.** The first time the app can't see a
+  repo called `scratch`, it creates one — private, with an initial commit so
+  there is a default branch to write to — and switches to it. **Use scratch
+  repo** re-runs that on demand (for example after deleting it).
+- **Each note gets its own file.** The **File path** box is prefilled with
+  `notes-YYYY-MM-DD-HHMM.md`, e.g. `notes-2026-10-24-1142.md`, and **New dated
+  file** mints a fresh name whenever you want another one. Because the name is
+  what's saved, yesterday's notes are never overwritten by today's.
+
+Creating a repo needs the app's **Repository creation: write** permission
+(least privilege — it can create repositories but not delete or transfer them).
+Apps registered from this dashboard's manifest already request it. If yours
+predates that change, GitHub refuses with *"Resource not accessible by
+integration"* and the panel offers two fixes: grant **Repository creation:
+write** in the app's permissions and accept it on the installation, or create
+`scratch` yourself and add it to the app. `Disconnect → Set up GitHub saving`
+also re-registers the app with the new permission. Saving to any repo the app
+can already write to keeps working either way.
+
+## Writing markdown
+
+The notes are markdown files, so the editor has the syntax built in:
+
+| Tool | Result | Shortcut |
+| --- | --- | --- |
+| **B** / *I* / ~~S~~ | `**bold**`, `*italic*`, `~~strikethrough~~` | Ctrl/⌘+B, Ctrl/⌘+I, Ctrl/⌘+Shift+X |
+| H1 / H2 / H3 | `#`, `##`, `###` — clicking another level replaces it, clicking the same one removes it | — |
+| • List / 1. List | bulleted and numbered lists, applied to every selected line | Ctrl/⌘+E for a bulleted list |
+| ☑ Task | `- [ ]` task lines | — |
+| ❝ Quote / ― Divider | `> quote`, `---` | — |
+
+Everything acts on the selection, or inserts at the caret when nothing is
+selected, and toolbar edits count as typing — so local autosave and GitHub
+autosave pick them up exactly like keyboard input.
+
+**👁 Preview** shows a live rendered version beside the editor. Its task
+checkboxes are real: ticking one rewrites that `- [ ]` line to `- [x]` in the
+source. The preview escapes note content before rendering, so pasted HTML is
+shown as text rather than executed, and only `http(s)` links are turned into
+links. The preview choice is remembered between visits.
+
+## Small screens
+
+The notes tool is built to be usable at any width:
+
+- **≥ 900px** — editor and preview sit side by side in the wide dialog.
+- **641–900px** — the preview drops below the editor; the GitHub panel's
+  fields go to a single column.
+- **≤ 640px** — the dialog becomes a full-height sheet (safe-area aware, uses
+  `dvh` so mobile browser chrome doesn't clip it), the toolbar wraps with
+  36px tap targets, the preview shrinks, and buttons grow to fill the row.
+- **≤ 380px** — the toolbar buttons that carry words (Quote, Divider) collapse
+  to their symbols so nothing overflows.
+- The card itself scrolls (`overscroll-behavior: contain`) so a long note plus
+  the expanded GitHub panel never traps the page behind it.
 
 Commits update the same file in place (the blob `sha` of the last sync is
 remembered per `repo@branch:path`). Every save re-reads the file first: if it
@@ -71,8 +130,11 @@ instead of silently clobbering it.
 
 - A **private** GitHub App you own, named `dash notes (<your host>)` by default.
   Private means only you can install it; it is not in the Marketplace.
-- Permissions: **Contents: Read and write**, **Metadata: Read-only**. No
-  webhooks, no events, no other scopes.
+- Permissions: **Contents: Read and write**, **Metadata: Read-only**, and
+  **Repository creation: Read and write** (so it can make the private
+  `scratch` repo — this is the narrow permission, not full repository
+  administration, so it still can't delete or transfer anything). No webhooks,
+  no events, no other scopes.
 - An installation on the repository (or repositories) you picked.
 - Commits authored by the app's bot identity in your repo.
 
@@ -124,6 +186,9 @@ page you should never need it.
 | You created the app but closed the tab before the install screen | Reopen the dashboard, expand the panel, click **Install on a repository**. |
 | *"Couldn't confirm the installation"* | Click **Re-check connection**. If the app was deleted on GitHub, **Disconnect** and set up again. |
 | `Resource not accessible by integration` | The app isn't installed on that repository, or you removed **Contents: write**. Fix it in the app's installation settings. |
+| *"couldn't create the `scratch` repo"* | The app lacks **Repository creation: write**. Grant it in the app's permissions and accept it on the installation, create `scratch` yourself and add it to the app, or `Disconnect → Set up GitHub saving`. Saving to another repo still works. |
+| The repo dropdown has no `scratch` | Click **Use scratch repo** to create it, or **Re-check connection** after adding it to the installation by hand. |
+| Notes keep landing in one file | The file path is fixed once you pick it — click **New dated file** for a fresh `notes-<date>-<time>.md`. |
 | Repo dropdown is empty | The app isn't installed anywhere yet → **Install on a repository**. |
 | First save says the file already exists | Expected — it never guesses. **Pull latest** to adopt it, or **Overwrite anyway**. |
 | `409` / *"sha … does not match"* | The file changed at the same moment; save again or pull first. |

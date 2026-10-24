@@ -99,11 +99,38 @@ Everything acts on the selection, or inserts at the caret when nothing is
 selected, and toolbar edits count as typing — so local autosave and GitHub
 autosave pick them up exactly like keyboard input.
 
+**😊 Emoji** opens a small searchable picker (type `check`, `tada`, `fire`…,
+or press Enter to take the first match). Clicking an emoji drops it in at the
+caret or replaces the selection; Esc or a click outside closes it.
+
 **👁 Preview** shows a live rendered version beside the editor. Its task
 checkboxes are real: ticking one rewrites that `- [ ]` line to `- [x]` in the
 source. The preview escapes note content before rendering, so pasted HTML is
 shown as text rather than executed, and only `http(s)` links are turned into
 links. The preview choice is remembered between visits.
+
+## The editor header
+
+Above the editor sits a one-line bar showing exactly where the note is going:
+
+```
+📄 octocat/scratch / notes-2026-10-24-1142.md      Synced to GitHub · 11:42
+```
+
+- The **repo** comes from the repository picker and the **file name** from the
+  File path box; both update as you change them, and the full path is on the
+  hover title.
+- Before GitHub is set up the repo slot reads **Local only**, so it's obvious
+  the note isn't leaving the browser yet.
+- The right-hand **save state** says `Saved locally`, `Not saved to this file
+  yet`, `Synced to GitHub · <time>`, `Loaded from GitHub · <time>`, or the
+  last error — the same information as the status lines, without needing the
+  GitHub panel open.
+
+`scratch` is also the **default selected repo**: when it exists it wins over a
+previously chosen repo (which stays in the dropdown), so notes keep landing in
+one predictable place. Only if `scratch` doesn't exist does the remembered
+choice take over.
 
 ## Small screens
 

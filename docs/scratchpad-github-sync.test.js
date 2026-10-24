@@ -578,6 +578,138 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   check("editor area is a flex pair", /\.scratch-editor \{[^}]*display: flex/.test(css));
   check("every markdown tool is present", ["bold", "italic", "strike", "h1", "h2", "h3", "ul", "ol", "task", "hr", "quote"].every(tool => d18.querySelector(`.md-toolbar [data-md="${tool}"]`)), "");
 
+  console.log("\n[19] `scratch` is the default repo even when another one was used before");
+  github = makeGithub({ reposWithScratch: true });
+  win = makeWindow({
+    storage: {
+      "dash-scratchpad-gh-app-v2": APP_RECORD,
+      // The user previously saved to `octocat/notes` — `scratch` must still win.
+      "dash-scratchpad-gh-repo": "octocat/notes"
+    },
+    fetchImpl: github.handle
+  });
+  await flush(); await flush(); await flush();
+  const d19 = win.document;
+  check("scratch is selected over the remembered repo", d19.getElementById("scratchpad-gh-repo").value === "octocat/scratch", d19.getElementById("scratchpad-gh-repo").value);
+  check("the remembered repo is still in the list", [...d19.querySelectorAll("#scratchpad-gh-repo option")].some(o => o.value === "octocat/notes"));
+  check("the choice is persisted as scratch", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
+
+  // Without a scratch repo, the remembered choice is respected (no silent hijacking).
+  github = makeGithub({ reposWithoutScratch: true, denyCreate: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD, "dash-scratchpad-gh-repo": "octocat/notes" }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  check("falls back to the remembered repo when scratch can't exist", win.document.getElementById("scratchpad-gh-repo").value === "octocat/notes", win.document.getElementById("scratchpad-gh-repo").value);
+
+  console.log("\n[20] the editor header shows the repo and file name");
+  win = makeWindow();
+  await flush();
+  const d20 = win.document;
+  check("header exists above the editor", !!d20.getElementById("scratchpad-filebar") && d20.getElementById("scratchpad-filebar").nextElementSibling.id === "scratchpad-editor");
+  check("disconnected header says Local only", d20.getElementById("scratchpad-filebar-repo").textContent === "Local only", d20.getElementById("scratchpad-filebar-repo").textContent);
+  check("header still shows the file name", /^notes-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(d20.getElementById("scratchpad-filebar-file").textContent), d20.getElementById("scratchpad-filebar-file").textContent);
+  check("separator hidden while local-only", d20.getElementById("scratchpad-filebar-sep").hidden === true);
+
+  github = makeGithub({ reposWithScratch: true });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush(); await flush();
+  const d20b = win.document;
+  check("connected header shows the repo", d20b.getElementById("scratchpad-filebar-repo").textContent === "octocat/scratch", d20b.getElementById("scratchpad-filebar-repo").textContent);
+  check("connected header shows the file name", /^notes-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(d20b.getElementById("scratchpad-filebar-file").textContent), d20b.getElementById("scratchpad-filebar-file").textContent);
+  check("separator shown between them", d20b.getElementById("scratchpad-filebar-sep").hidden === false);
+
+  d20b.getElementById("scratchpad-gh-path").value = "notes/deep/dive.md";
+  d20b.getElementById("scratchpad-gh-path").dispatchEvent(new win.Event("input", { bubbles: true }));
+  check("typing a path updates the header immediately", d20b.getElementById("scratchpad-filebar-file").textContent === "notes/deep/dive.md", d20b.getElementById("scratchpad-filebar-file").textContent);
+  d20b.getElementById("scratchpad-gh-path").dispatchEvent(new win.Event("change", { bubbles: true }));
+  check("header says the new file isn't saved yet", /Not saved/.test(d20b.getElementById("scratchpad-filebar-state").textContent), d20b.getElementById("scratchpad-filebar-state").textContent);
+
+  d20b.getElementById("scratchpad-gh-new-file").click();
+  await flush();
+  check("New dated file updates the header", /^notes-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(d20b.getElementById("scratchpad-filebar-file").textContent), d20b.getElementById("scratchpad-filebar-file").textContent);
+
+  d20b.getElementById("scratchpad-text").value = "header sync test";
+  d20b.getElementById("scratchpad-gh-save").click();
+  await flush(); await flush();
+  check("a successful save reports synced in the header", /Synced to GitHub/.test(d20b.getElementById("scratchpad-filebar-state").textContent), d20b.getElementById("scratchpad-filebar-state").textContent);
+  check("the synced state is styled as success", d20b.getElementById("scratchpad-filebar-state").classList.contains("is-saved"));
+
+  console.log("\n[21] emoji picker inserts emoji into the note");
+  win = makeWindow();
+  await flush();
+  const d21 = win.document;
+  const emojiBtn = d21.getElementById("scratchpad-emoji-btn");
+  const picker = d21.getElementById("scratchpad-emoji-picker");
+  const emojiSearch = d21.getElementById("scratchpad-emoji-search");
+  const ta21 = d21.getElementById("scratchpad-text");
+  check("emoji button is in the toolbar", !!emojiBtn && !!emojiBtn.closest(".md-toolbar"));
+  check("picker starts closed", picker.hidden === true && emojiBtn.getAttribute("aria-expanded") === "false");
+  emojiBtn.click();
+  check("clicking opens the picker", picker.hidden === false && emojiBtn.getAttribute("aria-expanded") === "true");
+  check("picker lists categories", d21.querySelectorAll("#scratchpad-emoji-list .emoji-category").length >= 5, String(d21.querySelectorAll("#scratchpad-emoji-list .emoji-category").length));
+  const emojiCount = d21.querySelectorAll("#scratchpad-emoji-list .emoji-btn").length;
+  check("picker has a good spread of emoji", emojiCount >= 60, String(emojiCount));
+
+  ta21.value = "note text";
+  ta21.setSelectionRange(4, 4);
+  const fireButton = [...d21.querySelectorAll("#scratchpad-emoji-list .emoji-btn")].find(b => b.textContent === "🔥");
+  fireButton.dispatchEvent(new win.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+  check("emoji inserted at the caret", ta21.value === "note🔥 text", JSON.stringify(ta21.value));
+  check("picker closes after inserting", picker.hidden === true);
+
+  emojiBtn.click();
+  emojiSearch.value = "check";
+  emojiSearch.dispatchEvent(new win.Event("input", { bubbles: true }));
+  const results = [...d21.querySelectorAll("#scratchpad-emoji-list .emoji-btn")].map(b => b.textContent);
+  check("search narrows to the matching emoji", results.length >= 1 && results.length <= 3 && results.includes("✅"), JSON.stringify(results));
+  check("results are grouped under a Results heading", /Results/.test(d21.querySelector("#scratchpad-emoji-list .emoji-category").textContent));
+
+  emojiSearch.value = "tada";
+  emojiSearch.dispatchEvent(new win.Event("input", { bubbles: true }));
+  ta21.value = "ship it";
+  ta21.setSelectionRange(7, 7);
+  const firstResult = d21.querySelector("#scratchpad-emoji-list .emoji-btn");
+  firstResult.dispatchEvent(new win.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+  check("keyword search finds the emoji by name", ta21.value === "ship it🎉", JSON.stringify(ta21.value));
+
+  emojiBtn.click();
+  emojiSearch.value = "zzzz-nope";
+  emojiSearch.dispatchEvent(new win.Event("input", { bubbles: true }));
+  check("no matches shows an empty state", /No emoji match/.test(d21.querySelector("#scratchpad-emoji-list").textContent));
+  emojiSearch.value = "";
+  emojiSearch.dispatchEvent(new win.Event("input", { bubbles: true }));
+
+  ta21.value = "replace me";
+  ta21.setSelectionRange(0, 7);
+  const checkButton = [...d21.querySelectorAll("#scratchpad-emoji-list .emoji-btn")][0];
+  checkButton.dispatchEvent(new win.MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+  check("emoji replaces the selected text", ta21.value === "✅ me", JSON.stringify(ta21.value));
+
+  emojiBtn.click();
+  emojiSearch.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  check("Escape closes the picker", picker.hidden === true);
+  emojiBtn.click();
+  d21.body.click();
+  check("clicking outside closes the picker", picker.hidden === true);
+
+  ta21.value = "enter test";
+  ta21.setSelectionRange(10, 10);
+  emojiBtn.click();
+  emojiSearch.value = "fire";
+  emojiSearch.dispatchEvent(new win.Event("input", { bubbles: true }));
+  emojiSearch.dispatchEvent(new win.KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+  check("Enter inserts the first match", ta21.value === "enter test🔥", JSON.stringify(ta21.value));
+
+  const ta22 = d21.getElementById("scratchpad-text");
+  ta22.value = "with emoji 🎉";
+  ta22.dispatchEvent(new win.Event("input", { bubbles: true }));
+  await new Promise(r => setTimeout(r, 600));
+  check("emoji edits are autosaved like any typing", win.localStorage.getItem("dash-scratchpad") === "with emoji 🎉");
+
+  const d22 = d21;
+  d21.getElementById("scratchpad-preview-toggle").click();
+  await flush();
+  check("emoji render in the preview untouched", d22.getElementById("scratchpad-preview").textContent.includes("🎉"));
+
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);
 })().catch(e => { console.error(e); process.exit(1); });

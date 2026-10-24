@@ -55,12 +55,13 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   version that changed on GitHub (offering *Pull latest* or *Overwrite
   anyway*), and can autosave a few seconds after you stop typing. A private
   repo called **`scratch`** is created automatically when it doesn't exist
-  yet, and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
+  yet and is the default selection, and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
   *New dated file* button for another). Because the notes are markdown, the
   editor carries markdown tools — bold/italic/strikethrough, H1–H3,
   bulleted/numbered/task lists, quotes and dividers (with keyboard shortcuts
-  and Ctrl/⌘+B/I/X) — plus a live **preview** whose task checkboxes tick the
-  underlying `- [ ]` lines. The whole tool reflows for small screens: preview
+  and Ctrl/⌘+B/I/X), a searchable **emoji picker**, a header bar showing the
+  target `repo / file.md` and the last save, and a live **preview** whose task
+  checkboxes tick the underlying `- [ ]` lines. The whole tool reflows for small screens: preview
   under the editor on tablets, and a full-height sheet with 36px tap targets
   on phones. A pasted token remains available as a fallback for `file://`
   pages. How it works:

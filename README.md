@@ -28,7 +28,8 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   tools that open as wide dialogs instead of navigating away: a Google Tasks
   list, a GitHub-backed work list that can create **and edit** files in a
   chosen repo, a Google Calendar mini agenda, a Pomodoro/focus timer, an
-  exportable scratchpad, and a multi-source news/headlines feed. The Google
+  exportable scratchpad, a multi-item clipboard, and a multi-source
+  news/headlines feed. The Google
   Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
   in this browser's `localStorage`) since the dashboard has no backend of its
   own. The GitHub work list has a "Load Existing File" button that fetches a
@@ -67,6 +68,15 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   on phones. A pasted token remains available as a fallback for `file://`
   pages. How it works:
   [`docs/scratchpad-github-saving.md`](docs/scratchpad-github-saving.md).
+- **Clipboard History** — a clipboard that remembers more than one thing: it
+  keeps a list of captured clips (pasted into the dialog, copied on the page, or
+  read from the system clipboard with **Capture clipboard**), lets you pin,
+  copy back and delete items, and saves the whole collection to
+  `clips/clips-<date-time>.md` in the same **scratch** repo as the notes — no
+  second setup. It also spells out the browser's limits: there is no
+  clipboard-change event and no background read, so it can't watch what you copy
+  in other apps; Safari/Firefox may block programmatic reads (pasting always
+  works). See [`docs/clipboard-history.md`](docs/clipboard-history.md).
 - **News / headlines feed** — tabs for Techmeme, Hacker News, Ars Technica,
   InfoWorld, and Lobste.rs. None of the plain-RSS sources (everything except
   Hacker News, which has its own CORS-enabled API) have a CORS header of

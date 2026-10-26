@@ -27,12 +27,16 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
 - **Custom Tools** lets you add your own links; export/import your config from
   the dashboard to move it between browsers.
 - **Bookmarklets** — its own menu cluster (dashed cards, e.g. *GitHub + Arena
-  Agent*, *Coding Agents*, and *GitHub + Arena AI + Proton VPN*) can be clicked
+  Agent*, *Coding Agents*, *GitHub + Arena AI + Proton VPN*, and
+  *Personal AI Agents — Always-On*) can be clicked
   to run, or dragged onto your bookmarks bar. Allow pop-ups the first time so
   every tab can open. The same cards are also pinned in Favorites, right after
   the Scratchpad.
 - **Personal AI Agents — Always-On** — a menu cluster for standing agent
-  sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code).
+  sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code). Its
+  matching bookmarklet (in Bookmarklets and pinned in Favorites) opens every
+  link in the cluster at once, and is built from the cluster's own list so the
+  two can never drift apart.
 - **Working On** (4th in the menu, right after Daily Core) — in-dashboard
   tools that open as wide dialogs instead of navigating away: a Google Tasks
   list, a GitHub-backed work list that can create **and edit** files in a

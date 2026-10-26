@@ -1059,6 +1059,20 @@
     const isoDaysAgo = days => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 
     /*
+      Personal AI Agents — Always-On: standing agent sessions. Defined once here so the browsable
+      "Personal AI Agents — Always-On" cluster (below, in `database`) and its "open all of them" bookmarklet
+      (in `bookmarkletItems`, next) share the exact same links — adding an agent here adds its tab to the
+      bookmarklet too, instead of the two lists drifting apart.
+    */
+    const personalAgentItems = [
+      { name: "Muse.ai", url: "https://muse.ai/", desc: "An always-on personal AI agent workspace for ongoing research and creative tasks.", best: "Background agent sessions", tags: ["agents", "always-on", "personal"] },
+      { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI's standing Grok bot agent for continuous conversations and tasks.", best: "Persistent Grok sessions", tags: ["agents", "always-on", "grok"] },
+      { name: "Claude Code", url: "https://claude.ai/code", desc: "Anthropic's agentic coding environment for ongoing, code-focused work.", best: "Always-on coding agent", tags: ["agents", "always-on", "coding"] }
+    ];
+    // A bookmarklet that opens every link in a card list, in list order, each in its own tab.
+    const bookmarkletFor = items => `javascript:(function(){[${items.map(item => `'${item.url}'`).join(",")}].forEach(url=>window.open(url,'_blank'));})()`;
+
+    /*
       Bookmarklets: javascript: links that open several tabs at once. Defined once here so both the browsable
       "Bookmarklets" cluster (below, in `database`) and the pinned Favorites shortcuts (`pinnedFavorites`,
       further down) share the exact same cards instead of drifting out of sync.
@@ -1103,6 +1117,16 @@
         aliases: ["github arena proton vpn bookmarklet", "open github arena and proton vpn"],
         detail: "Opens three tabs: GitHub, Arena AI, and the Proton VPN — Fast & Secure Chrome Web Store listing. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.",
         bookmarklet: true
+      },
+      {
+        name: "Personal AI Agents — Always-On",
+        url: bookmarkletFor(personalAgentItems),
+        desc: `One click opens every Personal AI Agents — Always-On link — ${personalAgentItems.map(item => item.name).join(", ")} — side by side.`,
+        best: "Checking in on every standing agent",
+        tags: ["bookmarklet", "agents", "always-on", "personal"],
+        aliases: ["personal ai agents bookmarklet", "always-on agents bookmarklet", "open all personal agents", "open Muse Grok Bot and Claude Code"],
+        detail: `Opens ${personalAgentItems.length} tabs (every link in the Personal AI Agents — Always-On cluster): ${personalAgentItems.map(item => item.name).join(", ")}. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.`,
+        bookmarklet: true
       }
     ];
 
@@ -1110,11 +1134,8 @@
       personalagents: {
         title: "Personal AI Agents — Always-On",
         summary: "Standing agent sessions that keep working in the background, ready whenever you check in.",
-        items: [
-          { name: "Muse.ai", url: "https://muse.ai/", desc: "An always-on personal AI agent workspace for ongoing research and creative tasks.", best: "Background agent sessions", tags: ["agents", "always-on", "personal"] },
-          { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI's standing Grok bot agent for continuous conversations and tasks.", best: "Persistent Grok sessions", tags: ["agents", "always-on", "grok"] },
-          { name: "Claude Code", url: "https://claude.ai/code", desc: "Anthropic's agentic coding environment for ongoing, code-focused work.", best: "Always-on coding agent", tags: ["agents", "always-on", "coding"] }
-        ]
+        // Shared with the "Personal AI Agents — Always-On" bookmarklet above, so it always opens all of these.
+        items: personalAgentItems
       },
       daily: {
         title: "Key Daily Services",

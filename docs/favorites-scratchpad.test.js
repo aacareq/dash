@@ -138,8 +138,8 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     const ids = favoriteIds(doc);
     check("scratchpad pinned first despite saved list", ids[0] === SCRATCHPAD_ID, JSON.stringify(ids));
     check("saved favorite still present after the pins", ids.includes("daily:gmail"), JSON.stringify(ids));
-    // 1 scratchpad + 4 bookmarklets + Gmail + the ensured Gemini/Claude topped up into the saved list.
-    check("count badge matches pinned + saved + ensured", doc.getElementById("cnt-favorites").textContent === "8",
+    // 1 scratchpad + 5 bookmarklets + Gmail + the ensured Gemini/Claude topped up into the saved list.
+    check("count badge matches pinned + saved + ensured", doc.getElementById("cnt-favorites").textContent === "9",
       doc.getElementById("cnt-favorites").textContent);
     win.close();
   }
@@ -216,8 +216,8 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     const ids = favoriteIds(doc);
     check("both end up in Favorites exactly once",
       ids.filter(id => id === CLAUDE_ID).length === 1 && ids.filter(id => id === GEMINI_ID).length === 1, JSON.stringify(ids));
-    // Pinned: scratchpad + 4 bookmarklets, so the first saved card is at index 5.
-    check("already-saved Claude keeps its position", ids[5] === CLAUDE_ID, JSON.stringify(ids));
+    // Pinned: scratchpad + 5 bookmarklets, so the first saved card is at index 6.
+    check("already-saved Claude keeps its position", ids[6] === CLAUDE_ID, JSON.stringify(ids));
     const saved = JSON.parse(win.localStorage.getItem("commandos-favorites-v1"));
     check("saved order preserved with Gemini appended", saved.join(",") === `${CLAUDE_ID},daily:gmail,${GEMINI_ID}`, JSON.stringify(saved));
     win.close();

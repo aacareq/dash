@@ -1416,12 +1416,33 @@
     const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     /*
-      Pinned favorites: bookmarklets that always sit at the front of the Favorites grid, independently of the
-      saved list, because each one launches a whole workflow in a single click. They reuse the exact same
-      `bookmarkletItems` cards shown in the browsable "Bookmarklets" cluster, tagged with that cluster's section
-      key so ids line up, so the card link both runs the bookmarklet and can be dragged onto the bookmarks bar.
+      Pinned favorites: cards that always sit at the front of the Favorites grid, independently of the saved
+      list. The Scratchpad leads — it is the dashboard's own notes pad, so it stays one click away even before
+      anything is starred — followed by the bookmarklets, each of which launches a whole workflow in a single
+      click. Both reuse the exact same card definitions shown in their browsable clusters ("Working On" and
+      "Bookmarklets"), tagged with those clusters' section keys so ids line up and the copies can never drift
+      apart: the Scratchpad card opens the same `modal-scratchpad` dialog, and each bookmarklet link both runs
+      the bookmarklet and can be dragged onto the bookmarks bar.
     */
-    const pinnedFavorites = bookmarkletItems.map(item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` }));
+    const scratchpadCard = database.workingon.items.find(item => item.modal === "modal-scratchpad");
+    const pinnedFavorites = [
+      ...(scratchpadCard ? [{ ...scratchpadCard, sectionKey: "workingon", id: `workingon:${slugify(scratchpadCard.name)}` }] : []),
+      ...bookmarkletItems.map(item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` }))
+    ];
+    /*
+      Ensured favorites: Gemini and Claude belong in Favorites even in browsers whose saved list was stored
+      without them. `defaultFavorites` only applies when nothing is stored yet, so by itself it can never top
+      up an existing list — `loadPreferences` therefore adds any missing ensured ids to the saved list once
+      (tracked by ENSURED_FAVORITES_KEY). Unlike the pins above they stay ordinary starred favorites: adding
+      to the Set keeps an already-saved one's position and never duplicates it, and after the one-time pass a
+      deliberate un-star sticks. Ids are derived from the Inference cards themselves so a rename cannot
+      silently point them at nothing; order follows `defaultFavorites` (Gemini, then Claude).
+    */
+    const ensuredFavorites = ["Gemini", "Claude"]
+      .map(name => database.inference.items.find(item => item.name === name))
+      .filter(Boolean)
+      .map(item => `inference:${slugify(item.name)}`);
+    const ENSURED_FAVORITES_KEY = "commandos-favorites-ensured-v1";
     const isExternal = url => /^https?:\/\//i.test(url);
     const isTypingTarget = element => Boolean(element) && (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
     // Search shortcuts: items with a `template` swap {q} for the section's query; with no query they open `url`.
@@ -1432,6 +1453,12 @@
       try {
         const storedFavorites = localStorage.getItem("commandos-favorites-v1");
         state.favorites = new Set(storedFavorites ? JSON.parse(storedFavorites) : defaultFavorites);
+        // One-time top-up: add any ensured favorites (Gemini, Claude) missing from an already-saved list.
+        if (!localStorage.getItem(ENSURED_FAVORITES_KEY)) {
+          ensuredFavorites.forEach(id => state.favorites.add(id));
+          saveFavorites();
+          try { localStorage.setItem(ENSURED_FAVORITES_KEY, JSON.stringify(ensuredFavorites)); } catch (error) { /* The next load simply tries again. */ }
+        }
         state.theme = localStorage.getItem("commandos-theme") || "dark";
         const storedCustom = localStorage.getItem("commandos-custom-tools-v1");
         customTools = storedCustom ? JSON.parse(storedCustom) : [];
@@ -1772,11 +1799,14 @@
     function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
 
     // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
-    // with the pinned bookmarklets held at the front so they survive any change to the saved list.
+    // with the pinned cards (Scratchpad first, then the bookmarklets) held at the front so they survive any
+    // change to the saved list — starring a pinned card must not move it back among the saved ones, or show it twice.
     function getFavoritesList(allItems) {
-      const savedFavorites = [...state.favorites].map(id => allItems.find(item => item.id === id)).filter(Boolean);
-      const pinned = pinnedFavorites.filter(item => !savedFavorites.some(saved => saved.id === item.id));
-      return [...pinned, ...savedFavorites];
+      const pinnedIds = new Set(pinnedFavorites.map(item => item.id));
+      const savedFavorites = [...state.favorites]
+        .map(id => allItems.find(item => item.id === id))
+        .filter(item => item && !pinnedIds.has(item.id));
+      return [...pinnedFavorites, ...savedFavorites];
     }
 
     function buildFavoritesSection(allItems) {
@@ -1785,7 +1815,7 @@
       favoriteSection.className = "dashboard-section home-section";
       favoriteSection.dataset.home = "true";
       favoriteSection.dataset.homeKey = "favorites";
-      favoriteSection.appendChild(makeSectionHeader("Favorites", "Your saved launch points, plus pinned bookmarklets. Use ☆ Save on any card to change your list."));
+      favoriteSection.appendChild(makeSectionHeader("Favorites", "Scratchpad pinned first, then pinned bookmarklets and your saved launch points. Use ☆ Save on any card to change your saved list."));
       const favoriteGrid = document.createElement("div");
       favoriteGrid.className = "grid";
       if (favorites.length) renderCards(favorites, favoriteGrid);

@@ -16,12 +16,17 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
 - **Search** filters every card; section search boxes support query templates.
 - **Favorites** are pinned with the star button, saved in `localStorage`, and
   also have their own menu entry (★ Favorites) alongside the full cluster list.
+  The **Scratchpad / Quick Notes** card is permanently pinned as the very first
+  Favorites card (ahead of the pinned bookmarklets and your saved list, on both
+  the home view and the ★ Favorites menu view), so the notes pad is always one
+  click away — it opens the same scratchpad dialog as the Working On cluster.
 - **Custom Tools** lets you add your own links; export/import your config from
   the dashboard to move it between browsers.
 - **Bookmarklets** — its own menu cluster (dashed cards, e.g. *GitHub + Arena
   Agent*, *Coding Agents*, and *GitHub + Arena AI + Proton VPN*) can be clicked
   to run, or dragged onto your bookmarks bar. Allow pop-ups the first time so
-  every tab can open. The same cards are also pinned at the front of Favorites.
+  every tab can open. The same cards are also pinned in Favorites, right after
+  the Scratchpad.
 - **Personal AI Agents — Always-On** — a menu cluster for standing agent
   sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code).
 - **Working On** (4th in the menu, right after Daily Core) — in-dashboard

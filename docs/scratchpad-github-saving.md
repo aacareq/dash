@@ -48,7 +48,8 @@ again — one click, one install screen.
 
 ## Using it
 
-1. Open **Scratchpad / Quick Notes** → **Save these notes to GitHub**.
+1. Open **Scratchpad / Quick Notes** (pinned as the first card in
+   **Favorites**, and also in **Working On**) → **Save these notes to GitHub**.
 2. **Set up GitHub saving** → GitHub asks you to name the new app (a default is
    pre-filled) → **Create GitHub App**.
 3. GitHub sends you straight to the install screen for that app → pick

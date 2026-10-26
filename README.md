@@ -20,6 +20,10 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   Favorites card (ahead of the pinned bookmarklets and your saved list, on both
   the home view and the ★ Favorites menu view), so the notes pad is always one
   click away — it opens the same scratchpad dialog as the Working On cluster.
+  **Gemini** and **Claude** are ensured favorites: fresh browsers get them from
+  the defaults, and a browser whose saved list doesn't have them gets them
+  added once as ordinary starred favorites (never duplicated, and a deliberate
+  un-star afterwards sticks).
 - **Custom Tools** lets you add your own links; export/import your config from
   the dashboard to move it between browsers.
 - **Bookmarklets** — its own menu cluster (dashed cards, e.g. *GitHub + Arena

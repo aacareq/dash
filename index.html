@@ -1429,6 +1429,20 @@
       ...(scratchpadCard ? [{ ...scratchpadCard, sectionKey: "workingon", id: `workingon:${slugify(scratchpadCard.name)}` }] : []),
       ...bookmarkletItems.map(item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` }))
     ];
+    /*
+      Ensured favorites: Gemini and Claude belong in Favorites even in browsers whose saved list was stored
+      without them. `defaultFavorites` only applies when nothing is stored yet, so by itself it can never top
+      up an existing list — `loadPreferences` therefore adds any missing ensured ids to the saved list once
+      (tracked by ENSURED_FAVORITES_KEY). Unlike the pins above they stay ordinary starred favorites: adding
+      to the Set keeps an already-saved one's position and never duplicates it, and after the one-time pass a
+      deliberate un-star sticks. Ids are derived from the Inference cards themselves so a rename cannot
+      silently point them at nothing; order follows `defaultFavorites` (Gemini, then Claude).
+    */
+    const ensuredFavorites = ["Gemini", "Claude"]
+      .map(name => database.inference.items.find(item => item.name === name))
+      .filter(Boolean)
+      .map(item => `inference:${slugify(item.name)}`);
+    const ENSURED_FAVORITES_KEY = "commandos-favorites-ensured-v1";
     const isExternal = url => /^https?:\/\//i.test(url);
     const isTypingTarget = element => Boolean(element) && (element.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(element.tagName));
     // Search shortcuts: items with a `template` swap {q} for the section's query; with no query they open `url`.
@@ -1439,6 +1453,12 @@
       try {
         const storedFavorites = localStorage.getItem("commandos-favorites-v1");
         state.favorites = new Set(storedFavorites ? JSON.parse(storedFavorites) : defaultFavorites);
+        // One-time top-up: add any ensured favorites (Gemini, Claude) missing from an already-saved list.
+        if (!localStorage.getItem(ENSURED_FAVORITES_KEY)) {
+          ensuredFavorites.forEach(id => state.favorites.add(id));
+          saveFavorites();
+          try { localStorage.setItem(ENSURED_FAVORITES_KEY, JSON.stringify(ensuredFavorites)); } catch (error) { /* The next load simply tries again. */ }
+        }
         state.theme = localStorage.getItem("commandos-theme") || "dark";
         const storedCustom = localStorage.getItem("commandos-custom-tools-v1");
         customTools = storedCustom ? JSON.parse(storedCustom) : [];

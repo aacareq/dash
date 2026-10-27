@@ -16,3 +16,10 @@ Archived on 2026-10-20:
 - `index3.html`
 - `index4.html`
 - `index5.html`
+
+## `standalone/`
+
+Nine older standalone topic pages (agents, coding, hosting, images, music, search,
+video and related) that are no longer linked from the current dashboard. They were
+moved here from the repo root on 2026-10-27 — see
+[`standalone/README.md`](standalone/README.md) for the list and rationale.

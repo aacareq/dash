@@ -112,11 +112,23 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
 ## Layout
 
 - `index.html` — the current dashboard (Command Center 2026)
-- `*.html` / `tools/` — standalone topic pages (inference, coding, hosting,
-  video, images, music, feeds, search and more)
+- `inference.html`, `zerocost.html`, `feeds.html` — the standalone topic pages
+  linked from the current dashboard
 - `archive/` — the 11 superseded dashboard versions, each kept exactly where
   it can be found (see `archive/README.md` for the list); there are no
   duplicate copies of these left in the repo root
+  - `archive/standalone/` — older standalone topic pages (agents, coding,
+    hosting, images, music, search, video and related) no longer linked from
+    the dashboard; see `archive/standalone/README.md`
+- `docs/` — design notes and the jsdom behavior tests for the dashboard
+- Analysis docs: [`dashboard-improvements-102726.md`](dashboard-improvements-102726.md)
+  (adversarial review of workflows, performance and redundancy) and
+  [`scratch-pad-app.md`](scratch-pad-app.md) (PWA/offline roadmap for the
+  Scratchpad)
+
+Unreferenced legacy pages (the old `Inf-*`, `infer-*`, `0824-*`, `con-*`
+generations and the `tools/` directory) were removed in the 2026-10-27 cleanup;
+they remain available in the repository's git history.
 
 ## Contributing / changes
 

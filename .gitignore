@@ -1,3 +1,16 @@
 .DS_Store
 *.tmp
 *.muse-github-snapshot-sync.json
+
+# Node / test tooling (see docs/*.test.js — jsdom is installed on demand)
+node_modules/
+package-lock.json
+
+# Link-checker output (docs/link-check-workflow.yml)
+lychee/
+
+# Editor / OS clutter
+.vscode/
+.idea/
+*.swp
+Thumbs.db

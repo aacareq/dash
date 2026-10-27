@@ -525,6 +525,13 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   await new Promise(r => setTimeout(r, 400));
   check("raw HTML in notes is escaped, not executed", preview.querySelector("img") === null && /&lt;img/.test(preview.innerHTML), preview.innerHTML.slice(0, 100));
 
+  // The saved preview preference is the string "true" (kv/localStorage), not a boolean.
+  win = makeWindow({ storage: { "dash-scratchpad-preview": "true" } });
+  await flush();
+  const restoredPreview = win.document.getElementById("scratchpad-preview");
+  const restoredToggle = win.document.getElementById("scratchpad-preview-toggle");
+  check("saved preview preference restores on launch", restoredPreview.hidden === false && restoredToggle.getAttribute("aria-pressed") === "true");
+
   console.log("\n[15] a missing `scratch` repo is created automatically");
   github = makeGithub({ reposWithoutScratch: true });
   win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });

@@ -17,12 +17,14 @@ import {
 import { filterEmoji, ALL_EMOJI, EMOJI_GROUPS } from "../assets/emoji.js";
 import {
   MemoryStore, planLegacyMigration, classifySyncError, nextOutboxAction,
-  makeOutboxEntry, LEGACY_KEYS, ACTIVE_NOTE_ID
+  makeOutboxEntry, LEGACY_KEYS, ACTIVE_NOTE_ID,
+  withLocalStorageMirror, MIRRORED_KEYS
 } from "../assets/notes-store.js";
 import {
   GitHubAppClient, GH_KEYS, SCRATCH_REPO, pkcs1ToPkcs8, base64UrlFromText
 } from "../assets/github-app.js";
 import { SyncEngine } from "../assets/sync-engine.js";
+import { NoteManager, todayNoteFileName, NOTES_INDEX_KEY } from "../assets/notes-manager.js";
 import { isEmbedded, isIos, isStandaloneDisplay } from "../assets/environment.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -466,4 +468,119 @@ test("manifest is installable: required fields and icon files", () => {
   for (const icon of manifest.icons) {
     assert.ok(existsSync(join(ROOT, icon.src.replace(/^\.\//, ""))), `icon ${icon.src} missing`);
   }
+});
+
+// ---- localStorage mirror: GitHub App persistence across surfaces ----------------------
+function fakeLegacy(initial = {}) {
+  const map = new Map(Object.entries(initial));
+  return {
+    getItem: key => (map.has(key) ? map.get(key) : null),
+    setItem: (key, value) => { map.set(key, String(value)); },
+    removeItem: key => { map.delete(key); },
+    dump: () => Object.fromEntries(map)
+  };
+}
+
+test("mirror: write-through keeps the dashboard dialog's localStorage converged", async () => {
+  const legacy = fakeLegacy();
+  const store = withLocalStorageMirror(new MemoryStore(), legacy);
+  await store.kvSet(GH_KEYS.app, JSON.stringify({ app_id: 1, pem: "p" }));
+  assert.equal(legacy.getItem(GH_KEYS.app), JSON.stringify({ app_id: 1, pem: "p" }));
+  // Non-mirrored keys never touch localStorage.
+  await store.kvSet("dash-scratchpad-notes-index", "[]");
+  assert.equal(legacy.getItem("dash-scratchpad-notes-index"), null);
+  await store.kvDelete(GH_KEYS.app);
+  assert.equal(legacy.getItem(GH_KEYS.app), null);
+});
+
+test("mirror: an app created in the dialog is adopted even after migration ran", async () => {
+  const legacy = fakeLegacy({ [GH_KEYS.app]: JSON.stringify({ app_id: 9, pem: "pem", installation_id: 3 }) });
+  const store = withLocalStorageMirror(new MemoryStore(), legacy);
+  // IndexedDB has nothing (fresh PWA profile, migration marker already set elsewhere).
+  assert.equal(await store.kvGet("unrelated-key"), null);
+  const adopted = JSON.parse(await store.kvGet(GH_KEYS.app));
+  assert.equal(adopted.app_id, 9);
+  assert.equal(adopted.installation_id, 3);
+  // Adoption is one-way into IndexedDB; subsequent reads need no legacy lookup.
+  legacy.removeItem(GH_KEYS.app);
+  assert.equal(JSON.parse(await store.kvGet(GH_KEYS.app)).app_id, 9);
+  assert.ok(MIRRORED_KEYS.has(GH_KEYS.app));
+});
+
+test("mirror: without a legacy store the wrapper is a pass-through", async () => {
+  const base = new MemoryStore();
+  assert.equal(withLocalStorageMirror(base, null), base);
+});
+
+// ---- NoteManager: today's note vs separate notes --------------------------------------
+test("note manager: today's note is stable per date and distinct from a new dated note", async () => {
+  const clock = (() => { let t = new Date(2026, 9, 27, 9, 5); return () => t; })();
+  const store = new MemoryStore();
+  const notes = new NoteManager(store, { now: clock });
+  assert.equal(todayNoteFileName(clock()), "notes-2026-10-27.md");
+
+  const today = await notes.openToday();
+  assert.equal(today.path, "notes-2026-10-27.md");
+  await notes.setBody("morning thought");
+  // Reopening "today" later in the day returns the SAME record, body intact.
+  const again = await notes.openToday();
+  assert.equal(again.id, today.id);
+  assert.equal(again.body, "morning thought");
+
+  const another = await notes.newDatedNote();
+  assert.match(another.path, /^notes-2026-10-27-0905\.md$/);
+  assert.notEqual(another.id, today.id);
+  await notes.setBody("separate note");
+
+  // Switching back restores today's note untouched.
+  const back = await notes.openToday();
+  assert.equal(back.body, "morning thought");
+});
+
+test("note manager: switching notes persists the previous one and keeps an index", async () => {
+  const store = new MemoryStore();
+  let tick = new Date(2026, 9, 27, 14, 30).getTime();
+  const notes = new NoteManager(store, { now: () => new Date(tick++) });
+  await notes.boot({ fallbackPath: "notes-2026-10-27.md" });
+  await notes.setBody("first");
+  await notes.newDatedNote();
+  const index = JSON.parse(await store.kvGet(NOTES_INDEX_KEY));
+  assert.equal(index.length, 2);
+  assert.equal(index[0].path, notes.current.path, "most recent note floats to the top");
+  // The first note's body survived the switch.
+  const first = await store.getNote("note:notes-2026-10-27.md");
+  assert.equal(first.body, "first");
+  // A fresh manager reopens the most recent note.
+  const reopened = new NoteManager(store, { now: () => new Date(2026, 9, 28, 8, 0) });
+  const booted = await reopened.boot({ fallbackPath: todayNoteFileName(new Date(2026, 9, 28)) });
+  assert.equal(booted.path, notes.current.path);
+});
+
+test("note manager: rejects blank paths", async () => {
+  const notes = new NoteManager(new MemoryStore());
+  await assert.rejects(() => notes.switchTo("  "), /required/);
+});
+
+// ---- dashboard card + page wiring ------------------------------------------------------
+test("dashboard scratchpad card carries a new-tab App anchor", () => {
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const script = html.match(/<script>([\s\S]*)<\/script>/)[1];
+  assert.match(script, /card-action card-action-link/);
+  assert.match(script, /appLink\.href = "scratchpad\.html"/);
+  assert.match(script, /appLink\.target = "_blank"/);
+  assert.match(script, /appLink\.rel = "noopener noreferrer"/);
+  assert.match(script, /item\.modal === "modal-scratchpad"/);
+});
+
+test("scratchpad page exposes the note switcher buttons", () => {
+  const html = readFileSync(join(ROOT, "scratchpad.html"), "utf8");
+  for (const id of ["note-open-today", "note-new-dated", "note-current"]) {
+    assert.ok(new RegExp(`id="${id}"`).test(html), `missing #${id}`);
+  }
+});
+
+test("service worker precaches the note manager and bumped its cache version", () => {
+  const sw = readFileSync(join(ROOT, "sw.js"), "utf8");
+  assert.match(sw, /CACHE_VERSION = "dash-scratch-v2"/);
+  assert.match(sw, /"\.\/assets\/notes-manager\.js"/);
 });

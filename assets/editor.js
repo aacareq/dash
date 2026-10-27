@@ -261,7 +261,8 @@ export function createEditor({ textarea, toolbar, preview, previewToggle, emojiE
   const emoji = createEmojiPicker({ ...emojiElements, insertEmoji });
 
   // The preference may come from synchronous localStorage or async IndexedDB.
-  Promise.resolve(previewPref?.get()).then(want => { if (want === true) setPreviewVisible(true); });
+  // IndexedDB hands back the stored string, so accept "true" as well as boolean true.
+  Promise.resolve(previewPref?.get()).then(want => { if (want === true || want === "true") setPreviewVisible(true); });
 
   return {
     insertEmoji,

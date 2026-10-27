@@ -11,6 +11,7 @@
 const CACHE_VERSION = "dash-scratch-v1";
 const PRECACHE = [
   "./",
+  "./index.html",
   "./scratchpad.html",
   "./manifest.webmanifest",
   "./assets/styles.css",
@@ -22,6 +23,9 @@ const PRECACHE = [
   "./assets/editor.js",
   "./assets/markdown-worker.js",
   "./assets/scratchpad.js",
+  "./assets/environment.js",
+  "./assets/pwa-install.js",
+  "./assets/dashboard-pwa.js",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
   "./assets/icons/maskable-512.png"

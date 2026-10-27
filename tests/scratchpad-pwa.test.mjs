@@ -23,6 +23,7 @@ import {
   GitHubAppClient, GH_KEYS, SCRATCH_REPO, pkcs1ToPkcs8, base64UrlFromText
 } from "../assets/github-app.js";
 import { SyncEngine } from "../assets/sync-engine.js";
+import { isEmbedded, isIos, isStandaloneDisplay } from "../assets/environment.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -403,6 +404,56 @@ test("engine: pull reports missing vs loaded, and honors disconnects", async () 
   assert.equal((await blank.pull(target)).status, "disconnected");
   await blankStore.enqueueOutbox(makeOutboxEntry({ repo: "o/r", path: "p.md", content: "c" }));
   assert.equal((await blank.flush()).status, "disconnected");
+});
+
+// ---- environment helpers ---------------------------------------------------------------
+test("environment: embed detection honors the param and frame state", () => {
+  assert.equal(isEmbedded({ search: "?embed=1", framed: false }), true);
+  assert.equal(isEmbedded({ search: "", framed: true }), true);
+  assert.equal(isEmbedded({ search: "?x=1", framed: false }), false);
+  assert.equal(isEmbedded({ search: "?embed=0", framed: false }), false);
+  assert.equal(isIos("Mozilla (iPhone; CPU iPhone OS 17)"), true);
+  assert.equal(isIos("Mozilla (Macintosh)"), false);
+  assert.equal(isStandaloneDisplay(true), true);
+  assert.equal(isStandaloneDisplay(false), false);
+  assert.equal(isStandaloneDisplay(), false);
+});
+
+// ---- dashboard integration -------------------------------------------------------------
+test("dashboard links the manifest and registers the PWA module", () => {
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  assert.match(html, /<link rel="manifest" href="manifest\.webmanifest"/);
+  assert.match(html, /<script type="module" src="assets\/dashboard-pwa\.js"><\/script>/);
+  assert.match(html, /id="install-app"/);
+  assert.match(html, /id="ios-hint"/);
+  assert.match(html, /id="sw-update-toast"/);
+});
+
+test("dashboard scratchpad dialog keeps one dialog and adds the embed toggle + iframe", () => {
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  assert.equal((html.match(/id="modal-scratchpad"/g) || []).length, 1);
+  for (const id of [
+    "scratchpad-inline-view", "scratchpad-embed-view", "scratchpad-app-frame",
+    "btn-scratchpad-view-inline", "btn-scratchpad-view-app"
+  ]) {
+    assert.ok(new RegExp(`id="${id}"`).test(html), `missing #${id}`);
+  }
+  const frame = html.match(/<iframe id="scratchpad-app-frame"[^>]*>/)[0];
+  assert.match(frame, /src="about:blank"/, "iframe is empty until first switched to app view");
+  assert.match(frame, /loading="lazy"/);
+});
+
+test("dashboard module points the lazy iframe at the embedded PWA", () => {
+  const js = readFileSync(join(ROOT, "assets/dashboard-pwa.js"), "utf8");
+  assert.match(js, /scratchpad\.html\?embed=1/);
+  assert.match(js, /setupPwaInstall/);
+  assert.match(js, /dialog\.addEventListener\("close"/);
+});
+
+test("embedded PWA redirects one-time GitHub setup to a top-level tab", () => {
+  const js = readFileSync(join(ROOT, "assets/scratchpad.js"), "utf8");
+  assert.match(js, /isEmbedded\(/);
+  assert.match(js, /window\.open\(gh\.pageUrl\(\), "_blank", "noopener"\)/);
 });
 
 test("manifest is installable: required fields and icon files", () => {

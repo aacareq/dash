@@ -144,6 +144,25 @@ to Home Screen on iOS) to run it in its own window.
 The dashboard's Scratchpad dialog now has an **Open app ↗** link to this page;
 the dialog itself is unchanged.
 
+### Using the app from inside the dashboard
+
+- **Install button in the dashboard header** — `index.html` links the same
+  web app manifest and registers the same service worker, so the
+  **📲 Install Scratchpad** button appears on the dashboard itself whenever
+  the browser offers installation (iOS shows an Add-to-Home-Screen hint
+  instead).
+- **Two views in the Scratchpad dialog** — a toggle at the top switches
+  between *Quick notes (this page)*, the original inline pad, and
+  *App view (offline)*, which embeds `scratchpad.html?embed=1` in a
+  lazy-loaded same-origin iframe. The iframe shares the origin's IndexedDB,
+  GitHub App registration and service worker, so notes and sync are the same
+  in both surfaces. The iframe only loads on first switch, and the dialog
+  reopens on the inline view. The one-time GitHub App setup opens in a new
+  top-level tab because GitHub refuses to render its install screens inside
+  an iframe; everything after setup works embedded.
+- The service worker now precaches the dashboard shell as well, so the
+  dashboard itself opens offline once cached.
+
 ## Layout
 
 - `index.html` — the current dashboard (Command Center 2026)

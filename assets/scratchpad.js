@@ -11,9 +11,10 @@
 
 import { datedFileName } from "./markdown.js";
 import { createEditor } from "./editor.js";
-import { openStore, migrateLegacyStorage, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
+import { openStore, migrateLegacyStorage, withLocalStorageMirror, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
 import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
+import { NoteManager, todayNoteFileName } from "./notes-manager.js";
 import { setupPwaInstall } from "./pwa-install.js";
 import { isEmbedded } from "./environment.js";
 
@@ -28,33 +29,41 @@ function setStatus(id, message, tone) {
 }
 
 async function main() {
-  const store = await openStore();
+  // IndexedDB owns the data; the localStorage mirror keeps the dashboard dialog's
+  // GitHub App connection and settings converged with this PWA (no re-registration).
+  const baseStore = await openStore();
+  const store = withLocalStorageMirror(baseStore);
   const migration = await migrateLegacyStorage(store);
   const gh = new GitHubAppClient(store);
   const engine = new SyncEngine(store, gh);
+  const notes = new NoteManager(store);
 
   const textarea = $("scratchpad-text");
   const toolbar = document.querySelector(".md-toolbar");
   const preview = $("scratchpad-preview");
   const previewToggle = $("scratchpad-preview-toggle");
 
-  // ---- load the active note (or the one seeded by migration) --------------------------
-  let note = await store.getNote(ACTIVE_NOTE_ID);
-  if (!note) {
-    note = { id: ACTIVE_NOTE_ID, title: "Quick notes", body: "", repo: "", path: "", branch: "", dirty: false };
-    await store.putNote(note);
+  // ---- load the last note, today's note, or the body migrated from the dialog --------
+  const migrated = await store.getNote(ACTIVE_NOTE_ID);
+  await notes.boot({ fallbackPath: todayNoteFileName() });
+  if (!notes.current.body && migrated?.body) {
+    // First PWA launch after migration: carry the dialog's unsaved notes into today's note.
+    notes.current.body = migrated.body;
+    await notes.setBody(migrated.body);
+  }
+  let note = notes.current;
+  // Manifest shortcut ("New note") lands with ?new=1 — start a fresh dated note.
+  if (new URL(window.location.href).searchParams.get("new")) {
+    note = await notes.newDatedNote();
   }
   textarea.value = note.body || "";
-  // Manifest shortcut ("New note") lands with ?new=1 — focus the editor immediately.
-  if (new URL(window.location.href).searchParams.get("new")) textarea.focus();
 
   let localSaveTimer;
   const persistLocal = () => {
     clearTimeout(localSaveTimer);
     localSaveTimer = setTimeout(async () => {
-      note.body = textarea.value;
+      note = await notes.setBody(textarea.value);
       note.dirty = true;
-      await store.putNote(note);
       setStatus("scratchpad-status", "Saved on this device.", "success");
     }, 400);
   };
@@ -222,6 +231,25 @@ async function main() {
 
   const showOverwrite = visible => { if (overwriteBtn) overwriteBtn.hidden = !visible; };
   const showRepoHelp = html => { if (!repoHelp) return; repoHelp.hidden = !html; repoHelp.innerHTML = html || ""; };
+
+  // Puts a NoteManager record in front of the user: editor, target path, file
+  // bar and preview all follow the active note, so every save targets its file.
+  const noteCurrentLabel = $("note-current");
+  async function switchNote(next, message) {
+    note = next;
+    textarea.value = note.body || "";
+    pathInput.value = note.path;
+    if (note.branch) branchInput.value = note.branch;
+    await store.kvSet(GH_KEYS.path, note.path);
+    engine.conflictPaused = false;
+    showOverwrite(false);
+    paintFileBar();
+    editor.renderPreview();
+    if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
+    if (message) setStatus("scratchpad-status", message, "success");
+    textarea.focus();
+  }
+  if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
 
   async function render() {
     const connection = await gh.connection();
@@ -500,8 +528,8 @@ async function main() {
         return;
       }
       textarea.value = result.content;
-      note.body = result.content;
-      await store.putNote(note);
+      await notes.setBody(result.content);
+      note = notes.current;
       engine.conflictPaused = false;
       showOverwrite(false);
       editor.renderPreview();
@@ -606,8 +634,8 @@ async function main() {
   }
 
   // ---- wiring -------------------------------------------------------------------------
-  pathInput.value = (await store.kvGet(GH_KEYS.path)) || datedFileName();
-  branchInput.value = (await store.kvGet(GH_KEYS.branch)) || "";
+  pathInput.value = note.path || (await store.kvGet(GH_KEYS.path)) || datedFileName();
+  branchInput.value = note.branch || (await store.kvGet(GH_KEYS.branch)) || "";
   autosaveCheckbox.checked = (await store.kvGet(GH_KEYS.autosave)) !== "false";
 
   setupBtn.addEventListener("click", startSetup);
@@ -634,14 +662,21 @@ async function main() {
   syncNowBtn?.addEventListener("click", () => flushOutbox({ announce: true }));
 
   newFileBtn.addEventListener("click", async () => {
-    pathInput.value = datedFileName();
-    await store.kvSet(GH_KEYS.path, pathInput.value);
-    engine.conflictPaused = false;
-    showOverwrite(false);
-    setFileStatus(`Next save creates ${pathInput.value}.`);
-    setBarState("New file — saves on next sync");
-    pathInput.focus();
+    const next = await notes.newDatedNote();
+    await switchNote(next, `New note — ${next.path} is created on the first save.`);
     pathInput.select();
+  });
+
+  // Note switcher: one reusable note per day, or a separate timestamped note.
+  $("note-open-today")?.addEventListener("click", async () => {
+    const next = await notes.openToday();
+    await switchNote(next, next.body
+      ? `Reopened today's note (${next.path}) — anything you add goes into it.`
+      : `Today's note is ${next.path} — it reopens all day so you can keep adding to it.`);
+  });
+  $("note-new-dated")?.addEventListener("click", async () => {
+    const next = await notes.newDatedNote();
+    await switchNote(next, `Started a separate note: ${next.path}.`);
   });
   scratchBtn.addEventListener("click", () => { scratchAttempted = false; ensureScratchRepo(); });
 
@@ -653,7 +688,12 @@ async function main() {
     setBarState("Not saved to this repo yet");
   });
   pathInput.addEventListener("change", async () => {
-    await store.kvSet(GH_KEYS.path, normalizePath(pathInput.value));
+    const cleanPath = normalizePath(pathInput.value);
+    await store.kvSet(GH_KEYS.path, cleanPath);
+    // A manually typed target moves the active note record with it.
+    notes.current.path = cleanPath;
+    await store.putNote(notes.current);
+    if (noteCurrentLabel) noteCurrentLabel.textContent = cleanPath;
     engine.conflictPaused = false;
     showOverwrite(false);
     setBarState("Not saved to this file yet");

@@ -127,7 +127,16 @@ to Home Screen on iOS) to run it in its own window.
   localStorage string; first launch migrates the existing
   `dash-scratchpad-*` localStorage data, including an already-registered GitHub
   App, so nothing is lost. A memory adapter keeps the app working where
-  IndexedDB is unavailable.
+  IndexedDB is unavailable. A localStorage mirror
+  (`withLocalStorageMirror`) then keeps the GitHub App connection and settings
+  converged in both directions with the dashboard dialog, so registering the
+  app in either surface is enough — it is never asked for twice.
+- **Today's note or a fresh note** — `assets/notes-manager.js` manages a
+  collection of dated notes. **📅 Today's note** reopens the single
+  `notes-YYYY-MM-DD.md` file for the day (reopen it any time to keep adding to
+  it), while **➕ New note** starts a separate timestamped
+  `notes-YYYY-MM-DD-HHMM.md` file. The most recently used note reopens on
+  launch, and each note keeps its own GitHub target path.
 - **Offline commit outbox** — saves made while disconnected queue locally and
   flush automatically on reconnect/focus (or via **Sync now**), with the same
   conflict protection (Pull latest / Overwrite anyway) as the online path. The
@@ -141,10 +150,17 @@ to Home Screen on iOS) to run it in its own window.
 - **File access** — File System Access save/open on Chromium desktop, with
   download/upload fallbacks elsewhere.
 
-The dashboard's Scratchpad dialog now has an **Open app ↗** link to this page;
+The dashboard's Scratchpad dialog has an **Open app ↗** link to this page;
 the dialog itself is unchanged.
 
 ### Using the app from inside the dashboard
+
+- **App ↗ card action** — the Scratchpad card itself carries an **App ↗**
+  anchor (alongside the favorite star and **Open**) that opens
+  `scratchpad.html` in a new tab, so the installable PWA is one real
+  middle-/Cmd-clickable link away without opening the dialog. The card's
+  default click and **Open** still open the in-page `modal-scratchpad`
+  dialog exactly as before.
 
 - **Install button in the dashboard header** — `index.html` links the same
   web app manifest and registers the same service worker, so the
@@ -169,11 +185,12 @@ the dialog itself is unchanged.
 - `scratchpad.html`, `manifest.webmanifest`, `sw.js` — the installable
   Scratchpad PWA, its manifest and service worker
 - `assets/` — the PWA's ES modules (`editor`, `markdown`, `emoji`,
-  `notes-store`, `github-app`, `sync-engine`, `markdown-worker`), stylesheet
-  and generated icons
+  `notes-store`, `notes-manager`, `github-app`, `sync-engine`,
+  `markdown-worker`), stylesheet and generated icons
 - `scripts/` — dependency-free build helpers (icon generator)
-- `tests/` — Node test-runner suites for the PWA modules
-  (`node --test tests/scratchpad-pwa.test.mjs`)
+- `tests/` — Node test-runner suites for the PWA modules and the dashboard
+  Scratchpad card (`node --test tests/`); the jsdom behavior suites live in
+  `docs/`
 - `inference.html`, `zerocost.html`, `feeds.html` — the standalone topic pages
   linked from the current dashboard
 - `archive/` — the 11 superseded dashboard versions, each kept exactly where

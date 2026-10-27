@@ -39,6 +39,14 @@
       On iPhone or iPad: tap the Share button and choose <strong>Add to Home Screen</strong> to install this as an app.
     </p>
 
+    <div class="note-switcher" aria-label="Note management">
+      <button type="button" class="modal-btn cancel" id="note-open-today"
+              title="Open (or create) today's single reusable note — notes-YYYY-MM-DD.md">📅 Today's note</button>
+      <button type="button" class="modal-btn cancel" id="note-new-dated"
+              title="Start another note with its own dated file — notes-YYYY-MM-DD-HHMM.md">➕ New note</button>
+      <span class="note-current" id="note-current" title="The file this note saves to"></span>
+    </div>
+
     <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
       <div class="md-toolbar-group" role="group" aria-label="Text styling">
         <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B" aria-label="Bold"><strong>B</strong></button>

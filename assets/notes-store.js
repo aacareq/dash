@@ -190,8 +190,62 @@ export async function openStore() {
   return new MemoryStore();
 }
 
+// Keys mirrored into localStorage. The dashboard dialog still reads/writes its
+// GitHub connection there, while the PWA uses IndexedDB — without this bridge an
+// app registered in one surface is invisible to the other and the user is asked
+// to create a second GitHub App. The note body stays IndexedDB-only.
+export const MIRRORED_KEYS = new Set([
+  LEGACY_KEYS.preview, LEGACY_KEYS.app, LEGACY_KEYS.token, LEGACY_KEYS.repo,
+  LEGACY_KEYS.path, LEGACY_KEYS.branch, LEGACY_KEYS.autosave, LEGACY_KEYS.shas
+]);
+
+// Wraps any store so mirrored settings/credentials converge with localStorage in
+// both directions, in either order of use:
+//   • writes go to IndexedDB AND localStorage (the dialog sees them immediately)
+//   • reads fall back to localStorage and adopt the value into IndexedDB, so an
+//     app created in the dialog is picked up even after the one-time migration ran
+// Non-mirrored keys, notes and the outbox pass through untouched.
+export function withLocalStorageMirror(baseStore, legacy = (typeof localStorage !== "undefined" ? localStorage : null)) {
+  if (!legacy) return baseStore;
+  const pass = (name, ...args) => baseStore[name](...args);
+  return {
+    async kvGet(key) {
+      const own = await baseStore.kvGet(key);
+      if (own !== null && own !== undefined) return own;
+      if (MIRRORED_KEYS.has(key)) {
+        const mirrored = legacy.getItem(key);
+        if (mirrored !== null && mirrored !== undefined && mirrored !== "") {
+          await baseStore.kvSet(key, mirrored); // adopt once, then IndexedDB owns it
+          return mirrored;
+        }
+      }
+      return own;
+    },
+    async kvSet(key, value) {
+      await baseStore.kvSet(key, value);
+      if (MIRRORED_KEYS.has(key)) {
+        try { legacy.setItem(key, String(value)); } catch (error) { /* storage may be full/blocked */ }
+      }
+    },
+    async kvDelete(key) {
+      await baseStore.kvDelete(key);
+      if (MIRRORED_KEYS.has(key)) {
+        try { legacy.removeItem(key); } catch (error) { /* best effort */ }
+      }
+    },
+    getNote: (...args) => pass("getNote", ...args),
+    putNote: (...args) => pass("putNote", ...args),
+    enqueueOutbox: (...args) => pass("enqueueOutbox", ...args),
+    listOutbox: (...args) => pass("listOutbox", ...args),
+    updateOutbox: (...args) => pass("updateOutbox", ...args),
+    removeOutbox: (...args) => pass("removeOutbox", ...args),
+    clearOutbox: (...args) => pass("clearOutbox", ...args)
+  };
+}
+
 // One-time migration from the dashboard dialog's localStorage layout. Idempotent:
 // a `migrated` marker means a returning PWA never overwrites itself with old data.
+// Credential convergence beyond this first run is handled by withLocalStorageMirror.
 export async function migrateLegacyStorage(store, legacy = (typeof localStorage !== "undefined" ? localStorage : null)) {
   if (!legacy || await store.kvGet("dash-scratchpad-migrated")) return { migrated: false };
   const snapshot = {};

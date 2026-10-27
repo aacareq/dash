@@ -534,6 +534,7 @@
     .card-footer { margin-top: auto; padding-top: .8rem; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
     .card-actions { display: flex; align-items: center; gap: .28rem; }
     .card-action, .card-details summary { color: var(--text-muted); background: transparent; border: 1px solid var(--border); border-radius: 7px; padding: .31rem .45rem; font-size: .72rem; font-weight: 700; line-height: 1; }
+    a.card-action { display: inline-flex; align-items: center; text-decoration: none; }
     .card-action:hover, .card-details summary:hover { color: var(--text); border-color: var(--accent); background: var(--tag-bg); }
     .favorite.is-favorite { color: #fbbf24; border-color: rgba(251,191,36,.55); background: rgba(251,191,36,.12); }
     .card-details { position: static; }
@@ -1763,6 +1764,19 @@
         copy.addEventListener("click", () => copyLink(link.href, copy)); // current href, so search cards copy the live query URL
       }
       actions.append(favorite, copy);
+
+      // The Scratchpad's installable offline PWA gets a real new-tab anchor (middle-click /
+      // Cmd-click work natively) alongside the in-page Open; the dialog default is unchanged.
+      if (item.modal === "modal-scratchpad") {
+        const appLink = document.createElement("a");
+        appLink.className = "card-action card-action-link";
+        appLink.href = "scratchpad.html";
+        appLink.target = "_blank";
+        appLink.rel = "noopener noreferrer";
+        appLink.textContent = "App ↗";
+        appLink.title = "Open the installable, offline Scratchpad in a new tab";
+        actions.append(appLink);
+      }
 
       if (item.isCustom) {
         const delBtn = document.createElement("button");

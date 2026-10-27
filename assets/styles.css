@@ -144,6 +144,13 @@ h1 { margin: 0; font-size: 1.2rem; font-weight: 750; }
 .path-row .form-input { flex: 1 1 auto; min-width: 0; }
 .path-row .modal-btn { white-space: nowrap; }
 
+/* Note switcher: today's reusable note vs a brand-new dated note */
+.note-switcher { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.note-current {
+  font-family: var(--mono); font-size: .76rem; color: var(--text-muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 12rem;
+}
+
 /* Markdown toolbar + emoji picker */
 .md-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; }
 .md-toolbar-group { display: flex; gap: .25rem; padding-right: .35rem; border-right: 1px solid var(--border); }

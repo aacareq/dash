@@ -2,9 +2,9 @@
 *.tmp
 *.muse-github-snapshot-sync.json
 
-# Node / test tooling (see docs/*.test.js — jsdom is installed on demand)
+# Node / test tooling (package.json declares the devDependencies; the
+# installed tree itself stays out of git)
 node_modules/
-package-lock.json
 
 # Link-checker output (docs/link-check-workflow.yml)
 lychee/

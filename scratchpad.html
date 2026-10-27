@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Offline-first markdown scratchpad with one-click GitHub sync — installable as an app." />
+  <meta name="theme-color" content="#0b0914" />
+  <title>Dash Scratchpad</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Scratchpad" />
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">📝 <a href="index.html">Dash Scratchpad</a></div>
+    <span class="spacer"></span>
+    <span id="outbox-count" class="hidden" role="status" aria-live="polite"></span>
+    <button type="button" class="modal-btn cancel" id="scratchpad-sync-now" title="Send commits queued while offline">Sync now</button>
+    <button type="button" class="modal-btn hidden" id="install-app">Install app</button>
+    <a class="header-link" href="index.html">Dashboard</a>
+  </header>
+
+  <main class="shell">
+    <div>
+      <h1>Scratchpad / Quick Notes</h1>
+      <p class="subtitle">Autosaves on this device, works fully offline, and commits to GitHub whenever you're connected.</p>
+    </div>
+
+    <p id="ios-hint" class="hidden">
+      On iPhone or iPad: tap the Share button and choose <strong>Add to Home Screen</strong> to install this as an app.
+    </p>
+
+    <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
+      <div class="md-toolbar-group" role="group" aria-label="Text styling">
+        <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B" aria-label="Bold"><strong>B</strong></button>
+        <button type="button" class="md-btn" data-md="italic" title="Italic — Ctrl/⌘+I" aria-label="Italic"><em>I</em></button>
+        <button type="button" class="md-btn" data-md="strike" title="Strikethrough — Ctrl/⌘+Shift+X" aria-label="Strike"><span class="md-strike">S</span></button>
+      </div>
+      <div class="md-toolbar-group" role="group" aria-label="Headings">
+        <button type="button" class="md-btn" data-md="h1" title="Heading 1" aria-label="Heading 1">H1</button>
+        <button type="button" class="md-btn" data-md="h2" title="Heading 2" aria-label="Heading 2">H2</button>
+        <button type="button" class="md-btn" data-md="h3" title="Heading 3" aria-label="Heading 3">H3</button>
+      </div>
+      <div class="md-toolbar-group" role="group" aria-label="Lists">
+        <button type="button" class="md-btn" data-md="ul" title="Bulleted list" aria-label="Bulleted list">• List</button>
+        <button type="button" class="md-btn" data-md="ol" title="Numbered list" aria-label="Numbered list">1. List</button>
+        <button type="button" class="md-btn" data-md="task" title="Task list with checkboxes" aria-label="Task list">☑ Task</button>
+      </div>
+      <div class="md-toolbar-group" role="group" aria-label="Insert">
+        <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
+        <button type="button" class="md-btn" data-md="hr" title="Horizontal divider" aria-label="Divider">― Divider</button>
+        <span class="emoji-anchor">
+          <button type="button" class="md-btn" id="scratchpad-emoji-btn" aria-haspopup="dialog" aria-expanded="false"
+                  aria-controls="scratchpad-emoji-picker" title="Add an emoji" aria-label="Add an emoji">😊 Emoji</button>
+          <div class="emoji-popover" id="scratchpad-emoji-picker" role="dialog" aria-label="Emoji picker" hidden>
+            <input type="search" id="scratchpad-emoji-search" class="form-input emoji-search"
+                   placeholder="Search emoji… (e.g. check, tada, fire)" autocomplete="off" aria-label="Search emoji" />
+            <div class="emoji-scroll" id="scratchpad-emoji-list"></div>
+            <p class="emoji-hint">Click one to drop it in at the cursor. Esc closes.</p>
+          </div>
+        </span>
+      </div>
+      <div class="md-toolbar-spacer"></div>
+      <div class="md-toolbar-group" role="group" aria-label="View">
+        <button type="button" class="md-btn" id="scratchpad-preview-toggle" aria-pressed="false"
+                title="Show a live preview with tickable task checkboxes">👁 Preview</button>
+      </div>
+    </div>
+
+    <div class="scratch-filebar" id="scratchpad-filebar">
+      <span class="scratch-filebar-icon" aria-hidden="true">📄</span>
+      <span class="scratch-filebar-repo" id="scratchpad-filebar-repo">Local only</span>
+      <span class="scratch-filebar-sep" id="scratchpad-filebar-sep" hidden>/</span>
+      <span class="scratch-filebar-file" id="scratchpad-filebar-file">—</span>
+      <span class="scratch-filebar-state" id="scratchpad-filebar-state" role="status" aria-live="polite">Saved on this device</span>
+    </div>
+
+    <div class="scratch-editor" id="scratchpad-editor">
+      <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="16"
+                placeholder="Jot anything here… it autosaves on this device. Markdown works — use the buttons above or just type."
+                aria-label="Scratchpad notes"></textarea>
+      <div class="md-preview" id="scratchpad-preview" hidden></div>
+    </div>
+
+    <p class="status-msg" id="scratchpad-status"></p>
+
+    <div class="modal-actions">
+      <button type="button" class="modal-btn cancel" id="scratchpad-copy">Copy All</button>
+      <button type="button" class="modal-btn cancel" id="scratchpad-export-txt">Export .txt</button>
+      <button type="button" class="modal-btn cancel" id="scratchpad-export-md">Export .md</button>
+      <button type="button" class="modal-btn cancel" id="scratchpad-save-file">Save to file…</button>
+      <button type="button" class="modal-btn cancel" id="scratchpad-open-file">Open file…</button>
+      <input type="file" id="scratchpad-file-input" accept=".md,.txt,text/markdown,text/plain" class="hidden" />
+      <button type="button" class="modal-btn cancel" id="scratchpad-clear">Clear</button>
+    </div>
+    <p id="fs-unsupported" class="hidden">
+      This browser has no File System Access API — Save/Open fall back to downloading and uploading files.
+    </p>
+
+    <details class="gh-sync" id="scratchpad-gh-panel">
+      <summary>Save these notes to GitHub</summary>
+      <div class="gh-sync-body">
+        <p class="modal-hint" id="scratchpad-gh-hint">
+          Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the
+          repo it may write to. The app renews its own short-lived credentials from then on, so it never asks
+          you to sign in again.
+        </p>
+        <div class="modal-actions">
+          <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
+          <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
+          <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
+        </div>
+        <p class="status-msg" id="scratchpad-gh-status"></p>
+
+        <div id="scratchpad-gh-target" hidden>
+          <div class="gh-sync-details">
+            <label class="form-label">Repository
+              <select id="scratchpad-gh-repo" class="form-input"><option value="">Loading repositories…</option></select>
+            </label>
+            <label class="form-label">File path
+              <span class="path-row">
+                <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes-2026-10-27-1542.md" autocomplete="off" spellcheck="false" />
+                <button type="button" class="modal-btn cancel" id="scratchpad-gh-new-file" title="Start a new note file named with today's date and time">New dated file</button>
+              </span>
+            </label>
+            <label class="form-label">Branch (optional)
+              <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save now</button>
+            <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull latest</button>
+            <button type="button" class="modal-btn cancel" id="scratchpad-gh-scratch" title="Create a private repo called scratch, or switch to it if it already exists">Use scratch repo</button>
+            <button type="button" class="modal-btn submit" id="scratchpad-gh-overwrite" hidden>Overwrite anyway</button>
+          </div>
+          <div class="gh-sync-repo-help" id="scratchpad-gh-repo-help" hidden></div>
+          <label class="checkbox-row">
+            <input type="checkbox" id="scratchpad-gh-autosave" />
+            Autosave to GitHub a few seconds after I stop typing (offline edits queue and send on reconnect)
+          </label>
+          <p class="status-msg" id="scratchpad-gh-file-status"></p>
+        </div>
+
+        <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
+          <summary>Advanced: use a personal access token instead</summary>
+          <p class="modal-hint">
+            Only needed if you would rather not register an app — for example when this page is opened from a
+            <code>file://</code> URL, where GitHub can't redirect back to it. A fine-grained token with
+            <strong>Contents: Read and write</strong> is enough.
+          </p>
+          <div class="token-row">
+            <label class="form-label" style="flex:1;">Token
+              <input type="password" id="scratchpad-gh-token" class="form-input" placeholder="github_pat_… or ghp_…" autocomplete="off" />
+            </label>
+            <button type="button" class="modal-btn submit" id="scratchpad-gh-token-save">Use token</button>
+            <button type="button" class="modal-btn cancel" id="scratchpad-gh-token-clear" hidden>Remove token</button>
+          </div>
+        </details>
+      </div>
+    </details>
+  </main>
+
+  <div id="sw-update-toast" class="hidden" role="alert">
+    <span>A new version of the Scratchpad is ready.</span>
+    <button type="button" class="modal-btn submit" id="sw-reload">Reload</button>
+  </div>
+
+  <script type="module" src="assets/scratchpad.js"></script>
+</body>
+</html>

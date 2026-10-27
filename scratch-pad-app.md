@@ -6,6 +6,29 @@ offline, and can be packaged beyond the browser; (2) make it faster.
 
 ---
 
+## Implementation status (updated 2026-10-27)
+
+Phases 0-5 and most of the performance table below are now built, on the no-framework,
+no-bundler stack the plan called for.
+
+| Plan item | Shipped as |
+| --- | --- |
+| Phase 0 — standalone entry + extracted modules | `scratchpad.html` + `assets/` (`markdown`, `emoji`, `editor`, `github-app`, `notes-store`, `sync-engine`, `markdown-worker`, `styles.css`); the dashboard dialog keeps working and gains an **Open app ↗** link |
+| Phase 1 — web app manifest | `manifest.webmanifest` (192/512 + maskable icons, `standalone`, relative `/dash/` paths, "New note" shortcut); icons generated dependency-free by `scripts/generate-icons.mjs` |
+| Phase 2 — service worker | `sw.js`: versioned precache of the shell, network-first navigations, cache-first assets, `updateViaCache: "none"`, update toast with a manual reload, and a hard rule that `api.github.com` is never cached |
+| Phase 3 — IndexedDB + migration | `assets/notes-store.js` (`notes`/`kv`/`outbox` stores, MemoryStore fallback, one-time idempotent migration of the `dash-scratchpad-*` localStorage keys, `navigator.storage.persist()`) |
+| Phase 4 — offline outbox | `assets/sync-engine.js`: offline saves queue and merge per file, flush on `online`/visibility/manual **Sync now**, conflict pauses; Background Sync deliberately not required (Chromium-only) |
+| Phase 5 — install UX + file access | `beforeinstallprompt` install button, iOS Add-to-Home-Screen hint, File System Access save/open with download/upload fallback |
+| S1-S5, S7-S9 (perf) | lazy standalone shell, worker-rendered preview with sequence-guarded messages, async storage, lazy emoji build, versioned cached assets, Lighthouse-ready manifest; `tests/scratchpad-pwa.test.mjs` (26 checks) plus a byte-level renderer-parity check against the dialog |
+| Phase 6 — Bubblewrap TWA | **not built** — blocked on the origin-root `.well-known/assetlinks.json` decision (GitHub Pages subpath; see §7) |
+| Phase 7 — Capacitor/iOS store | **not built** — deferred until an App Store presence is actually wanted |
+
+The original research and full plan follow unchanged.
+
+---
+
+---
+
 ## 1. Where the Scratchpad stands today
 
 Evidence from the current repo:

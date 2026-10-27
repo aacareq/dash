@@ -61,6 +61,24 @@ button:focus-visible, input:focus-visible, a:focus-visible, summary:focus-visibl
   gap: .7rem;
   flex-wrap: wrap;
 }
+.embed-banner {
+  max-width: 980px;
+  margin: 0 auto .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .8rem;
+  flex-wrap: wrap;
+  background: var(--tag-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .5rem .8rem;
+  font-size: .8rem;
+  color: var(--text-muted);
+}
+.embed-banner a { color: var(--accent); font-weight: 700; text-decoration: none; white-space: nowrap; }
+body.is-embedded { padding-top: .6rem; }
+body.is-embedded .app-header .brand { font-size: .95rem; }
 .brand { font-weight: 800; font-size: 1.05rem; display: inline-flex; align-items: center; gap: .45rem; }
 .brand a { color: var(--text); text-decoration: none; }
 .app-header .spacer { flex: 1 1 auto; }

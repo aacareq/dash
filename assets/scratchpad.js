@@ -14,6 +14,8 @@ import { createEditor } from "./editor.js";
 import { openStore, migrateLegacyStorage, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
 import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
+import { setupPwaInstall } from "./pwa-install.js";
+import { isEmbedded } from "./environment.js";
 
 const $ = id => document.getElementById(id);
 
@@ -514,6 +516,14 @@ async function main() {
   // ---- registration: manifest form → code exchange → install → resolve ----------------
   function startSetup() {
     if (!gh.cryptoReady()) { setGhStatus("GitHub setup needs the page served over https:// or http://localhost.", "error"); return; }
+    // GitHub's app-registration screens refuse to render inside an iframe. The
+    // one-time setup therefore has to run in a top-level tab; once the app is
+    // registered and installed, sync works fine embedded.
+    if (embedded) {
+      setGhStatus("Open the Scratchpad in its own tab to finish the one-time GitHub setup — GitHub blocks its install screen inside an embedded frame.", "error");
+      window.open(gh.pageUrl(), "_blank", "noopener");
+      return;
+    }
     const redirectUrl = gh.pageUrl();
     if (!redirectUrl) { setGhStatus("GitHub setup needs a real page URL — open the live PWA rather than a downloaded file.", "error"); return; }
     const state = gh.randomState();
@@ -742,60 +752,20 @@ async function main() {
   // Ask the browser not to evict the note database under disk pressure.
   try { if (navigator.storage?.persist) await navigator.storage.persist(); } catch (error) {}
 
-  // ---- PWA install --------------------------------------------------------------------
-  let deferredInstallPrompt = null;
-  const installBtnPwa = $("install-app");
-  const iosHint = $("ios-hint");
-  window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    installBtnPwa?.classList.remove("hidden");
-  });
-  installBtnPwa?.addEventListener("click", async () => {
-    if (!deferredInstallPrompt) return;
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice.catch(() => {});
-    deferredInstallPrompt = null;
-    installBtnPwa.classList.add("hidden");
-  });
-  window.addEventListener("appinstalled", () => {
-    deferredInstallPrompt = null;
-    installBtnPwa?.classList.add("hidden");
-  });
-  // Safari never fires beforeinstallprompt — point iPhone/iPad users at Share → Add to Home Screen.
-  if (iosHint && !window.matchMedia?.("(display-mode: standalone)").matches &&
-      /iphone|ipad|ipod/i.test(navigator.userAgent)) {
-    iosHint.classList.remove("hidden");
+  // ---- embedded mode (rendered inside the dashboard dialog's iframe) -----------------
+  let framed = false;
+  try { framed = window.self !== window.top; } catch (error) { framed = true; }
+  const embedded = isEmbedded({ search: location.search, framed });
+  const embedBanner = $("embed-banner");
+  if (embedded) {
+    document.body.classList.add("is-embedded");
+    embedBanner?.classList.remove("hidden");
+    // Installation is owned by the outer dashboard page.
+    $("install-app")?.classList.add("hidden");
   }
 
-  // ---- service worker: offline shell + update toast -----------------------------------
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    try {
-      const registration = await navigator.serviceWorker.register(new URL("../sw.js", import.meta.url), { updateViaCache: "none" });
-      const toast = $("sw-update-toast");
-      const reload = $("sw-reload");
-      const promptUpdate = worker => {
-        toast?.classList.remove("hidden");
-        reload?.addEventListener("click", () => {
-          worker.postMessage({ type: "SKIP_WAITING" });
-        }, { once: true });
-      };
-      if (registration.waiting) promptUpdate(registration.waiting);
-      registration.addEventListener("updatefound", () => {
-        registration.installing?.addEventListener("statechange", event => {
-          if (event.target.state === "installed" && navigator.serviceWorker.controller) promptUpdate(event.target);
-        });
-      });
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (refreshing) return;
-        refreshing = true;
-        location.reload();
-      });
-    } catch (error) {
-      console.warn("Service worker registration failed:", error);
-    }
-  }
+  // Shared SW registration, update toast and install prompt live in pwa-install.js.
+  await setupPwaInstall({ embedded });
 }
 
 main().catch(error => {

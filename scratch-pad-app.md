@@ -19,6 +19,7 @@ no-bundler stack the plan called for.
 | Phase 3 — IndexedDB + migration | `assets/notes-store.js` (`notes`/`kv`/`outbox` stores, MemoryStore fallback, one-time idempotent migration of the `dash-scratchpad-*` localStorage keys, `navigator.storage.persist()`) |
 | Phase 4 — offline outbox | `assets/sync-engine.js`: offline saves queue and merge per file, flush on `online`/visibility/manual **Sync now**, conflict pauses; Background Sync deliberately not required (Chromium-only) |
 | Phase 5 — install UX + file access | `beforeinstallprompt` install button, iOS Add-to-Home-Screen hint, File System Access save/open with download/upload fallback |
+| Dashboard integration | manifest + SW registered from `index.html`; header install button; Scratchpad dialog gains a Quick-notes/App-view toggle embedding `scratchpad.html?embed=1` in a lazy iframe (`assets/dashboard-pwa.js`, `assets/pwa-install.js`, `assets/environment.js`); GitHub setup escapes the iframe to a top-level tab |
 | S1-S5, S7-S9 (perf) | lazy standalone shell, worker-rendered preview with sequence-guarded messages, async storage, lazy emoji build, versioned cached assets, Lighthouse-ready manifest; `tests/scratchpad-pwa.test.mjs` (26 checks) plus a byte-level renderer-parity check against the dialog |
 | Phase 6 — Bubblewrap TWA | **not built** — blocked on the origin-root `.well-known/assetlinks.json` decision (GitHub Pages subpath; see §7) |
 | Phase 7 — Capacitor/iOS store | **not built** — deferred until an App Store presence is actually wanted |

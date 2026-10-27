@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#0b0914" />
   <title>Command Center 2026</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
   <style>
     :root {
       --bg: #0b0914;
@@ -624,6 +626,34 @@
       .query-go { flex: 1 1 100%; }
     }
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+
+    /* PWA integration: install button, embedded Scratchpad app view, update toast */
+    .hidden { display: none !important; }
+    .scratch-view-toggle { display: flex; gap: .4rem; flex-wrap: wrap; margin: -.2rem 0 .4rem; }
+    .scratch-view-toggle .modal-btn { font-size: .74rem; padding: .35rem .7rem; }
+    .scratch-view-toggle .modal-btn.is-active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    #scratchpad-embed-view { display: flex; flex-direction: column; gap: .6rem; }
+    #scratchpad-embed-view[hidden] { display: none; }
+    #scratchpad-app-frame {
+      width: 100%; height: min(72vh, 680px);
+      border: 1px solid var(--border); border-radius: 10px;
+      background: var(--bg); color-scheme: dark light;
+    }
+    .ios-install-hint {
+      font-size: .78rem; color: var(--text-muted); background: var(--card-bg);
+      border: 1px solid var(--border); border-radius: 8px; padding: .5rem .7rem;
+      max-width: 980px; margin: .5rem auto 0;
+    }
+    #sw-update-toast {
+      position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%);
+      display: flex; align-items: center; gap: .8rem; z-index: 90;
+      background: var(--sidebar-bg); border: 1px solid var(--accent); border-radius: 10px;
+      padding: .7rem 1rem; box-shadow: 0 12px 32px rgba(0,0,0,.45); font-size: .85rem;
+    }
+    @media (max-width: 640px) {
+      #scratchpad-app-frame { height: 78vh; }
+      .scratch-view-toggle .modal-btn { flex: 1 1 auto; }
+    }
   </style>
 </head>
 <body>
@@ -680,6 +710,7 @@
         <span class="search-shortcut">/</span>
       </div>
       <button class="btn-add-custom season-toggle" id="btn-toggle-season" type="button" aria-pressed="true" title="Toggle the seasonal effects layer (shortcut: S)">🍂 Season</button>
+      <button class="btn-add-custom hidden" id="install-app" type="button" title="Install the offline Scratchpad as a standalone app">📲 Install Scratchpad</button>
       <button class="btn-add-custom" id="btn-open-custom-modal" type="button">+ Custom Tool</button>
     </header>
 
@@ -860,6 +891,15 @@
              style="float:right;font-size:.72rem;font-weight:700;text-decoration:none;"
              title="Open the installable, offline Scratchpad PWA in its own window">Open app ↗</a>
         </h3>
+        <!-- Two surfaces share this dialog: the original inline notes pad, and the installable offline PWA
+             embedded in an iframe (lazy-loaded on first switch). Cards and tests still open this same dialog. -->
+        <div class="scratch-view-toggle" role="tablist" aria-label="Scratchpad view">
+          <button type="button" class="modal-btn cancel is-active" id="btn-scratchpad-view-inline"
+                  aria-pressed="true">Quick notes (this page)</button>
+          <button type="button" class="modal-btn cancel" id="btn-scratchpad-view-app"
+                  aria-pressed="false" title="The offline installable app, embedded in this dialog">📲 App view (offline)</button>
+        </div>
+        <div id="scratchpad-inline-view">
         <!-- Markdown tools: write markdown without remembering the syntax. Every button acts on the current
              selection (or inserts at the caret) and supports the matching keyboard shortcut. -->
         <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
@@ -983,6 +1023,19 @@
             </details>
           </div>
         </details>
+
+        </div><!-- /#scratchpad-inline-view -->
+
+        <div id="scratchpad-embed-view" hidden>
+          <p class="modal-hint" style="margin:0;">
+            The full Scratchpad app runs here, sharing this browser's notes and GitHub connection.
+            <a href="scratchpad.html" target="_blank" rel="noopener">Open in its own window ↗</a>
+          </p>
+          <iframe id="scratchpad-app-frame" title="Scratchpad PWA"
+                  src="about:blank" loading="lazy"
+                  allow="clipboard-read; clipboard-write"></iframe>
+        </div>
+
 
         <div class="modal-actions">
           <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
@@ -4994,5 +5047,13 @@
     initSeasonalLayer();
     initialize();
   </script>
+  <p id="ios-hint" class="ios-install-hint hidden">
+    On iPhone or iPad: open this page in Safari, tap Share, then Add to Home Screen to install the Scratchpad.
+  </p>
+  <div id="sw-update-toast" class="hidden" role="alert">
+    <span>A new version of the dashboard is ready.</span>
+    <button type="button" class="modal-btn submit" id="sw-reload">Reload</button>
+  </div>
+  <script type="module" src="assets/dashboard-pwa.js"></script>
 </body>
 </html>

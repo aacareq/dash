@@ -118,18 +118,27 @@
       <summary>Save these notes to GitHub</summary>
       <div class="gh-sync-body">
         <p class="modal-hint" id="scratchpad-gh-hint">
-          Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the
-          repo it may write to. The app renews its own short-lived credentials from then on, so it never asks
-          you to sign in again.
+          Nothing to copy or paste on a first visit: one click registers a private GitHub App owned by you, then
+          you pick the repo it may write to. The app renews its own short-lived credentials from then on, so it
+          never asks you to sign in again.
         </p>
         <div class="modal-actions">
           <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
           <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
           <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
           <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
+          <button type="button" class="modal-btn cancel" id="scratchpad-gh-export" hidden
+                  title="Download this connection so any browser can get back in without creating another app">Download connection file</button>
           <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
         </div>
         <p class="status-msg" id="scratchpad-gh-status"></p>
+
+        <p class="modal-hint gh-keep" id="scratchpad-gh-keep" hidden>
+          <strong>Keep a copy of this connection.</strong> The app's private key lives only in this browser, at
+          this address — nothing is stored on a server. If this browser's storage is ever cleared (another
+          device, a new port or preview link, a private window), that file is how saving comes back
+          <em>without</em> creating a second GitHub App.
+        </p>
 
         <div id="scratchpad-gh-target" hidden>
           <div class="gh-sync-details">
@@ -159,6 +168,47 @@
           </label>
           <p class="status-msg" id="scratchpad-gh-file-status"></p>
         </div>
+
+        <details class="gh-sync-advanced" id="scratchpad-gh-restore">
+          <summary>Already have the app? Reconnect instead of creating another</summary>
+          <p class="modal-hint">
+            Every browser and address keeps its own storage, so a new device, browser or preview link looks like
+            a first visit. You do <strong>not</strong> need a second GitHub App — restore the one you already
+            have:
+          </p>
+          <ol class="gh-restore-steps">
+            <li><strong>If you saved the connection file</strong> (<code>dash-github-connection-*.json</code>)
+              when you set this up, choose it below — it fills in both fields for you.</li>
+            <li><strong>If you didn't,</strong> open
+              <a href="https://github.com/settings/apps" target="_blank" rel="noopener noreferrer">GitHub → Settings → Developer settings → GitHub Apps</a>,
+              pick your <em>dash notes</em> app, copy its <strong>App ID</strong> from the top of the page, then
+              click <strong>Generate a private key</strong> — GitHub downloads a <code>.pem</code> file.</li>
+            <li>Click <strong>Reconnect with this app</strong>. GitHub confirms the pair, and this browser picks up
+              the installation that is already there.</li>
+          </ol>
+          <div class="token-row">
+            <label class="form-label" style="flex:1;">Connection file (.json or .pem) — optional
+              <input type="file" id="scratchpad-gh-restore-file" class="form-input"
+                     accept=".json,.pem,application/json,text/plain" />
+            </label>
+          </div>
+          <div class="token-row">
+            <label class="form-label" style="flex:1;">App ID
+              <input type="text" id="scratchpad-gh-restore-app-id" class="form-input" inputmode="numeric"
+                     placeholder="123456" autocomplete="off" spellcheck="false" />
+            </label>
+          </div>
+          <div class="token-row">
+            <label class="form-label" style="flex:1;">Private key (.pem)
+              <textarea id="scratchpad-gh-restore-pem" class="form-input" rows="3" spellcheck="false"
+                        placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
+            </label>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="modal-btn submit" id="scratchpad-gh-restore-go">Reconnect with this app</button>
+          </div>
+          <p class="status-msg" id="scratchpad-gh-restore-status"></p>
+        </details>
 
         <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
           <summary>Advanced: use a personal access token instead</summary>

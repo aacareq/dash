@@ -67,7 +67,11 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   in again, and no long-lived credential is ever stored. Notes are committed
   in place via the Contents API, pause with a warning instead of overwriting a
   version that changed on GitHub (offering *Pull latest* or *Overwrite
-  anyway*), and can autosave a few seconds after you stop typing. A private
+  anyway*), and can autosave a few seconds after you stop typing. Because that
+  key lives only in the browser and address that registered it, the panel also
+  hands you a **connection file** (and takes one back under *Already have the
+  app? Reconnect*) — a new browser, device or preview link adopts the app you
+  already made instead of asking GitHub for another one. A private
   repo called **`scratch`** is the default save target — offered and selected
   even when GitHub's repo listing omits it, and created automatically when it
   doesn't exist — and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a

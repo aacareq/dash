@@ -31,6 +31,96 @@ export function normalizePath(value) {
   return String(value || "").trim().replace(/^\/+/, "").replace(/\/+$/, "");
 }
 
+// ---- the reconnect kit -------------------------------------------------------------------------------
+// The app's private key is the whole credential, and it only ever lives in the
+// storage of the browser + address where the app was registered. A different
+// device, browser, port or preview URL therefore looks like a first visit — and
+// the only way back used to be "Create GitHub App" again. A connection file (or
+// the same key re-downloaded from GitHub) is enough to adopt the app instead,
+// so the kit below formats, parses and verifies exactly that.
+export const CONNECTION_FILE_KIND = "dash-github-connection";
+export const CONNECTION_FILE_VERSION = 1;
+
+const PEM_BLOCK = /-----BEGIN (?:RSA |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |ENCRYPTED )?PRIVATE KEY-----/;
+
+// Accepts a .pem exactly as GitHub downloads it, a key pasted out of a file, or
+// the bare base64 body (a very common accidental paste).
+export function parsePrivateKey(text) {
+  const value = String(text || "").trim();
+  if (!value) throw new Error("Paste the private key GitHub downloaded for the app (a .pem file).");
+  if (/ENCRYPTED PRIVATE KEY/.test(value)) {
+    throw new Error("That is a passphrase-protected key — GitHub's \"Generate a private key\" downloads an unencrypted .pem, so use that one.");
+  }
+  const match = value.match(PEM_BLOCK);
+  if (match) return match[0].trim();
+  const body = value.replace(/\s+/g, "");
+  if (body.length > 100 && /^[A-Za-z0-9+/=]+$/.test(body)) {
+    return `-----BEGIN RSA PRIVATE KEY-----\n${body.match(/.{1,64}/g).join("\n")}\n-----END RSA PRIVATE KEY-----`;
+  }
+  throw new Error("That doesn't look like a private key — it should start with -----BEGIN RSA PRIVATE KEY-----.");
+}
+
+// One shape for both sources: the file the dashboard saved, or GitHub's own
+// manifest-conversion JSON (in case someone kept that instead).
+export function parseConnectionInput(text, { appId = "" } = {}) {
+  const raw = String(text || "").trim();
+  if (!raw) throw new Error("Choose the connection file, or paste the app's private key.");
+
+  let record = null;
+  if (raw.startsWith("{")) {
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (error) { throw new Error("That file isn't valid JSON — use the connection file the Scratchpad downloaded, or the .pem key."); }
+    if (!parsed || typeof parsed !== "object") throw new Error("That file isn't a connection file.");
+    record = {
+      app_id: parsed.app_id ?? parsed.id ?? null,
+      pem: parsed.pem || parsed.private_key || "",
+      slug: parsed.slug || "",
+      name: parsed.name || "",
+      owner: typeof parsed.owner === "string" ? parsed.owner : (parsed.owner?.login || ""),
+      html_url: parsed.html_url || ""
+    };
+  }
+
+  const pem = parsePrivateKey(record ? (record.pem || "") : raw);
+  const id = Number(record?.app_id || appId);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new Error("Add the app's numeric ID too — it's shown at the top of the app's settings page.");
+  }
+  return {
+    app_id: id,
+    pem,
+    slug: record?.slug || "",
+    name: record?.name || "",
+    owner: record?.owner || "",
+    html_url: record?.html_url || ""
+  };
+}
+
+export function connectionFileFor(app) {
+  if (!app || !app.app_id || !app.pem) throw new Error("There's no GitHub App connection in this browser to save.");
+  return {
+    kind: CONNECTION_FILE_KIND,
+    version: CONNECTION_FILE_VERSION,
+    app_id: app.app_id,
+    slug: app.slug || "",
+    name: app.name || "",
+    owner: app.owner || "",
+    html_url: app.html_url || "",
+    pem: app.pem,
+    exported_at: new Date().toISOString(),
+    note: "Private key for the dash notes GitHub App. Anyone holding this file can write to the repositories the app is installed on, so keep it in a password manager and delete the app on GitHub if it leaks. Drop it into the Scratchpad's “Already have the app? Reconnect” section to restore saving on another browser or address."
+  };
+}
+
+export function connectionFileText(app, { pretty = true } = {}) {
+  return JSON.stringify(connectionFileFor(app), null, pretty ? 2 : 0);
+}
+
+export function connectionFileName(app) {
+  const label = String(app?.slug || app?.app_id || "app").replace(/[^a-zA-Z0-9._-]+/g, "-");
+  return `dash-github-connection-${label}.json`;
+}
+
 export function timestampSlug(date = new Date()) {
   const pad = value => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
@@ -323,6 +413,60 @@ export class GitHubAppClient {
       installation_id: null
     });
     return app;
+  }
+
+  // ---- reconnect kit ---------------------------------------------------------------------------------
+  // Local bookkeeping only: once the user has a copy of the key file the panel
+  // stops nagging about it.
+  async markConnectionSaved(at = Date.now()) {
+    const app = await this.readApp();
+    if (!app) return null;
+    const next = { ...app, connection_saved_at: at };
+    await this.writeApp(next);
+    return next;
+  }
+
+  // Adopt a key the user already owns — a saved connection file, or the App ID
+  // plus a private key re-downloaded from the app's own settings page. GitHub is
+  // asked to confirm the pair with GET /app, and because the request is signed
+  // with the very key being tested, a wrong App ID fails here instead of at the
+  // first save. Nothing is written until GitHub agrees, so a typo can never
+  // clobber a working connection.
+  async adoptApp({ app_id, pem, slug = "", name = "", owner = "", html_url = "" }) {
+    const id = Number(app_id);
+    if (!Number.isInteger(id) || id <= 0) {
+      throw new Error("The app ID is a number — copy it from the top of the app's settings page.");
+    }
+    const key = parsePrivateKey(pem);
+    await importAppKey(key); // reject a truncated/foreign key before any network call
+    const candidate = { app_id: id, slug, name, owner, pem: key, html_url, installation_id: null, adopted_at: Date.now() };
+    const res = await this.appFetch(candidate, "/app");
+    if (res.status === 401 || res.status === 403) {
+      throw Object.assign(
+        new Error("GitHub rejected that App ID + private key. Use the ID from the same app the key was generated for."),
+        { status: res.status }
+      );
+    }
+    if (res.status === 404) {
+      throw Object.assign(
+        new Error("GitHub doesn't know that app — it may have been deleted in Settings → Developer settings → GitHub Apps."),
+        { status: res.status }
+      );
+    }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw Object.assign(new Error(data.message || `GitHub couldn't confirm that app (${res.status})`), { status: res.status });
+    }
+    const record = {
+      ...candidate,
+      app_id: data.id || id,
+      slug: data.slug || slug,
+      name: data.name || name,
+      owner: data.owner?.login || owner,
+      html_url: data.html_url || html_url
+    };
+    await this.writeApp(record);
+    return record;
   }
 
   async resolveInstallation(installationIdHint = null) {

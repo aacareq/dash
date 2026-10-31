@@ -434,6 +434,13 @@
       border: 1px dashed var(--border); border-radius: 8px; padding: .55rem .7rem;
     }
     .gh-sync-repo-help a { color: var(--accent); }
+    /* Reconnect kit: the "keep a copy of this key" nudge, and the numbered recovery steps. */
+    .gh-keep { border: 1px dashed var(--accent); border-radius: 8px; padding: .55rem .7rem; }
+    .gh-keep[hidden] { display: none; }
+    .gh-restore-steps { margin: 0 0 .2rem; padding-left: 1.15rem; font-size: .8rem; line-height: 1.55; color: var(--text-muted); }
+    .gh-restore-steps a { color: var(--accent); }
+    .gh-restore-steps li + li { margin-top: .3rem; }
+    .gh-sync input[type="file"] { padding: .35rem; font-size: .78rem; }
     /* The scratchpad is the tallest modal once the GitHub panel is expanded — let it scroll inside the viewport. */
     #modal-scratchpad .modal-card { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
 
@@ -965,18 +972,27 @@
           <summary>Save these notes to GitHub</summary>
           <div class="gh-sync-body">
             <p class="modal-hint" id="scratchpad-gh-hint">
-              Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the
-              repo it may write to. The dashboard renews its own short-lived credentials from then on, so it
-              never asks you to sign in again.
+              Nothing to copy or paste on a first visit: one click registers a private GitHub App owned by you,
+              then you pick the repo it may write to. The dashboard renews its own short-lived credentials from
+              then on, so it never asks you to sign in again.
             </p>
             <div class="modal-actions">
               <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
               <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
               <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
               <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-export" hidden
+                      title="Download this connection so any browser can get back in without creating another app">Download connection file</button>
               <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
             </div>
             <p class="status-msg" id="scratchpad-gh-status"></p>
+
+            <p class="modal-hint gh-keep" id="scratchpad-gh-keep" hidden>
+              <strong>Keep a copy of this connection.</strong> The app's private key lives only in this browser,
+              at this address — nothing is stored on a server. If this browser's storage is ever cleared (another
+              device, a new port or preview link, a private window), that file is how saving comes back
+              <em>without</em> creating a second GitHub App.
+            </p>
 
             <div id="scratchpad-gh-target" hidden>
               <div class="gh-sync-details">
@@ -1006,6 +1022,47 @@
               </label>
               <p class="status-msg" id="scratchpad-gh-file-status"></p>
             </div>
+
+            <details class="gh-sync-advanced" id="scratchpad-gh-restore">
+              <summary>Already have the app? Reconnect instead of creating another</summary>
+              <p class="modal-hint">
+                Every browser and address keeps its own storage, so a new device, browser or preview link looks
+                like a first visit. You do <strong>not</strong> need a second GitHub App — restore the one you
+                already have:
+              </p>
+              <ol class="gh-restore-steps">
+                <li><strong>If you saved the connection file</strong> (<code>dash-github-connection-*.json</code>)
+                  when you set this up, choose it below — it fills in both fields for you.</li>
+                <li><strong>If you didn't,</strong> open
+                  <a href="https://github.com/settings/apps" target="_blank" rel="noopener noreferrer">GitHub → Settings → Developer settings → GitHub Apps</a>,
+                  pick your <em>dash notes</em> app, copy its <strong>App ID</strong> from the top of the page,
+                  then click <strong>Generate a private key</strong> — GitHub downloads a <code>.pem</code> file.</li>
+                <li>Click <strong>Reconnect with this app</strong>. GitHub confirms the pair, and this browser
+                  picks up the installation that is already there.</li>
+              </ol>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">Connection file (.json or .pem) — optional
+                  <input type="file" id="scratchpad-gh-restore-file" class="form-input"
+                         accept=".json,.pem,application/json,text/plain" />
+                </label>
+              </div>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">App ID
+                  <input type="text" id="scratchpad-gh-restore-app-id" class="form-input" inputmode="numeric"
+                         placeholder="123456" autocomplete="off" spellcheck="false" />
+                </label>
+              </div>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">Private key (.pem)
+                  <textarea id="scratchpad-gh-restore-pem" class="form-input" rows="3" spellcheck="false"
+                            placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
+                </label>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="modal-btn submit" id="scratchpad-gh-restore-go">Reconnect with this app</button>
+              </div>
+              <p class="status-msg" id="scratchpad-gh-restore-status"></p>
+            </details>
 
             <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
               <summary>Advanced: use a personal access token instead</summary>
@@ -3090,6 +3147,122 @@
       });
     }
 
+    // ---- the reconnect kit ------------------------------------------------------------------------------
+    // The app's private key is the whole credential and it only lives in this browser's storage at this
+    // address. So a new device, browser or preview link looks like a first visit — and the only way back used
+    // to be "Create GitHub App" again. A connection file (or the same key re-downloaded from GitHub) is enough
+    // to adopt the existing app instead. Keep this in step with assets/github-app.js.
+    const GH_CONNECTION_KIND = "dash-github-connection";
+    const GH_CONNECTION_VERSION = 1;
+    const GH_PEM_BLOCK = /-----BEGIN (?:RSA |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |ENCRYPTED )?PRIVATE KEY-----/;
+
+    function ghParsePrivateKey(text) {
+      const value = String(text || "").trim();
+      if (!value) throw new Error("Paste the private key GitHub downloaded for the app (a .pem file).");
+      if (/ENCRYPTED PRIVATE KEY/.test(value)) {
+        throw new Error("That is a passphrase-protected key — GitHub's \"Generate a private key\" downloads an unencrypted .pem, so use that one.");
+      }
+      const match = value.match(GH_PEM_BLOCK);
+      if (match) return match[0].trim();
+      const body = value.replace(/\s+/g, "");
+      if (body.length > 100 && /^[A-Za-z0-9+/=]+$/.test(body)) {
+        return `-----BEGIN RSA PRIVATE KEY-----\n${body.match(/.{1,64}/g).join("\n")}\n-----END RSA PRIVATE KEY-----`;
+      }
+      throw new Error("That doesn't look like a private key — it should start with -----BEGIN RSA PRIVATE KEY-----.");
+    }
+
+    // One shape for both sources: the file the dashboard saved, or GitHub's own manifest-conversion JSON.
+    function ghParseConnectionInput(text, { appId = "" } = {}) {
+      const raw = String(text || "").trim();
+      if (!raw) throw new Error("Choose the connection file, or paste the app's private key.");
+      let record = null;
+      if (raw.startsWith("{")) {
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch (e) { throw new Error("That file isn't valid JSON — use the connection file the dashboard downloaded, or the .pem key."); }
+        if (!parsed || typeof parsed !== "object") throw new Error("That file isn't a connection file.");
+        record = {
+          app_id: parsed.app_id !== undefined ? parsed.app_id : (parsed.id !== undefined ? parsed.id : null),
+          pem: parsed.pem || parsed.private_key || "",
+          slug: parsed.slug || "",
+          name: parsed.name || "",
+          owner: typeof parsed.owner === "string" ? parsed.owner : ((parsed.owner && parsed.owner.login) || ""),
+          html_url: parsed.html_url || ""
+        };
+      }
+      const pem = ghParsePrivateKey(record ? record.pem : raw);
+      // GitHub's manifest-conversion response nests the app id in `id`, so accept both spellings.
+      const id = Number((record && record.app_id) || appId);
+      if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("Add the app's numeric ID too — it's shown at the top of the app's settings page.");
+      }
+      return { app_id: id, pem, slug: record ? record.slug : "", name: record ? record.name : "", owner: record ? record.owner : "", html_url: record ? record.html_url : "" };
+    }
+
+    function ghConnectionFileFor(app) {
+      if (!app || !app.app_id || !app.pem) throw new Error("There's no GitHub App connection in this browser to save.");
+      return {
+        kind: GH_CONNECTION_KIND,
+        version: GH_CONNECTION_VERSION,
+        app_id: app.app_id,
+        slug: app.slug || "",
+        name: app.name || "",
+        owner: app.owner || "",
+        html_url: app.html_url || "",
+        pem: app.pem,
+        exported_at: new Date().toISOString(),
+        note: "Private key for the dash notes GitHub App. Anyone holding this file can write to the repositories the app is installed on, so keep it in a password manager and delete the app on GitHub if it leaks. Drop it into the dashboard's “Already have the app? Reconnect” section to restore saving on another browser or address."
+      };
+    }
+    function ghConnectionFileName(app) {
+      const label = String((app && (app.slug || app.app_id)) || "app").replace(/[^a-zA-Z0-9._-]+/g, "-");
+      return `dash-github-connection-${label}.json`;
+    }
+    function ghMarkConnectionSaved() {
+      const app = ghReadApp();
+      if (!app) return null;
+      const next = { ...app, connection_saved_at: Date.now() };
+      ghWriteApp(next);
+      return next;
+    }
+
+    // Adopt a key the user already owns. GitHub confirms the pair with GET /app — a request signed with the very
+    // key being tested — so a wrong App ID fails here rather than at the first save, and nothing is written until
+    // GitHub agrees (a typo can never clobber a working connection).
+    async function ghAdoptApp({ app_id, pem, slug = "", name = "", owner = "", html_url = "" }) {
+      const id = Number(app_id);
+      if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("The app ID is a number — copy it from the top of the app's settings page.");
+      }
+      const key = ghParsePrivateKey(pem);
+      await ghImportAppKey(key); // reject a truncated/foreign key before any network call
+      const candidate = { app_id: id, slug, name, owner, pem: key, html_url, installation_id: null, adopted_at: Date.now() };
+      const res = await ghAppFetch(candidate, "/app");
+      if (res.status === 401 || res.status === 403) {
+        throw Object.assign(
+          new Error("GitHub rejected that App ID + private key. Use the ID from the same app the key was generated for."),
+          { status: res.status }
+        );
+      }
+      if (res.status === 404) {
+        throw Object.assign(
+          new Error("GitHub doesn't know that app — it may have been deleted in Settings → Developer settings → GitHub Apps."),
+          { status: res.status }
+        );
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || `GitHub couldn't confirm that app (${res.status})`), { status: res.status });
+      const record = {
+        ...candidate,
+        app_id: data.id || id,
+        slug: data.slug || slug,
+        name: data.name || name,
+        owner: (data.owner && data.owner.login) || owner,
+        html_url: data.html_url || html_url
+      };
+      ghWriteApp(record);
+      return record;
+    }
+
     // ---- Scratchpad markdown tools ---------------------------------------------------------------------
     // The saved notes are almost always .md files, so the editor gets the syntax people actually reach for:
     // bold/italic/strike, H1–H3, bullet/numbered/task lists, quotes and dividers — applied to the selection
@@ -3520,6 +3693,13 @@
       const newFileBtn = document.getElementById("scratchpad-gh-new-file");
       const scratchBtn = document.getElementById("scratchpad-gh-scratch");
       const repoHelp = document.getElementById("scratchpad-gh-repo-help");
+      const exportBtn = document.getElementById("scratchpad-gh-export");
+      const keepNote = document.getElementById("scratchpad-gh-keep");
+      const restoreDetails = document.getElementById("scratchpad-gh-restore");
+      const restoreFileInput = document.getElementById("scratchpad-gh-restore-file");
+      const restoreAppIdInput = document.getElementById("scratchpad-gh-restore-app-id");
+      const restorePemInput = document.getElementById("scratchpad-gh-restore-pem");
+      const restoreGoBtn = document.getElementById("scratchpad-gh-restore-go");
       const filebarRepo = document.getElementById("scratchpad-filebar-repo");
       const filebarSep = document.getElementById("scratchpad-filebar-sep");
       const filebarFile = document.getElementById("scratchpad-filebar-file");
@@ -3528,6 +3708,10 @@
 
       const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
       const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
+      const setRestoreStatus = (message, tone) => setStatus("scratchpad-gh-restore-status", message, tone);
+      // Text of the file picked in the Reconnect panel, so the App ID field can stay optional when the file
+      // already carries it.
+      let restoreFileText = "";
 
       // `conflictPaused` holds a save back once GitHub's copy has moved on; autosave stays out of the way until
       // the user either pulls the newer file or explicitly overwrites it.
@@ -3605,6 +3789,10 @@
         if (tokenClearBtn) tokenClearBtn.hidden = connection.kind !== "token";
         if (target) target.hidden = !connection.ready;
         if (scratchBtn) scratchBtn.hidden = !connection.ready;
+        // The reconnect kit: saving a copy only means something for an app connection,
+        // and the nudge goes away once one has been downloaded.
+        if (exportBtn) exportBtn.hidden = connection.kind !== "app";
+        if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
 
         if (connection.kind === "app") {
           accountBadge.textContent = connection.installationId
@@ -3623,7 +3811,7 @@
           if (!secure) {
             hint.textContent = "GitHub can only redirect back to a page served over http(s) — open the live dashboard (or a local server) to set up saving. Meanwhile you can paste a token under Advanced.";
           } else if (connection.kind === "none") {
-            hint.textContent = "Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. The dashboard renews its own short-lived credentials from then on, so it never asks you to sign in again.";
+            hint.textContent = "First visit here? Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. Already made that app on another browser or address? Use Reconnect below — there's no need to create a second one.";
           } else if (connection.kind === "app" && !connection.installationId) {
             hint.textContent = "Last step: choose which repositories the app may write to. GitHub then sends you back here automatically.";
           } else {
@@ -4026,7 +4214,9 @@
       }
 
       // Back on the page: ask GitHub (as the app) which installation it just created, and remember it forever.
-      async function resolveInstallation(installationIdHint = null, { quiet = false } = {}) {
+      // `lead` tucks a caller's sentence in front of the outcome — the reconnect kit uses it to say "no new
+      // app was created" even once the repository list has loaded.
+      async function resolveInstallation(installationIdHint = null, { quiet = false, lead = "" } = {}) {
         const app = ghReadApp();
         if (!app || !ghCryptoReady()) { render(); return; }
         try {
@@ -4036,7 +4226,7 @@
           if (!res.ok) throw new Error(installs.message || `GitHub API error (${res.status})`);
           if (!Array.isArray(installs) || !installs.length) {
             render();
-            setGhStatus("The app isn't installed on any repository yet — click Install on a repository.", "error");
+            setGhStatus(`${lead}The app isn't installed on any repository yet — click Install on a repository.`, "error");
             return;
           }
           const match = (installationIdHint && installs.find(item => String(item.id) === String(installationIdHint)))
@@ -4050,10 +4240,10 @@
           });
           reposLoaded = false;
           render();
-          if (!quiet) setGhStatus(`Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
+          if (!quiet) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
         } catch (error) {
           render();
-          setGhStatus(`Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
+          setGhStatus(`${lead}Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
         }
       }
 
@@ -4075,8 +4265,86 @@
         conflictPaused = false;
         showOverwrite(false);
         render();
-        setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone.", "success");
+        setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone, or drop its connection file back into Reconnect to use it again.", "success");
         setFileStatus("");
+      });
+
+      // ---- reconnect kit: save a copy of the key, drop it back in anywhere -------------------------------
+      // The app's private key is the credential and it lives only in this browser's storage at this address.
+      // Downloading it once means a new device, browser or preview link can adopt the same app instead of
+      // registering a second one.
+      function downloadConnectionFile() {
+        const app = ghReadApp();
+        if (!app) { setGhStatus("Nothing to download yet — set up GitHub saving first.", "error"); return; }
+        try {
+          const name = ghConnectionFileName(app);
+          const url = URL.createObjectURL(new Blob([JSON.stringify(ghConnectionFileFor(app), null, 2)], { type: "application/json" }));
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = name;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+          ghMarkConnectionSaved();
+          render();
+          setGhStatus(`Saved ${name}. Keep it in your password manager: choosing it under “Already have the app? Reconnect” restores saving on any browser or address, with no new app to create.`, "success");
+        } catch (error) {
+          setGhStatus(error.message, "error");
+        }
+      }
+      exportBtn?.addEventListener("click", downloadConnectionFile);
+
+      // Picking a connection file only fills the fields in; the Reconnect button is what verifies the key.
+      restoreFileInput?.addEventListener("change", async () => {
+        const file = restoreFileInput.files && restoreFileInput.files[0];
+        if (!file) return;
+        try {
+          restoreFileText = await file.text();
+          // A bare .pem carries the key but not the App ID, so fill in whatever the file has and let the
+          // field supply the rest.
+          const parsed = restoreFileText.trim().startsWith("{")
+            ? ghParseConnectionInput(restoreFileText, { appId: restoreAppIdInput.value })
+            : { app_id: null, pem: ghParsePrivateKey(restoreFileText), slug: "" };
+          if (parsed.app_id) restoreAppIdInput.value = String(parsed.app_id);
+          restorePemInput.value = parsed.pem;
+          setRestoreStatus(restoreAppIdInput.value.trim()
+            ? `Loaded ${file.name}${parsed.slug ? ` (${parsed.slug})` : ""} — click Reconnect with this app.`
+            : `Loaded ${file.name}. Add the app's App ID (top of its settings page), then click Reconnect with this app.`, "success");
+        } catch (error) {
+          restoreFileText = "";
+          setRestoreStatus(`${file.name}: ${error.message}`, "error");
+        }
+      });
+
+      restoreGoBtn?.addEventListener("click", async () => {
+        let input;
+        try {
+          const source = restorePemInput.value.trim() || restoreFileText;
+          if (!source) throw new Error("Choose the connection file, or paste the app's private key.");
+          input = ghParseConnectionInput(source, { appId: restoreAppIdInput.value });
+        } catch (error) {
+          setRestoreStatus(error.message, "error");
+          return;
+        }
+        setRestoreStatus("Asking GitHub to confirm that App ID and key…");
+        restoreGoBtn.disabled = true;
+        try {
+          const app = await ghAdoptApp(input);
+          if (restoreDetails) restoreDetails.open = false;
+          restorePemInput.value = "";
+          restoreFileText = "";
+          reposLoaded = false;
+          scratchAttempted = false;
+          render();
+          const lead = `Reconnected the existing app${app.slug ? ` (${app.slug})` : ""} — no new GitHub App was created. `;
+          await resolveInstallation(null, { lead });
+        } catch (error) {
+          setRestoreStatus(error.message, "error");
+          render();
+        } finally {
+          restoreGoBtn.disabled = false;
+        }
       });
 
       saveBtn?.addEventListener("click", () => saveNotes());

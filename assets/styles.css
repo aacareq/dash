@@ -254,6 +254,14 @@ h1 { margin: 0; font-size: 1.2rem; font-weight: 750; }
 .gh-sync-advanced[open] > summary { color: var(--text); }
 .gh-sync-repo-help { font-size: .8rem; line-height: 1.5; color: var(--text-muted); border: 1px dashed var(--border); border-radius: 8px; padding: .55rem .7rem; }
 .gh-sync-repo-help[hidden] { display: none; }
+/* Reconnect kit: the "keep a copy of this key" nudge, and the numbered recovery steps. */
+.gh-keep { border: 1px dashed var(--accent); border-radius: 8px; padding: .55rem .7rem; }
+.gh-keep[hidden] { display: none; }
+.gh-restore-steps { margin: 0 0 .2rem; padding-left: 1.15rem; font-size: .8rem; line-height: 1.55; color: var(--text-muted); }
+.gh-restore-steps code { font-size: .95em; }
+.gh-restore-steps a { color: var(--accent); }
+.gh-restore-steps li + li { margin-top: .3rem; }
+.gh-sync input[type="file"] { padding: .35rem; font-size: .78rem; }
 .gh-sync .modal-actions { margin-top: 0; }
 
 /* Outbox badge + install/update chrome */

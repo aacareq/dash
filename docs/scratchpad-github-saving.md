@@ -12,7 +12,8 @@ app to create by hand.
 | Paste a personal access token | You create the token, pick scopes, and redo it when it expires. |
 | OAuth app + `client_id` | You register an app, copy its client ID, and match a callback URL exactly. |
 | Authorization code exchange in the page | GitHub's token endpoint sends **no CORS headers**, so a static page can't complete it (and it would need the client secret anyway). |
-| **This: GitHub App manifest + installation tokens** | **One click to create a private app owned by you, then one install screen. Never again.** |
+| **This: GitHub App manifest + installation tokens** | **One click to create a private app owned by you, then one install screen.** |
+| …and the connection file | **One file to carry it to any other browser, so the app is created once, ever.** |
 
 The page registers its own GitHub App through GitHub's [app from a
 manifest](https://docs.github.com/en/apps/sharing-github-apps/registering-a-github-app-from-a-manifest)
@@ -43,8 +44,12 @@ app JWTs** itself and mint **one-hour installation tokens** on demand, forever.
 Everything in steps 3–7 happens in the page. There is no long-lived credential:
 the private key stays in your browser's `localStorage`, and the only thing that
 travels to GitHub as authority is a 10-minute app JWT plus a 1-hour installation
-token. If the browser storage is cleared you click **Set up GitHub saving**
-again — one click, one install screen.
+token.
+
+Because that key only exists in **one browser at one address**, clearing site
+data (or opening the dashboard somewhere new) means this browser can no longer
+prove it is your app. That does not mean you need a second app — see
+**[Reconnecting without creating another app](#reconnecting-without-creating-another-app)**.
 
 ## Using it
 
@@ -62,6 +67,64 @@ again — one click, one install screen.
 5. From now on, opening the dashboard needs no sign-in at all: the panel
    verifies the installation in the background and mints a fresh installation
    token whenever it needs one.
+6. **Download the connection file** (see the next section) so this setup never
+   has to be repeated — on this browser or any other.
+
+## Reconnecting without creating another app
+
+### Why the panel sometimes looks like a first visit
+
+The private key GitHub hands over in step 3 **is** the app, and it is stored only
+in this browser's storage for this exact address (scheme + host + port). Nothing
+is kept on a server, so every row below looks exactly like a first visit — and
+the old answer was always *Create GitHub App* again:
+
+| What happened | Why the key is gone |
+| --- | --- |
+| A different address — a preview/sandbox link, a new `localhost:PORT`, `127.0.0.1` instead of `localhost`, `http` instead of `https` | Browser storage is per-origin |
+| A different browser, profile or device, or a private window | Each has its own storage |
+| "Clear cookies and site data", storage-cleanup extensions | That is the storage |
+| iOS Safari: ~7 days without a visit (unless the site is added to the Home Screen) | Safari expires script-writable storage |
+| Disk-pressure eviction | Mitigated by requesting `navigator.storage.persist()`, not eliminated |
+
+The app you made is **not** gone: it is still under **GitHub → Settings →
+Developer settings → GitHub Apps**. Only this browser's copy of its key is.
+
+### The fix: save a copy of the key once
+
+While connected, the panel shows **Download connection file**. It writes
+`dash-github-connection-<app-slug>.json` containing the app's ID, slug, owner and
+private key (never a short-lived token). Put it in your password manager. The
+panel keeps a **Keep a copy of this connection** reminder until you have done it.
+
+### Restoring it anywhere
+
+Open **Save these notes to GitHub → Already have the app? Reconnect instead of
+creating another**, then either:
+
+- **Choose the connection file** you saved — it fills in the App ID and the key
+  for you; or
+- **Copy the App ID** from the top of the app's settings page and click
+  **Generate a private key** there (GitHub downloads a `.pem`), then paste the
+  key into the box.
+
+Click **Reconnect with this app**. The page signs a JWT with the key you supplied
+and asks GitHub to confirm it (`GET /app`), so a mismatched App ID is caught
+immediately — and nothing is saved until GitHub agrees, so a typo can never
+destroy a working connection. On success it finds the installation that is
+already there and saving resumes. **No new app is created**: no name to invent,
+no extra app to delete later.
+
+What each piece is, in one line:
+
+| Piece | Where it comes from | What it is used for |
+| --- | --- | --- |
+| **App ID** | Top of the app's settings page (`https://github.com/settings/apps/<slug>`) | The `iss` claim in the app JWT |
+| **Private key** (`.pem`) | **Generate a private key** on the same page, or the connection file | Signs the JWT that mints installation tokens |
+| **Connection file** (`.json`) | **Download connection file** in the panel | Both of the above, in one file |
+
+Notes stay put while you do this: they live in the note database and are never
+touched by disconnecting or reconnecting.
 
 ## The `scratch` repo and dated note files
 
@@ -188,12 +251,23 @@ locally is **Disconnect** (which forgets the key and cached tokens in this
 browser); deleting it on GitHub is done in those settings — a browser page
 can't authenticate as your GitHub account to do it for you.
 
+The only thing that is ever *saved* is the optional connection file **you**
+download: `dash-github-connection-<slug>.json`, downloaded by your browser and
+never uploaded anywhere. Treat it like a password — it can write to the
+repositories the app is installed on. If it leaks, delete the app on GitHub
+(that revokes every copy of the key at once) and set up again.
+
+Created before this feature existed? Nothing to migrate: **Download connection
+file** appears for every app connection, including ones registered earlier, and
+**Generate a private key** on the app's settings page always works as the
+manual equivalent.
+
 ## Credentials in this browser
 
 | Key (localStorage) | Contents |
 | --- | --- |
 | `dash-scratchpad` | the notes themselves (always, even with no GitHub) |
-| `dash-scratchpad-gh-app-v2` | app id, slug, owner, **private key**, installation id, cached installation token + expiry |
+| `dash-scratchpad-gh-app-v2` | app id, slug, owner, **private key**, installation id, cached installation token + expiry, `connection_saved_at` (set when you download the connection file, so the reminder can retire), `adopted_at` (set when the connection came from Reconnect) |
 | `dash-scratchpad-gh-repo`, `-path`, `-branch`, `-autosave` | sync target + preference |
 | `dash-scratchpad-gh-file-shas-v1` | last synced blob SHA per `repo@branch:path` |
 | `dash-scratchpad-gh-token-v1` | only if you used the pasted-token fallback |
@@ -220,6 +294,10 @@ page you should never need it.
   untrusted code.
 - Tokens are minted on demand and expire in an hour; there is no long-lived
   credential to leak.
+- The connection file is the one exportable credential, and it exists only
+  because you asked for it (downloaded to your device, never transmitted). It
+  contains no OAuth secret, no installation token, and no repository access
+  beyond what the app was installed on.
 
 ## Troubleshooting
 
@@ -229,6 +307,12 @@ page you should never need it.
 | GitHub says the app name is taken | Change the name GitHub pre-fills on the "Create GitHub App" screen; any name works. |
 | You created the app but closed the tab before the install screen | Reopen the dashboard, expand the panel, click **Install on a repository**. |
 | *"Couldn't confirm the installation"* | Click **Re-check connection**. If the app was deleted on GitHub, **Disconnect** and set up again. |
+| The panel asks for **Create GitHub App** again — with no error | This browser has no key for this address (new browser/device/port/preview link, or site data was cleared). Don't create another app: use **Already have the app? Reconnect** with your connection file, or the App ID + a key from **Generate a private key**. |
+| *"GitHub rejected that App ID + private key"* | The ID and the key belong to different apps. Copy the App ID from the same page that generated the key. |
+| *"GitHub doesn't know that app"* | The app was deleted in **Settings → Developer settings → GitHub Apps**. Set up a new one (this is the one case where you must). |
+| *"That is a passphrase-protected key"* | Use **Generate a private key** on the app's page — that `.pem` has no passphrase. |
+| Lost the connection file | GitHub can always mint a fresh key: app settings → **Generate a private key**, then Reconnect with the App ID. The old key stays valid until you delete it there. |
+| Want to stop a browser having access | **Disconnect** forgets the key and cached tokens in this browser only. To revoke it for every device, delete the app on GitHub. |
 | `Resource not accessible by integration` | The app isn't installed on that repository, or you removed **Contents: write**. Fix it in the app's installation settings. |
 | *"couldn't create the `scratch` repo"* | The app lacks **Repository creation: write**. Grant it in the app's permissions and accept it on the installation, create `scratch` yourself and add it to the app, or `Disconnect → Set up GitHub saving`. Saving to another repo still works. |
 | The repo dropdown has no `scratch` | It should always be there, marked *(default)*. If saving to it fails, add the repo to the app's installation and click **Re-check connection** — or click **Use scratch repo** to create it. |
@@ -248,10 +332,19 @@ response being stored without the client secret, the redirect to the install
 screen, installation discovery, RS256 JWT signing verified against the app's
 public key, installation-token minting and reuse, create → update commits,
 conflict → overwrite, pull, autosave, the no-interaction return visit, a
-tampered state being ignored, offline notes, the pasted-token fallback, and
-disconnect.
+tampered state being ignored, offline notes, the pasted-token fallback,
+disconnect, and the reconnect kit (the downloaded file's contents, adopting an
+app from that file, the App ID + key path, and a mismatched pair being refused
+without touching a working connection).
+
+`docs/scratchpad-pwa-reconnect.test.js` drives the standalone Scratchpad PWA
+page in jsdom: the reconnect panel being offered on a first visit, adopting an
+app from an App ID + private key, the installation being picked up, and the
+connection file download that retires the "keep a copy" reminder. The pure
+formatting/parsing helpers are unit-tested in `tests/scratchpad-pwa.test.mjs`.
 
 ```sh
 npm install jsdom
 node docs/scratchpad-github-sync.test.js
+node docs/scratchpad-pwa-reconnect.test.js
 ```

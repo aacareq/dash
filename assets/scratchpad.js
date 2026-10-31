@@ -12,7 +12,7 @@
 import { datedFileName } from "./markdown.js";
 import { createEditor } from "./editor.js";
 import { openStore, migrateLegacyStorage, withLocalStorageMirror, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
-import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO } from "./github-app.js";
+import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO, connectionFileText, connectionFileName, parseConnectionInput, parsePrivateKey } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
 import { NoteManager, todayNoteFileName } from "./notes-manager.js";
 import { setupPwaInstall } from "./pwa-install.js";
@@ -195,6 +195,13 @@ async function main() {
   const newFileBtn = $("scratchpad-gh-new-file");
   const scratchBtn = $("scratchpad-gh-scratch");
   const repoHelp = $("scratchpad-gh-repo-help");
+  const exportBtn = $("scratchpad-gh-export");
+  const keepNote = $("scratchpad-gh-keep");
+  const restoreDetails = $("scratchpad-gh-restore");
+  const restoreFileInput = $("scratchpad-gh-restore-file");
+  const restoreAppIdInput = $("scratchpad-gh-restore-app-id");
+  const restorePemInput = $("scratchpad-gh-restore-pem");
+  const restoreGoBtn = $("scratchpad-gh-restore-go");
   const filebarRepo = $("scratchpad-filebar-repo");
   const filebarSep = $("scratchpad-filebar-sep");
   const filebarFile = $("scratchpad-filebar-file");
@@ -209,6 +216,10 @@ async function main() {
 
   const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
   const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
+  const setRestoreStatus = (message, tone) => setStatus("scratchpad-gh-restore-status", message, tone);
+  // Text of the file picked in the Reconnect panel, kept so the App ID field can
+  // stay optional when the file already carries it.
+  let restoreFileText = "";
 
   function setBarState(text, tone = "") {
     barState = { text, tone };
@@ -261,6 +272,10 @@ async function main() {
     tokenClearBtn.hidden = connection.kind !== "token";
     target.hidden = !connection.ready;
     scratchBtn.hidden = !connection.ready;
+    // The reconnect kit: saving a copy is only meaningful for an app connection,
+    // and the nudge disappears once one has been downloaded.
+    if (exportBtn) exportBtn.hidden = connection.kind !== "app";
+    if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
 
     if (connection.kind === "app") {
       accountBadge.textContent = connection.installationId
@@ -279,7 +294,7 @@ async function main() {
       if (!secure) {
         hint.textContent = "GitHub can only redirect back to a page served over http(s) — open the live PWA (or a local server) to set up saving. Meanwhile you can paste a token under Advanced.";
       } else if (connection.kind === "none") {
-        hint.textContent = "Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. The app renews its own short-lived credentials from then on.";
+        hint.textContent = "First visit here? Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. Already made that app on another browser or address? Use Reconnect below — there's no need to create a second one.";
       } else if (connection.kind === "app" && !connection.installationId) {
         hint.textContent = "Last step: choose which repositories the app may write to. GitHub then sends you back here automatically.";
       } else {
@@ -614,21 +629,23 @@ async function main() {
     return true;
   }
 
-  async function resolveInstallation(installationIdHint = null, { quiet = false } = {}) {
+  // `lead` tucks a caller's sentence in front of the outcome — the reconnect kit uses
+  // it to say "no new app was created" even once the repository list has loaded.
+  async function resolveInstallation(installationIdHint = null, { quiet = false, lead = "" } = {}) {
     try {
       if (!quiet) setGhStatus("Checking which repository you installed the app on…");
       const match = await gh.resolveInstallation(installationIdHint);
       if (!match) return;
       reposLoaded = false;
       await render();
-      if (!quiet) setGhStatus(`Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
+      if (!quiet) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
     } catch (error) {
       if (error.code === "NO_INSTALLATION") {
         await render();
-        setGhStatus("The app isn't installed on any repository yet — click Install on a repository.", "error");
+        setGhStatus(`${lead}The app isn't installed on any repository yet — click Install on a repository.`, "error");
       } else {
         await render();
-        setGhStatus(`Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
+        setGhStatus(`${lead}Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
       }
     }
   }
@@ -652,8 +669,87 @@ async function main() {
     engine.conflictPaused = false;
     showOverwrite(false);
     await render();
-    setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone.", "success");
+    setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone, or drop its connection file back into Reconnect to use it again.", "success");
     setFileStatus("");
+  });
+
+  // ---- reconnect kit: save a copy of the key, drop it back in anywhere ----------
+  // The app's private key is the credential and it lives only in this browser's
+  // storage at this address. Downloading it once means a new device, browser or
+  // preview link can adopt the same app instead of registering another one.
+  async function downloadConnectionFile() {
+    const app = await gh.readApp();
+    if (!app) { setGhStatus("Nothing to download yet — set up GitHub saving first.", "error"); return; }
+    try {
+      const name = connectionFileName(app);
+      const url = URL.createObjectURL(new Blob([connectionFileText(app)], { type: "application/json" }));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = name;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      await gh.markConnectionSaved();
+      await render();
+      setGhStatus(`Saved ${name}. Keep it in your password manager: choosing it under “Already have the app? Reconnect” restores saving on any browser or address, with no new app to create.`, "success");
+    } catch (error) {
+      setGhStatus(error.message, "error");
+    }
+  }
+  exportBtn?.addEventListener("click", downloadConnectionFile);
+
+  // Picking a connection file only fills the fields in; the Reconnect button is
+  // what actually verifies the key with GitHub.
+  restoreFileInput?.addEventListener("change", async () => {
+    const file = restoreFileInput.files && restoreFileInput.files[0];
+    if (!file) return;
+    try {
+      restoreFileText = await file.text();
+      // A bare .pem carries the key but not the App ID, so fill in whatever the file has and let the
+      // field supply the rest.
+      const parsed = restoreFileText.trim().startsWith("{")
+        ? parseConnectionInput(restoreFileText, { appId: restoreAppIdInput.value })
+        : { app_id: null, pem: parsePrivateKey(restoreFileText), slug: "" };
+      if (parsed.app_id) restoreAppIdInput.value = String(parsed.app_id);
+      restorePemInput.value = parsed.pem;
+      setRestoreStatus(restoreAppIdInput.value.trim()
+        ? `Loaded ${file.name}${parsed.slug ? ` (${parsed.slug})` : ""} — click Reconnect with this app.`
+        : `Loaded ${file.name}. Add the app's App ID (top of its settings page), then click Reconnect with this app.`, "success");
+    } catch (error) {
+      restoreFileText = "";
+      setRestoreStatus(`${file.name}: ${error.message}`, "error");
+    }
+  });
+
+  restoreGoBtn?.addEventListener("click", async () => {
+    let input;
+    try {
+      const source = restorePemInput.value.trim() || restoreFileText;
+      if (!source) throw new Error("Choose the connection file, or paste the app's private key.");
+      input = parseConnectionInput(source, { appId: restoreAppIdInput.value });
+    } catch (error) {
+      setRestoreStatus(error.message, "error");
+      return;
+    }
+    setRestoreStatus("Asking GitHub to confirm that App ID and key…");
+    restoreGoBtn.disabled = true;
+    try {
+      const app = await gh.adoptApp(input);
+      if (restoreDetails) restoreDetails.open = false;
+      restorePemInput.value = "";
+      restoreFileText = "";
+      reposLoaded = false;
+      scratchAttempted = false;
+      await render();
+      const lead = `Reconnected the existing app${app.slug ? ` (${app.slug})` : ""} — no new GitHub App was created. `;
+      await resolveInstallation(null, { lead });
+    } catch (error) {
+      setRestoreStatus(error.message, "error");
+      await render();
+    } finally {
+      restoreGoBtn.disabled = false;
+    }
   });
 
   saveBtn.addEventListener("click", () => saveNotes());

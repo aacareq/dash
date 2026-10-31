@@ -295,8 +295,8 @@ const CONNECTED = {
   check("a setup shortcut is offered", d9.getElementById("clipboard-setup").hidden === false);
   d9.getElementById("clipboard-setup").click();
   await flush();
-  check("it opens the Scratchpad panel with the GitHub section expanded",
-    d9.getElementById("modal-scratchpad").open === true && d9.getElementById("scratchpad-gh-panel").open === true);
+  check("it opens the Scratchpad and the GitHub settings sheet",
+    d9.getElementById("modal-scratchpad").open === true && d9.getElementById("modal-github-sync").open === true);
 
   console.log("\n[10] the shared connection is reused (no second setup)");
   github = makeGithub();

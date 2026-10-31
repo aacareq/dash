@@ -54,7 +54,7 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   const issued = { installations: [{ id: 424242, account: { login: "octocat" }, target_type: "User" }] };
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
-    calls.push({ target, options });
+    calls.push({ target, options, method: (options.method || "GET").toUpperCase() });
     if (target.endsWith("/app")) {
       return jsonRes({ id: 987654, slug: "dash-notes-example", name: "dash notes", owner: { login: "octocat" }, html_url: "https://github.com/apps/dash-notes-example" });
     }
@@ -62,6 +62,11 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
     if (target.includes("/app/installations")) return jsonRes(issued.installations);
     if (target.includes("/installation/repositories")) {
       return jsonRes({ total_count: 1, repositories: [{ full_name: "octocat/scratch", name: "scratch" }] });
+    }
+    if (target.includes("/repos/")) {
+      // Nothing exists yet: creation reads first (404) and then PUTs.
+      if ((options.method || "GET").toUpperCase() === "GET") return jsonRes({ message: "Not Found" }, 404);
+      return jsonRes({ content: { sha: `sha-${calls.filter(call => call.method === "PUT").length}` } });
     }
     return jsonRes({});
   };
@@ -114,6 +119,55 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   check("the file never carries a short-lived token", !("installation_token" in saved));
   check("the nudge is gone once a copy exists", $("scratchpad-gh-keep").hidden === true);
   check("the download is remembered in the record", storedApp().connection_saved_at > 0);
+
+  console.log("\n[4] the pad's own chrome: sheet, menu, clock, tables");
+  const $q = selector => win.document.querySelector(selector);
+  check("day/date/time is stamped in the filebar", ($("scratchpad-clock")?.textContent || "").length > 6, $("scratchpad-clock")?.textContent);
+  check("the six actions are in the ⋯ menu",
+    ["scratchpad-copy", "scratchpad-export-txt", "scratchpad-export-md", "scratchpad-save-file", "scratchpad-open-file", "scratchpad-clear"]
+      .every(id => $(id)?.closest("#scratchpad-menu")), "an action is outside the menu");
+  check("the menu is closed until asked", $("scratchpad-menu").hidden === true);
+  $("scratchpad-menu-btn").click();
+  check("More opens it", $("scratchpad-menu").hidden === false);
+  $("scratchpad-menu-btn").click();
+  check("and closes it again", $("scratchpad-menu").hidden === true);
+
+  const sheet = $("scratchpad-gh-panel");
+  check("GitHub settings start in a closed sheet", sheet.open === false && sheet.tagName === "DIALOG", sheet.tagName);
+  $("scratchpad-gh-open").click();
+  check("⚙ GitHub sync opens it", sheet.open === true);
+  check("the repo picker lives inside it", $("scratchpad-gh-repo").closest("#scratchpad-gh-panel") !== null);
+  check("the table tool is on the toolbar", Boolean($q('.md-toolbar [data-md="table"]')));
+  const tipText = $q(".scratch-tip")?.textContent || "";
+  check("the pad explains tables, the sheet and the menu in place",
+    /Table/.test(tipText) && /GitHub sync/.test(tipText) && /More/.test(tipText), tipText.slice(0, 120));
+
+  console.log("\n[5] files and folders can be created straight from the sheet");
+  const notesArea = $("scratchpad-text");
+  notesArea.value = "# Plan\n\n- [ ] ship it";
+  notesArea.dispatchEvent(new win.Event("input", { bubbles: true }));
+  $("scratchpad-gh-repo").value = "octocat/scratch";
+  $("scratchpad-gh-path").value = "notes/current.md";
+  $("scratchpad-gh-path").dispatchEvent(new win.Event("change", { bubbles: true }));
+  await wait(200);
+  $("scratchpad-gh-new-path").value = "projects/launch/plan";
+  $("scratchpad-gh-new-type").value = "md";
+  $("scratchpad-gh-create-file").click();
+  await wait(600);
+  const filePut = calls.find(call => call.method === "PUT" && call.target.includes("/contents/projects/launch/plan.md"));
+  check("the new file is committed at the typed path", Boolean(filePut), calls.map(call => `${call.method} ${call.target}`).join(" | "));
+  check("it holds the notes in the pad",
+    filePut && Buffer.from(JSON.parse(filePut.options.body).content, "base64").toString("utf8") === "# Plan\n\n- [ ] ship it");
+  check("the pad switches to the new file", $("scratchpad-gh-path").value === "projects/launch/plan.md", $("scratchpad-gh-path").value);
+  check("the status says it was created", /Created octocat\/scratch\/projects\/launch\/plan\.md/.test($("scratchpad-gh-status").textContent),
+    $("scratchpad-gh-status").textContent);
+
+  $("scratchpad-gh-new-folder").value = "projects/launch/assets";
+  $("scratchpad-gh-create-folder").click();
+  await wait(600);
+  const folderPut = calls.find(call => call.method === "PUT" && call.target.includes("/contents/projects/launch/assets/.gitkeep"));
+  check("a folder is created with a .gitkeep", Boolean(folderPut), calls.map(call => `${call.method} ${call.target}`).join(" | "));
+  check("the folder status explains the placeholder", /gitkeep/.test($("scratchpad-gh-status").textContent), $("scratchpad-gh-status").textContent);
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

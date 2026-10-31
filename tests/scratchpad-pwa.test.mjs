@@ -55,6 +55,58 @@ test("markdown: headings, bold and task lines keep stable line indices", () => {
   assert.ok(html.includes('data-md-line="3"') && html.includes("checked"));
 });
 
+test("markdown: pipe tables render with header, rows and alignment", () => {
+  const html = renderMarkdown([
+    "| Tool | Cost | Where |",
+    "| :--- | ---: | :-: |",
+    "| **Scratchpad** | free | here |",
+    "| Clipboard | free | here too |"
+  ].join("\n"));
+  assert.ok(html.includes('<div class="md-table"><table>'));
+  assert.ok(html.includes("<thead><tr>"));
+  assert.ok(html.includes('<th style="text-align:left">Tool</th>'));
+  assert.ok(html.includes('<th style="text-align:right">Cost</th>'));
+  assert.ok(html.includes('<th style="text-align:center">Where</th>'));
+  assert.ok(html.includes("<tbody>"));
+  assert.ok(html.includes("<strong>Scratchpad</strong>"), "cell content is decorated like any other inline text");
+  assert.equal((html.match(/<tr>/g) || []).length, 3, "one header row + two body rows");
+});
+
+test("markdown: table cells escape HTML and honour \\| and ragged rows", () => {
+  const html = renderMarkdown([
+    "| Note | Detail |",
+    "| --- | --- |",
+    "| <img src=x onerror=alert(1)> | a \\| b |",
+    "| only one cell"
+  ].join("\n"));
+  assert.ok(!html.includes("<img"), "pasted HTML never becomes an element");
+  assert.ok(html.includes("&lt;img src=x onerror=alert(1)&gt;"));
+  assert.ok(html.includes("<td>a | b</td>"), "an escaped pipe stays inside its cell");
+  assert.ok(html.includes("<td>only one cell</td><td></td>"), "short rows are padded, not dropped");
+});
+
+test("markdown: a header row without a separator stays a paragraph", () => {
+  const html = renderMarkdown("| just | text |\nno separator here");
+  assert.ok(!html.includes("md-table"));
+  assert.ok(html.includes("<p>| just | text |</p>"));
+});
+
+test("markdown: the dashboard dialog and the PWA render tables identically", () => {
+  // Two copies of the renderer exist (index.html inline, assets/markdown.js). Extract the inline one and
+  // compare bytes, so a table can never render differently depending on which surface you open.
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const start = html.indexOf("function renderScratchpadMarkdown");
+  const end = html.indexOf("// ---- Scratchpad emoji picker", start);
+  const dialogRender = new Function(html.slice(start, end) + "; return renderScratchpadMarkdown;")();
+  const samples = [
+    "| A | B |\n| --- | --- |\n| 1 | 2 |",
+    "| A | B |\n|:--|--:|\n| `x` | **y** |\n| <b>z</b> | [l](https://example.com) |",
+    "before\n\n| one |\n| --- |\n| two |\n\nafter",
+    "# heading\n| a | b |\n| :-: | :-: |\n| 1 | 2 |"
+  ];
+  samples.forEach(sample => assert.equal(dialogRender(sample), renderMarkdown(sample), sample));
+});
+
 test("markdown: fenced code is escaped but not decorated", () => {
   const html = renderMarkdown("```\n<b>not html</b>\n**not bold**\n```");
   assert.ok(html.includes("<pre><code>&lt;b&gt;not html&lt;/b&gt;\n**not bold**</code></pre>"));
@@ -583,7 +635,10 @@ test("scratchpad page exposes the note switcher buttons", () => {
 
 test("service worker precaches the note manager and bumped its cache version", () => {
   const sw = readFileSync(join(ROOT, "sw.js"), "utf8");
-  assert.match(sw, /CACHE_VERSION = "dash-scratch-v3"/);
+  // The version itself moves every time a precached asset changes; what must not go backwards is
+  // that it is at least as new as the release that introduced the sheet UI, the ⋯ menu and tables.
+  const version = Number(/CACHE_VERSION = "dash-scratch-v(\d+)"/.exec(sw)?.[1]);
+  assert.ok(version >= 4, `sw.js CACHE_VERSION is dash-scratch-v${version}, expected v4 or later`);
   assert.match(sw, /"\.\/assets\/notes-manager\.js"/);
 });
 

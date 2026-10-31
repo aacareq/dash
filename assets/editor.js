@@ -196,6 +196,21 @@ export function createEditor({ textarea, toolbar, preview, previewToggle, emojiE
     applyEdit(start, end, text, start + text.length, start + text.length);
   }
 
+  // A 3x3 skeleton with the header placeholder selected, so typing replaces it.
+  function insertTable() {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const before = textarea.value.slice(0, start);
+    const after = textarea.value.slice(end);
+    const lead = before && !before.endsWith("\n") ? "\n\n" : "";
+    const tail = !after || after.startsWith("\n") ? "\n" : "\n\n";
+    const firstCell = "Column 1";
+    const table = `| ${firstCell} | Column 2 | Column 3 |\n| --- | --- | --- |\n|  |  |  |`;
+    const text = `${lead}${table}${tail}`;
+    const cellStart = start + lead.length + 2;
+    applyEdit(start, end, text, cellStart, cellStart + firstCell.length);
+  }
+
   const insertEmoji = char => {
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -207,6 +222,7 @@ export function createEditor({ textarea, toolbar, preview, previewToggle, emojiE
     else if (tool === "italic") wrapSelection("*", "italic text");
     else if (tool === "strike") wrapSelection("~~", "strikethrough");
     else if (tool === "hr") insertDivider();
+    else if (tool === "table") insertTable();
     else if (LINE_TOOLS[tool]) toggleLinePrefix(tool);
   }
 

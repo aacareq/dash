@@ -54,7 +54,9 @@ prove it is your app. That does not mean you need a second app — see
 ## Using it
 
 1. Open **Scratchpad / Quick Notes** (pinned as the first card in
-   **Favorites**, and also in **Working On**) → **Save these notes to GitHub**.
+   **Favorites**, and also in **Working On**) → **⚙ GitHub sync** (it sits under
+   the editor, next to **⋯ More**; in the standalone app the same button opens
+   the same sheet).
 2. **Set up GitHub saving** → GitHub asks you to name the new app (a default is
    pre-filled) → **Create GitHub App**.
 3. GitHub sends you straight to the install screen for that app → pick
@@ -126,6 +128,50 @@ What each piece is, in one line:
 Notes stay put while you do this: they live in the note database and are never
 touched by disconnecting or reconnecting.
 
+## The `⚙ GitHub sync` sheet, the `⋯ More` menu and the clock
+
+The notes pad is deliberately small: the editor, one line saying where the note
+is going, and two buttons.
+
+- **⚙ GitHub sync** opens everything about *where* the note goes — the
+  connection (or the reconnect kit), the repository picker, the File path box,
+  **New dated file**, branch — plus the file and folder creation boxes below.
+  It is a proper sheet: it scrolls on its own, closes with **Close**, a click on
+  the backdrop or **Esc**, and it can be opened from the keyboard. The small
+  badge on the button says at a glance whether GitHub is connected, needs
+  attention, or is not set up yet, so you don't have to open the sheet to find
+  out. Nothing about GitHub lives behind a disclosure arrow in the pad any more.
+- **⋯ More** is the one place for actions that act on the whole note:
+  **📋 Copy all**, **⬇ Export .txt**, **⬇ Export .md**, **💾 Save to file…**
+  (File System Access where the browser has it, a download otherwise),
+  **📂 Open file…** (or an upload picker on browsers without it) and
+  **🗑 Clear**. The menu closes on Esc, on a scroll, on a resize or on a click
+  anywhere outside it.
+- **The clock** at the right of the header line shows the weekday, the date and
+  the local time — `Friday, 31 October · 14:07`. It updates every 15 seconds and
+  immediately when the tab becomes visible again, so the note always carries a
+  sense of *when* it is being written.
+
+## Creating files and folders
+
+You are not limited to `notes-YYYY-MM-DD-HHMM.md`, and you are not limited to
+one flat directory: the sheet can create both files and folders ahead of time.
+
+- **New file** — type a path such as `journal/2026-10/plan` and pick a type.
+  The extension is appended when the name has none (`plan` → `plan.md`; any
+  extension works, markdown is just the default). The file is committed with the
+  notes currently in the pad, then becomes the pad's target, so the next autosave
+  keeps updating it.
+- **New folder** — type a path such as `archive/2026/10`. Git has no empty
+  directories, so the folder is committed with an empty `.gitkeep` file (its
+  message says so). Delete the `.gitkeep` later if you add real files to it.
+- **Folders in a file path are created automatically.** Typing
+  `journal/2026-10/plan.md` in **File path** is enough; the create boxes are for
+  when you want the file or folder to exist *before* there is anything to save.
+- **Existing paths are refused, not overwritten.** If the file is already on
+  GitHub the sheet says so and points you at **File path**, so setting a target
+  and creating a file never quietly destroy a note.
+
 ## The `scratch` repo and dated note files
 
 - **`scratch` is created automatically.** The first time the app can't see a
@@ -158,6 +204,7 @@ The notes are markdown files, so the editor has the syntax built in:
 | • List / 1. List | bulleted and numbered lists, applied to every selected line | Ctrl/⌘+E for a bulleted list |
 | ☑ Task | `- [ ]` task lines | — |
 | ❝ Quote / ― Divider | `> quote`, `---` | — |
+| ▦ Table | a header row, a separator row and a first body row | — |
 
 Everything acts on the selection, or inserts at the caret when nothing is
 selected, and toolbar edits count as typing — so local autosave and GitHub
@@ -166,6 +213,29 @@ autosave pick them up exactly like keyboard input.
 **😊 Emoji** opens a small searchable picker (type `check`, `tada`, `fire`…,
 or press Enter to take the first match). Clicking an emoji drops it in at the
 caret or replaces the selection; Esc or a click outside closes it.
+
+### Tables
+
+**▦ Table** writes the skeleton for you and leaves the first heading selected, so
+you can type straight over `Column 1`:
+
+```markdown
+| Column 1 | Column 2 | Column 3 |
+| --- | --- | --- |
+| Cell | Cell | Cell |
+```
+
+- **The separator row is what makes it a table.** A header row with a plain
+  line under it stays an ordinary paragraph — the pipe dashes are the signal.
+- **Alignment** belongs in that separator: `:---` left, `---:` right, `:---:`
+  centre. Each column is set independently.
+- **Ragged rows are fine.** Short rows are padded with empty cells, so a table
+  never breaks because one line has fewer pipes.
+- **A literal pipe** in a cell is written `\|`; the rest of the cell text is
+  rendered as usual (bold, italic, code, links), and HTML is escaped rather
+  than executed.
+- Tables are rendered identically in the dialog, the standalone app and the
+  worker-rendered preview; a test compares those outputs byte for byte.
 
 **👁 Preview** shows a live rendered version beside the editor. Its task
 checkboxes are real: ticking one rewrites that `- [ ]` line to `- [x]` in the
@@ -217,15 +287,16 @@ the repo and links to **GitHub → Settings → Installations** to add it, then
 The notes tool is built to be usable at any width:
 
 - **≥ 900px** — editor and preview sit side by side in the wide dialog.
-- **641–900px** — the preview drops below the editor; the GitHub panel's
+- **641–900px** — the preview drops below the editor; the GitHub sheet's
   fields go to a single column.
 - **≤ 640px** — the dialog becomes a full-height sheet (safe-area aware, uses
   `dvh` so mobile browser chrome doesn't clip it), the toolbar wraps with
   36px tap targets, the preview shrinks, and buttons grow to fill the row.
 - **≤ 380px** — the toolbar buttons that carry words (Quote, Divider) collapse
   to their symbols so nothing overflows.
-- The card itself scrolls (`overscroll-behavior: contain`) so a long note plus
-  the expanded GitHub panel never traps the page behind it.
+- The card itself scrolls (`overscroll-behavior: contain`), and the GitHub sheet
+  keeps its own scroll and full-height layout, so a long note plus a long sheet
+  never traps the page behind them.
 
 Commits update the same file in place (the blob `sha` of the last sync is
 remembered per `repo@branch:path`). Every save re-reads the file first: if it

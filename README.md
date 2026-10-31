@@ -67,7 +67,11 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   in again, and no long-lived credential is ever stored. Notes are committed
   in place via the Contents API, pause with a warning instead of overwriting a
   version that changed on GitHub (offering *Pull latest* or *Overwrite
-  anyway*), and can autosave a few seconds after you stop typing. A private
+  anyway*), and can autosave a few seconds after you stop typing. Because that
+  key lives only in the browser and address that registered it, the panel also
+  hands you a **connection file** (and takes one back under *Already have the
+  app? Reconnect*) — a new browser, device or preview link adopts the app you
+  already made instead of asking GitHub for another one. A private
   repo called **`scratch`** is the default save target — offered and selected
   even when GitHub's repo listing omits it, and created automatically when it
   doesn't exist — and each note gets its own **`notes-YYYY-MM-DD-HHMM.md`** file (with a
@@ -144,14 +148,31 @@ to Home Screen on iOS) to run it in its own window.
 - **Same GitHub flow** — the zero-config GitHub App registration, self-signed
   RS256 JWTs and one-hour installation tokens are ported unchanged into
   `assets/github-app.js`; the PAT fallback remains for `file://` use.
+- **Markdown tables** — the **▦ Table** toolbar button inserts a header row, a
+  separator row and a first body row (with the first heading selected, ready to
+  type over). The separator is what makes it a table; `:---`, `---:` and `:---:`
+  set per-column alignment, ragged rows are padded, `\|` escapes a literal
+  pipe, and cell text is escaped rather than executed. The helpers live in
+  `assets/markdown.js` and are mirrored verbatim in the dashboard dialog.
+- **Files *and* folders** — the GitHub sheet can create a file at any path (the
+  extension is appended when the name has none, and the new file becomes the
+  pad's target) or an empty folder (committed as a `.gitkeep`, because git has
+  no empty directories). Paths that already exist on GitHub are refused rather
+  than overwritten.
+- **One sheet, one menu, one clock** — all GitHub settings live in a proper
+  `⚙ GitHub sync` sheet (scroll-contained, backdrop/Esc to close) instead of a
+  disclosure arrow in the pad; copy/export/save/open/clear moved into a `⋯ More`
+  menu; and the header line carries a live weekday, date and time.
 - **Worker-rendered markdown preview** — note rendering runs in
   `assets/markdown-worker.js` off the main thread, with output verified
   byte-identical to the dashboard dialog's renderer.
 - **File access** — File System Access save/open on Chromium desktop, with
   download/upload fallbacks elsewhere.
 
-The dashboard's Scratchpad dialog has an **Open app ↗** link to this page;
-the dialog itself is unchanged.
+The dashboard's Scratchpad dialog has an **Open app ↗** link to this page, and
+now carries the same furniture as the standalone app: the `▦ Table` button, the
+`⚙ GitHub sync` sheet (a separate `<dialog id="modal-github-sync">`, including
+the file/folder creation boxes), the `⋯ More` menu and the clock chip.
 
 ### Using the app from inside the dashboard
 

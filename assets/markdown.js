@@ -38,6 +38,64 @@ function renderInline(text) {
       (_, label, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`);
 }
 
+// ---- tables -----------------------------------------------------------------------------------------
+// GitHub-flavoured pipe tables: a header row, a `| --- | :-: |` separator that
+// also carries the alignment, then any number of body rows. Cells are escaped
+// first and decorated second, exactly like every other inline text, so a table
+// can never smuggle HTML in. `\|` keeps a literal pipe inside a cell.
+const TABLE_SEPARATOR = /^\s*\|?\s*:?-{1,}:?\s*(?:\|\s*:?-{1,}:?\s*)+\|?\s*$/;
+
+export function isTableSeparator(line) {
+  return TABLE_SEPARATOR.test(String(line || ""));
+}
+
+// `| a | b \| c |` → ["a", "b | c"]
+export function splitTableRow(line) {
+  const trimmed = String(line || "").trim().replace(/^\|/, "").replace(/\|$/, "");
+  const cells = [];
+  let current = "";
+  for (let index = 0; index < trimmed.length; index += 1) {
+    const char = trimmed[index];
+    if (char === "\\" && trimmed[index + 1] === "|") { current += "|"; index += 1; continue; }
+    if (char === "|") { cells.push(current.trim()); current = ""; continue; }
+    current += char;
+  }
+  cells.push(current.trim());
+  return cells;
+}
+
+export function tableAlignments(separatorLine) {
+  return splitTableRow(separatorLine).map(cell => {
+    const left = cell.startsWith(":");
+    const right = cell.endsWith(":");
+    if (left && right) return "center";
+    if (right) return "right";
+    if (left) return "left";
+    return "";
+  });
+}
+
+// The one table renderer both surfaces (and the worker) share.
+export function renderTable(headerLine, separatorLine, bodyLines = [], renderCell = renderInline) {
+  const header = splitTableRow(headerLine);
+  const widths = tableAlignments(separatorLine);
+  const columns = Math.max(header.length, widths.length);
+  const cell = (tag, text, index) => {
+    const align = widths[index];
+    const style = align ? ` style="text-align:${align}"` : "";
+    return `<${tag}${style}>${renderCell(text)}</${tag}>`;
+  };
+  const head = `<thead><tr>${Array.from({ length: columns }, (_, index) => cell("th", header[index] || "", index)).join("")}</tr></thead>`;
+  const body = bodyLines.length
+    ? `<tbody>${bodyLines.map(row => {
+        const cells = splitTableRow(row);
+        const width = Math.max(columns, cells.length);
+        return `<tr>${Array.from({ length: width }, (_, index) => cell("td", cells[index] || "", index)).join("")}</tr>`;
+      }).join("")}</tbody>`
+    : "";
+  return `<div class="md-table"><table>${head}${body}</table></div>`;
+}
+
 // Faithful port of the dashboard's renderScratchpadMarkdown(): same grammar,
 // same output, including the data-md-line hooks that make preview checkboxes
 // tick the underlying `- [ ]` source line.
@@ -50,7 +108,8 @@ export function renderMarkdown(source) {
   const closeList = () => { if (listTag) { html += `</${listTag}>`; listTag = null; } };
   const openList = tag => { if (listTag !== tag) { closeList(); html += `<${tag}>`; listTag = tag; } };
 
-  lines.forEach((line, index) => {
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
     if (/^\s*```/.test(line)) {
       if (inCode) {
         html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`;
@@ -60,33 +119,46 @@ export function renderMarkdown(source) {
         closeList();
         inCode = true;
       }
-      return;
+      continue;
     }
-    if (inCode) { codeBuffer.push(line); return; }
-    if (!line.trim()) { closeList(); return; }
-    if (/^\s*(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) { closeList(); html += "<hr>"; return; }
+    if (inCode) { codeBuffer.push(line); continue; }
+    if (!line.trim()) { closeList(); continue; }
+    // A header row followed by a separator row is a table; keep eating rows while they stay piped.
+    if (/\|/.test(line) && isTableSeparator(lines[index + 1] || "")) {
+      closeList();
+      const body = [];
+      let lookahead = index + 2;
+      while (lookahead < lines.length && lines[lookahead].trim() && /\|/.test(lines[lookahead]) && !/^\s*```/.test(lines[lookahead])) {
+        body.push(lines[lookahead]);
+        lookahead += 1;
+      }
+      html += renderTable(line, lines[index + 1], body);
+      index = lookahead - 1;
+      continue;
+    }
+    if (/^\s*(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) { closeList(); html += "<hr>"; continue; }
     const heading = line.match(/^\s*(#{1,6})\s+(.*)$/);
     if (heading) {
       closeList();
       const level = Math.min(heading[1].length, 6);
       html += `<h${level}>${renderInline(heading[2])}</h${level}>`;
-      return;
+      continue;
     }
     const quote = line.match(/^\s*>\s?(.*)$/);
-    if (quote) { closeList(); html += `<blockquote>${renderInline(quote[1])}</blockquote>`; return; }
+    if (quote) { closeList(); html += `<blockquote>${renderInline(quote[1])}</blockquote>`; continue; }
     const task = line.match(/^\s*[-*+]\s+\[([ xX])\]\s*(.*)$/);
     if (task) {
       openList("ul");
       html += `<li class="md-task"><input type="checkbox" data-md-line="${index}" aria-label="Toggle task"${task[1].toLowerCase() === "x" ? " checked" : ""} /><span>${renderInline(task[2]) || "&nbsp;"}</span></li>`;
-      return;
+      continue;
     }
     const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
-    if (bullet) { openList("ul"); html += `<li>${renderInline(bullet[1])}</li>`; return; }
+    if (bullet) { openList("ul"); html += `<li>${renderInline(bullet[1])}</li>`; continue; }
     const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
-    if (numbered) { openList("ol"); html += `<li>${renderInline(numbered[1])}</li>`; return; }
+    if (numbered) { openList("ol"); html += `<li>${renderInline(numbered[1])}</li>`; continue; }
     closeList();
     html += `<p>${renderInline(line)}</p>`;
-  });
+  }
   if (inCode && codeBuffer.length) html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`;
   closeList();
   return html;

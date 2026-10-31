@@ -21,7 +21,9 @@ import {
   withLocalStorageMirror, MIRRORED_KEYS
 } from "../assets/notes-store.js";
 import {
-  GitHubAppClient, GH_KEYS, SCRATCH_REPO, pkcs1ToPkcs8, base64UrlFromText
+  GitHubAppClient, GH_KEYS, SCRATCH_REPO, pkcs1ToPkcs8, base64UrlFromText,
+  connectionFileFor, connectionFileText, connectionFileName,
+  parseConnectionInput, parsePrivateKey
 } from "../assets/github-app.js";
 import { SyncEngine } from "../assets/sync-engine.js";
 import { NoteManager, todayNoteFileName, NOTES_INDEX_KEY } from "../assets/notes-manager.js";
@@ -51,6 +53,58 @@ test("markdown: headings, bold and task lines keep stable line indices", () => {
   const taskMatch = html.match(/data-md-line="2"[^>]*\/>/);
   assert.ok(taskMatch, "first task is on source line 2");
   assert.ok(html.includes('data-md-line="3"') && html.includes("checked"));
+});
+
+test("markdown: pipe tables render with header, rows and alignment", () => {
+  const html = renderMarkdown([
+    "| Tool | Cost | Where |",
+    "| :--- | ---: | :-: |",
+    "| **Scratchpad** | free | here |",
+    "| Clipboard | free | here too |"
+  ].join("\n"));
+  assert.ok(html.includes('<div class="md-table"><table>'));
+  assert.ok(html.includes("<thead><tr>"));
+  assert.ok(html.includes('<th style="text-align:left">Tool</th>'));
+  assert.ok(html.includes('<th style="text-align:right">Cost</th>'));
+  assert.ok(html.includes('<th style="text-align:center">Where</th>'));
+  assert.ok(html.includes("<tbody>"));
+  assert.ok(html.includes("<strong>Scratchpad</strong>"), "cell content is decorated like any other inline text");
+  assert.equal((html.match(/<tr>/g) || []).length, 3, "one header row + two body rows");
+});
+
+test("markdown: table cells escape HTML and honour \\| and ragged rows", () => {
+  const html = renderMarkdown([
+    "| Note | Detail |",
+    "| --- | --- |",
+    "| <img src=x onerror=alert(1)> | a \\| b |",
+    "| only one cell"
+  ].join("\n"));
+  assert.ok(!html.includes("<img"), "pasted HTML never becomes an element");
+  assert.ok(html.includes("&lt;img src=x onerror=alert(1)&gt;"));
+  assert.ok(html.includes("<td>a | b</td>"), "an escaped pipe stays inside its cell");
+  assert.ok(html.includes("<td>only one cell</td><td></td>"), "short rows are padded, not dropped");
+});
+
+test("markdown: a header row without a separator stays a paragraph", () => {
+  const html = renderMarkdown("| just | text |\nno separator here");
+  assert.ok(!html.includes("md-table"));
+  assert.ok(html.includes("<p>| just | text |</p>"));
+});
+
+test("markdown: the dashboard dialog and the PWA render tables identically", () => {
+  // Two copies of the renderer exist (index.html inline, assets/markdown.js). Extract the inline one and
+  // compare bytes, so a table can never render differently depending on which surface you open.
+  const html = readFileSync(join(ROOT, "index.html"), "utf8");
+  const start = html.indexOf("function renderScratchpadMarkdown");
+  const end = html.indexOf("// ---- Scratchpad emoji picker", start);
+  const dialogRender = new Function(html.slice(start, end) + "; return renderScratchpadMarkdown;")();
+  const samples = [
+    "| A | B |\n| --- | --- |\n| 1 | 2 |",
+    "| A | B |\n|:--|--:|\n| `x` | **y** |\n| <b>z</b> | [l](https://example.com) |",
+    "before\n\n| one |\n| --- |\n| two |\n\nafter",
+    "# heading\n| a | b |\n| :-: | :-: |\n| 1 | 2 |"
+  ];
+  samples.forEach(sample => assert.equal(dialogRender(sample), renderMarkdown(sample), sample));
 });
 
 test("markdown: fenced code is escaped but not decorated", () => {
@@ -581,6 +635,132 @@ test("scratchpad page exposes the note switcher buttons", () => {
 
 test("service worker precaches the note manager and bumped its cache version", () => {
   const sw = readFileSync(join(ROOT, "sw.js"), "utf8");
-  assert.match(sw, /CACHE_VERSION = "dash-scratch-v2"/);
+  // The version itself moves every time a precached asset changes; what must not go backwards is
+  // that it is at least as new as the release that introduced the sheet UI, the ⋯ menu and tables.
+  const version = Number(/CACHE_VERSION = "dash-scratch-v(\d+)"/.exec(sw)?.[1]);
+  assert.ok(version >= 4, `sw.js CACHE_VERSION is dash-scratch-v${version}, expected v4 or later`);
   assert.match(sw, /"\.\/assets\/notes-manager\.js"/);
+});
+
+// ---- reconnect kit ---------------------------------------------------------------------
+// The app's private key lives only in one browser's storage at one address, so a new device,
+// browser or preview URL used to mean "Create GitHub App" again. A connection file (or the same
+// key re-downloaded from GitHub) is enough to adopt the existing app instead.
+
+const connectionApp = () => ({
+  app_id: 987654,
+  slug: "dash-notes-example",
+  name: "dash notes",
+  owner: "octocat",
+  pem: "-----BEGIN RSA PRIVATE KEY-----\nMIIBogIBAAJBAK\n-----END RSA PRIVATE KEY-----",
+  html_url: "https://github.com/apps/dash-notes-example",
+  installation_id: 424242,
+  installation_token: "ghs_should_not_be_exported",
+  connection_saved_at: 123
+});
+
+test("connection file: exports the key and identity, never cached tokens or shas", () => {
+  const file = connectionFileFor(connectionApp());
+  assert.equal(file.kind, "dash-github-connection");
+  assert.equal(file.version, 1);
+  assert.equal(file.app_id, 987654);
+  assert.equal(file.slug, "dash-notes-example");
+  assert.equal(file.owner, "octocat");
+  assert.match(file.pem, /BEGIN RSA PRIVATE KEY/);
+  assert.ok(!("installation_token" in file), "a cached installation token is short-lived and must not travel");
+  assert.ok(!("installation_id" in file), "the installation is re-discovered by the app, not carried in the file");
+  assert.ok(file.note && /password manager/i.test(file.note));
+  assert.equal(connectionFileName(connectionApp()), "dash-github-connection-dash-notes-example.json");
+  assert.equal(connectionFileName({ app_id: 5 }), "dash-github-connection-5.json");
+  // (exported_at is a fresh timestamp per call, so compare everything else)
+  const { exported_at: _ignored, ...fromText } = JSON.parse(connectionFileText(connectionApp()));
+  const { exported_at: _ignoredToo, ...fromObject } = file;
+  assert.deepEqual(fromText, fromObject);
+});
+
+test("connection file: parses back into an adoptable app", () => {
+  const parsed = parseConnectionInput(connectionFileText(connectionApp()));
+  assert.equal(parsed.app_id, 987654);
+  assert.equal(parsed.slug, "dash-notes-example");
+  assert.equal(parsed.owner, "octocat");
+  assert.match(parsed.pem, /BEGIN RSA PRIVATE KEY/);
+});
+
+test("connection file: accepts GitHub's own manifest-conversion JSON", () => {
+  const conversion = JSON.stringify({
+    id: 4321, slug: "my-notes", name: "dash notes", owner: { login: "octocat" },
+    pem: "-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----",
+    html_url: "https://github.com/apps/my-notes", client_secret: "shhh"
+  });
+  const parsed = parseConnectionInput(conversion);
+  assert.equal(parsed.app_id, 4321);
+  assert.equal(parsed.owner, "octocat");
+  assert.equal(parsed.html_url, "https://github.com/apps/my-notes");
+});
+
+test("connection file: a bare .pem works when the App ID is supplied separately", () => {
+  const pem = "-----BEGIN RSA PRIVATE KEY-----\nMIIBogIBAAJBAK\n-----END RSA PRIVATE KEY-----\n";
+  assert.equal(parseConnectionInput(pem, { appId: "777" }).app_id, 777);
+  // A pasted key body without its header is rebuilt rather than rejected.
+  const body = Buffer.alloc(120, 7).toString("base64");
+  assert.match(parsePrivateKey(body), /^-----BEGIN RSA PRIVATE KEY-----\n[\s\S]+\n-----END RSA PRIVATE KEY-----$/);
+  // Surrounding text (a whole settings page, say) still yields the key.
+  assert.match(parsePrivateKey(`App ID: 1\n${pem}`), /BEGIN RSA PRIVATE KEY/);
+});
+
+test("connection file: explains what is wrong instead of failing opaquely", () => {
+  assert.throws(() => parseConnectionInput(""), /connection file, or paste/i);
+  assert.throws(() => parseConnectionInput("not a key"), /doesn't look like a private key/i);
+  assert.throws(() => parseConnectionInput("-----BEGIN RSA PRIVATE KEY-----\nabc\n-----END RSA PRIVATE KEY-----"), /numeric ID/i);
+  assert.throws(() => parseConnectionInput("{oops", { appId: 1 }), /valid JSON/i);
+  assert.throws(() => parsePrivateKey("-----BEGIN ENCRYPTED PRIVATE KEY-----\nabc\n-----END ENCRYPTED PRIVATE KEY-----"), /passphrase/i);
+});
+
+test("adoptApp: GitHub confirms the pair, and its answer becomes the record", async () => {
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const pem = privateKey.export({ type: "pkcs1", format: "pem" }).toString();
+  const store = new MemoryStore();
+  const { fetchImpl, calls } = makeFakeFetch(() => jsonResponse({
+    id: 5150, slug: "recovered-app", name: "dash notes", owner: { login: "octocat" },
+    html_url: "https://github.com/apps/recovered-app"
+  }));
+  const gh = new GitHubAppClient(store, { fetchImpl });
+  const record = await gh.adoptApp({ app_id: 5150, pem });
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, "https://api.github.com/app");
+  const jwt = calls[0].options.headers.Authorization.replace("Bearer ", "");
+  const payload = JSON.parse(Buffer.from(jwt.split(".")[1], "base64url").toString());
+  assert.equal(payload.iss, "5150", "the JWT is signed as the app being adopted");
+
+  assert.equal(record.slug, "recovered-app");
+  assert.equal(record.owner, "octocat");
+  assert.equal(record.installation_id, null, "the installation is resolved afterwards");
+  assert.equal((await gh.readApp()).app_id, 5150);
+  assert.equal((await gh.connection()).kind, "app");
+  assert.equal((await gh.connection()).ready, false);
+});
+
+test("adoptApp: a wrong App ID fails without clobbering a working connection", async () => {
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  const pem = privateKey.export({ type: "pkcs1", format: "pem" }).toString();
+  const store = new MemoryStore();
+  await store.kvSet(GH_KEYS.app, JSON.stringify({ app_id: 1, pem: "existing", installation_id: 11 }));
+
+  const gh = new GitHubAppClient(store, { fetchImpl: () => jsonResponse({ message: "Bad credentials" }, 401) });
+  await assert.rejects(() => gh.adoptApp({ app_id: 2, pem }), /GitHub rejected that App ID \+ private key/);
+  assert.equal(JSON.parse(await store.kvGet(GH_KEYS.app)).app_id, 1, "the first app is untouched");
+
+  const missing = new GitHubAppClient(store, { fetchImpl: () => jsonResponse({ message: "Not Found" }, 404) });
+  await assert.rejects(() => missing.adoptApp({ app_id: 3, pem }), /may have been deleted/);
+});
+
+test("markConnectionSaved: remembers the key was downloaded", async () => {
+  const store = new MemoryStore();
+  const gh = new GitHubAppClient(store);
+  assert.equal(await gh.markConnectionSaved(), null);
+  await gh.writeApp({ app_id: 9, pem: "pem", installation_id: 3 });
+  const next = await gh.markConnectionSaved(1700000000000);
+  assert.equal(next.connection_saved_at, 1700000000000);
+  assert.equal((await gh.readApp()).connection_saved_at, 1700000000000);
 });

@@ -74,6 +74,12 @@ function makeWindow({ url = SITE, pending = null, storage = null, session = null
         set fillStyle(v) {}, set strokeStyle(v) {}, set lineWidth(v) {}, set globalAlpha(v) {}, set shadowBlur(v) {}, set shadowColor(v) {}
       });
       window.history.replaceState = (state, title, target) => { vcs.replacedUrl = target; };
+      // Downloading the connection file: jsdom has no Blob URLs and would try to navigate.
+      vcs.downloads = [];
+      vcs.blobs = [];
+      window.URL.createObjectURL = blob => { vcs.blobs.push(blob); return "blob:connection"; };
+      window.URL.revokeObjectURL = () => {};
+      window.HTMLAnchorElement.prototype.click = function click() { vcs.downloads.push({ name: this.download, href: this.href }); };
       if (pending) window.sessionStorage.setItem("dash-scratchpad-gh-app-pending-v2", JSON.stringify(pending));
       if (session) Object.entries(session).forEach(([k, v]) => window.sessionStorage.setItem(k, v));
       if (storage) Object.entries(storage).forEach(([k, v]) => window.localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)));
@@ -107,7 +113,7 @@ const ORG_INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "O
 const REPOS = { total_count: 2, repositories: [{ full_name: "octocat/notes" }, { full_name: "octocat/private-notes" }] };
 
 // A tiny stateful GitHub: manifest conversion, installations, installation tokens, repo creation, contents.
-function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false, listOmitsScratch = false, denyWrites = false, tokenMode = false } = {}) {
+function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false, listOmitsScratch = false, denyWrites = false, tokenMode = false, rejectKey = false, forgetApp = false } = {}) {
   const state = {
     conversions: 0, tokenMints: 0, puts: [], file: existing, lastJwt: null, lastInstallJwt: null, issuedTokens: [],
     createdRepos: [], createAttempts: 0, installationCalls: 0, lastRepoList: null
@@ -141,6 +147,18 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
     if (target.startsWith("https://api.github.com/app-manifests/")) {
       state.conversions += 1;
       return jsonRes({ id: 987654, slug: "dash-notes-example", name: "dash notes", owner: { login: "octocat" }, pem: appPem, html_url: "https://github.com/apps/dash-notes-example", client_id: "Iv1.abc", client_secret: "shhh", webhook_secret: null });
+    }
+    // GET /app — the reconnect kit's "is this App ID + key pair really yours?" check.
+    if (target === "https://api.github.com/app" && method === "GET") {
+      state.appLookups = (state.appLookups || 0) + 1;
+      state.lastAppJwt = options.headers?.Authorization?.replace("Bearer ", "");
+      if (rejectKey) return { ok: false, status: 401, json: async () => ({ message: "A JSON web token could not be decoded" }) };
+      if (forgetApp) return { ok: false, status: 404, json: async () => ({ message: "Not Found" }) };
+      const id = Number(JSON.parse(Buffer.from(String(state.lastAppJwt).split(".")[1], "base64").toString("utf8")).iss);
+      return jsonRes({
+        id, slug: "dash-notes-example", name: "dash notes", owner: { login: "octocat" },
+        html_url: "https://github.com/apps/dash-notes-example"
+      });
     }
     if (target.includes("/app/installations") && method === "GET") {
       state.lastJwt = options.headers?.Authorization?.replace("Bearer ", "");
@@ -601,7 +619,7 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   check("list rows wrap on phones so nothing overflows", /flex-wrap: wrap|grid-template-columns: 1fr/.test(phone));
   check("toolbar is a wrapping flex row", /\.md-toolbar \{[^}]*flex-wrap: wrap/.test(css) && d18.querySelector(".md-toolbar").children.length > 1);
   check("editor area is a flex pair", /\.scratch-editor \{[^}]*display: flex/.test(css));
-  check("every markdown tool is present", ["bold", "italic", "strike", "h1", "h2", "h3", "ul", "ol", "task", "hr", "quote"].every(tool => d18.querySelector(`.md-toolbar [data-md="${tool}"]`)), "");
+  check("every markdown tool is present", ["bold", "italic", "strike", "h1", "h2", "h3", "ul", "ol", "task", "hr", "quote", "table"].every(tool => d18.querySelector(`.md-toolbar [data-md="${tool}"]`)), "");
 
   console.log("\n[19] `scratch` is the default repo even when another one was used before");
   github = makeGithub({ reposWithScratch: true });
@@ -777,6 +795,219 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   check("the failure names the repo", /can't write to octocat\/scratch/.test(d25.getElementById("scratchpad-gh-file-status").textContent), d25.getElementById("scratchpad-gh-file-status").textContent);
   check("the header flags it", /Can't write/.test(d25.getElementById("scratchpad-filebar-state").textContent), d25.getElementById("scratchpad-filebar-state").textContent);
   check("help links to the installations page", /github\.com\/settings\/installations/.test(d25.getElementById("scratchpad-gh-repo-help").innerHTML), d25.getElementById("scratchpad-gh-repo-help").innerHTML.slice(0, 200));
+
+  console.log("\n[25] the reconnect kit: the key can be saved as a file instead of living only in this browser");
+  github = makeGithub();
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d26 = win.document;
+  check("an app connection offers the download", d26.getElementById("scratchpad-gh-export").hidden === false);
+  check("the keep-a-copy nudge is shown until one is saved", d26.getElementById("scratchpad-gh-keep").hidden === false);
+  d26.getElementById("scratchpad-gh-export").click();
+  await flush();
+  const download = win.__vc.downloads[0] || {};
+  check("downloads a named connection file", download.name === "dash-github-connection-dash-notes-example.json", JSON.stringify(download));
+  const savedConnection = JSON.parse(await win.__vc.blobs[0].text());
+  check("the file carries the kind, app id and key", savedConnection.kind === "dash-github-connection" && savedConnection.app_id === 987654 && /BEGIN RSA PRIVATE KEY/.test(savedConnection.pem),
+    JSON.stringify(Object.keys(savedConnection)));
+  check("the file carries no short-lived token", !("installation_token" in savedConnection));
+  check("the nudge retires once a copy exists", d26.getElementById("scratchpad-gh-keep").hidden === true);
+  check("the download is remembered", JSON.parse(win.localStorage.getItem("dash-scratchpad-gh-app-v2")).connection_saved_at > 0);
+  check("the status explains what the file is for", /password manager/i.test(d26.getElementById("scratchpad-gh-status").textContent), d26.getElementById("scratchpad-gh-status").textContent);
+
+  console.log("\n[26] a brand-new browser adopts that file — it never creates a second app");
+  github = makeGithub();
+  win = makeWindow({ fetchImpl: github.handle }); // no storage: exactly what a new device/origin looks like
+  await flush();
+  const d27 = win.document;
+  check("setup is offered on a first visit", d27.getElementById("scratchpad-gh-setup").hidden === false);
+  check("Reconnect explains where the pieces come from",
+    /Already have the app\?/.test(d27.getElementById("scratchpad-gh-restore").querySelector("summary").textContent) &&
+    /Generate a private key/.test(d27.getElementById("scratchpad-gh-restore").textContent) &&
+    /github\.com\/settings\/apps/.test(d27.getElementById("scratchpad-gh-restore").innerHTML));
+  check("the hint points at Reconnect instead of a new app", /no need to create a second one/i.test(d27.getElementById("scratchpad-gh-hint").textContent),
+    d27.getElementById("scratchpad-gh-hint").textContent);
+  check("nothing to download yet", d27.getElementById("scratchpad-gh-export").hidden === true);
+
+  const file = new win.File([JSON.stringify(savedConnection)], "dash-github-connection-dash-notes-example.json", { type: "application/json" });
+  const fileInput = d27.getElementById("scratchpad-gh-restore-file");
+  Object.defineProperty(fileInput, "files", { value: [file], configurable: true });
+  fileInput.dispatchEvent(new win.Event("change"));
+  await flush();
+  check("the file fills in the App ID", d27.getElementById("scratchpad-gh-restore-app-id").value === "987654", d27.getElementById("scratchpad-gh-restore-app-id").value);
+  check("the file fills in the key", /BEGIN RSA PRIVATE KEY/.test(d27.getElementById("scratchpad-gh-restore-pem").value));
+  d27.getElementById("scratchpad-gh-restore-go").click();
+  await flush(); await flush(); await flush();
+  const adopted = JSON.parse(win.localStorage.getItem("dash-scratchpad-gh-app-v2") || "null");
+  check("the existing app was adopted", adopted && adopted.app_id === 987654 && adopted.slug === "dash-notes-example",
+    JSON.stringify(adopted && { app_id: adopted.app_id, slug: adopted.slug }));
+  check("GitHub confirmed the pair with GET /app", github.state.appLookups === 1, String(github.state.appLookups));
+  check("that check was signed as the app being adopted", verifyAppJwt(github.state.lastAppJwt).ok && String(verifyAppJwt(github.state.lastAppJwt).payload.iss) === "987654");
+  check("its existing installation was found", adopted.installation_id === 424242, String(adopted.installation_id));
+  check("no app-creation form was submitted", win.__vc.submits.length === 0, JSON.stringify(win.__vc.submits));
+  check("the status says no new app was created", /no new GitHub App was created/.test(d27.getElementById("scratchpad-gh-status").textContent), d27.getElementById("scratchpad-gh-status").textContent);
+  check("saving controls are back", d27.getElementById("scratchpad-gh-target").hidden === false);
+  check("the key field is cleared after use", d27.getElementById("scratchpad-gh-restore-pem").value === "");
+  check("a copy is still worth saving after an import", d27.getElementById("scratchpad-gh-keep").hidden === false && d27.getElementById("scratchpad-gh-export").hidden === false);
+
+  console.log("\n[27] a key that doesn't match the App ID is refused, and nothing is overwritten");
+  github = makeGithub({ rejectKey: true });
+  win = makeWindow({ fetchImpl: github.handle });
+  await flush();
+  const d28 = win.document;
+  d28.getElementById("scratchpad-gh-restore-app-id").value = "999999";
+  d28.getElementById("scratchpad-gh-restore-pem").value = appPem;
+  d28.getElementById("scratchpad-gh-restore-go").click();
+  await flush(); await flush();
+  check("the mismatch is explained", /GitHub rejected that App ID \+ private key/.test(d28.getElementById("scratchpad-gh-restore-status").textContent),
+    d28.getElementById("scratchpad-gh-restore-status").textContent);
+  check("no app record was written", win.localStorage.getItem("dash-scratchpad-gh-app-v2") === null);
+  check("setup is still offered", d28.getElementById("scratchpad-gh-setup").hidden === false);
+
+  d28.getElementById("scratchpad-gh-restore-app-id").value = "";
+  d28.getElementById("scratchpad-gh-restore-pem").value = "not a key";
+  d28.getElementById("scratchpad-gh-restore-go").click();
+  await flush();
+  check("a junk paste is caught before any network call", /doesn't look like a private key/.test(d28.getElementById("scratchpad-gh-restore-status").textContent),
+    d28.getElementById("scratchpad-gh-restore-status").textContent);
+  check("only the mismatch attempt reached GitHub", github.state.appLookups === 1, String(github.state.appLookups));
+
+  console.log("\n[28] the table tool writes a table the preview renders as one");
+  win = makeWindow();
+  await flush();
+  const d29 = win.document;
+  const notes = d29.getElementById("scratchpad-text");
+  notes.value = "";
+  notes.setSelectionRange(0, 0);
+  const tableBtn = d29.querySelector('.md-toolbar [data-md="table"]');
+  check("a table button sits on the toolbar", Boolean(tableBtn));
+  tableBtn.click();
+  await flush();
+  check("it inserts a header, separator and body row",
+    /\| Column 1 \| Column 2 \| Column 3 \|/.test(notes.value) && /\| --- \| --- \| --- \|/.test(notes.value), notes.value);
+  check("the first heading is selected so typing replaces it",
+    notes.value.slice(notes.selectionStart, notes.selectionEnd) === "Column 1", String(notes.selectionEnd));
+  notes.value = "| Tool | Cost |\n| :--- | ---: |\n| Scratchpad | free |";
+  notes.dispatchEvent(new win.Event("input", { bubbles: true }));
+  d29.getElementById("scratchpad-preview-toggle").click();
+  await flush();
+  const tableHtml = d29.getElementById("scratchpad-preview").innerHTML;
+  check("the preview renders a real table", /<table>/.test(tableHtml) && /<thead>/.test(tableHtml) && /<tbody>/.test(tableHtml), tableHtml.slice(0, 160));
+  check("alignment comes from the separator row", /text-align:right/.test(tableHtml), tableHtml.slice(0, 240));
+
+  console.log("\n[29] the row of buttons is one ⋯ menu");
+  win = makeWindow();
+  await flush();
+  const d30 = win.document;
+  const menu = d30.getElementById("scratchpad-menu");
+  const menuBtn = d30.getElementById("scratchpad-menu-btn");
+  const actions = ["scratchpad-copy", "scratchpad-export-txt", "scratchpad-export-md", "scratchpad-save-file", "scratchpad-open-file", "scratchpad-clear"];
+  check("all six actions live in the menu", actions.every(id => {
+    const el = d30.getElementById(id);
+    return el && el.closest("#scratchpad-menu");
+  }), actions.filter(id => !d30.getElementById(id)?.closest("#scratchpad-menu")).join(","));
+  check("the menu is closed until asked", menu.hidden === true && menuBtn.getAttribute("aria-expanded") === "false");
+  menuBtn.click();
+  check("clicking More opens it", menu.hidden === false && menuBtn.getAttribute("aria-expanded") === "true");
+  const ta30 = d30.getElementById("scratchpad-text");
+  ta30.value = "something to export";
+  d30.getElementById("scratchpad-export-md").click();
+  await flush();
+  const mdDownload = win.__vc.downloads.find(entry => /\.md$/.test(entry.name || ""));
+  check("Export .md still downloads a markdown file", Boolean(mdDownload), JSON.stringify(win.__vc.downloads));
+  check("choosing an action closes the menu", menu.hidden === true);
+  ta30.dispatchEvent(new win.Event("input", { bubbles: true }));
+  await new Promise(r => setTimeout(r, 600));
+  d30.getElementById("scratchpad-menu-btn").click();
+  d30.getElementById("scratchpad-clear").click();
+  await flush();
+  check("Clear empties the notes", ta30.value === "" && win.localStorage.getItem("dash-scratchpad") === "");
+
+  console.log("\n[30] GitHub settings live in their own sheet, not a disclosure");
+  win = makeWindow();
+  await flush();
+  const d31 = win.document;
+  const sheet = d31.getElementById("modal-github-sync");
+  check("the pad has a GitHub sync launcher", Boolean(d31.getElementById("scratchpad-gh-open")));
+  check("every GitHub control moved into the sheet",
+    ["scratchpad-gh-repo", "scratchpad-gh-path", "scratchpad-gh-save", "scratchpad-gh-setup", "scratchpad-gh-export", "scratchpad-gh-restore"]
+      .every(id => d31.getElementById(id)?.closest("#modal-github-sync")),
+    "a control is still outside the sheet");
+  check("nothing GitHub-shaped is left in the notes pad",
+    !d31.querySelector("#scratchpad-inline-view #scratchpad-gh-repo"));
+  const tip = d31.querySelector("#scratchpad-inline-view .scratch-tip")?.textContent || "";
+  check("the pad explains tables, the sheet and the ⋯ menu in place",
+    /Table/.test(tip) && /GitHub sync/.test(tip) && /More/.test(tip), tip.slice(0, 120));
+  check("the sheet starts closed", sheet.open === false);
+  d31.getElementById("scratchpad-gh-open").click();
+  await flush();
+  check("the launcher opens it", sheet.open === true);
+  check("the launcher badge reports the state", d31.getElementById("scratchpad-gh-launch").textContent === "", d31.getElementById("scratchpad-gh-launch").textContent);
+
+  console.log("\n[31] files and folders can be created from the sheet");
+  github = makeGithub();
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d32 = win.document;
+  d32.getElementById("scratchpad-text").value = "journal entry for the new file";
+  d32.getElementById("scratchpad-gh-repo").value = "octocat/notes";
+  d32.getElementById("scratchpad-gh-new-path").value = "journal/2026-10-31";
+  d32.getElementById("scratchpad-gh-new-type").value = "md";
+  d32.getElementById("scratchpad-gh-create-file").click();
+  await flush(); await flush();
+  const created = github.state.puts[0];
+  check("creates the file at the typed path, with the type added", created && created.target === "https://api.github.com/repos/octocat/notes/contents/journal/2026-10-31.md", JSON.stringify(created && created.target));
+  check("the file holds the notes in the pad",
+    created && Buffer.from(created.body.content, "base64").toString("utf8") === "journal entry for the new file");
+  check("the folders in the path are created too", created && /journal\/2026-10-31\.md$/.test(created.target));
+  check("the pad retargets to the new file",
+    d32.getElementById("scratchpad-gh-path").value === "journal/2026-10-31.md" && win.localStorage.getItem("dash-scratchpad-gh-path") === "journal/2026-10-31.md",
+    d32.getElementById("scratchpad-gh-path").value);
+  check("its sha is remembered so the next save updates in place",
+    JSON.parse(win.localStorage.getItem("dash-scratchpad-gh-file-shas-v1") || "{}")["octocat/notes@default:journal/2026-10-31.md"] === "sha-1");
+  check("the status says where it went", /Created octocat\/notes\/journal\/2026-10-31\.md/.test(d32.getElementById("scratchpad-gh-status").textContent),
+    d32.getElementById("scratchpad-gh-status").textContent);
+
+  // A fresh stub for the folder: the shared one remembers the file it just wrote, and GitHub would (correctly)
+  // report that as `.gitkeep` already existing.
+  github = makeGithub();
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d32b = win.document;
+  d32b.getElementById("scratchpad-gh-repo").value = "octocat/notes";
+  d32b.getElementById("scratchpad-gh-new-folder").value = "archive/2026/10";
+  d32b.getElementById("scratchpad-gh-create-folder").click();
+  await flush(); await flush();
+  const folder = github.state.puts[0];
+  check("a folder is created with a .gitkeep", folder && folder.target === "https://api.github.com/repos/octocat/notes/contents/archive/2026/10/.gitkeep", JSON.stringify(folder && folder.target));
+  check("the .gitkeep is empty and says what it is", folder && folder.body.content === "" && /Create archive\/2026\/10\/\.gitkeep/.test(folder.body.message || ""));
+  check("the status explains the .gitkeep", /gitkeep/.test(d32b.getElementById("scratchpad-gh-status").textContent), d32b.getElementById("scratchpad-gh-status").textContent);
+  check("the folder field is cleared, ready for another", d32b.getElementById("scratchpad-gh-new-folder").value === "");
+
+  github = makeGithub({ existing: { type: "file", sha: "existing-sha", content: Buffer.from("already here").toString("base64") } });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d33 = win.document;
+  d33.getElementById("scratchpad-gh-repo").value = "octocat/notes";
+  d33.getElementById("scratchpad-gh-new-path").value = "notes/taken.md";
+  d33.getElementById("scratchpad-gh-create-file").click();
+  await flush(); await flush();
+  check("an existing file is never clobbered", github.state.puts.length === 0, JSON.stringify(github.state.puts));
+  check("the refusal names the file", /already has notes\/taken\.md/.test(d33.getElementById("scratchpad-gh-status").textContent),
+    d33.getElementById("scratchpad-gh-status").textContent);
+
+  d33.getElementById("scratchpad-gh-new-path").value = "";
+  d33.getElementById("scratchpad-gh-create-file").click();
+  await flush();
+  check("an empty path is caught before any request", /Type a path for the new file/.test(d33.getElementById("scratchpad-gh-status").textContent),
+    d33.getElementById("scratchpad-gh-status").textContent);
+
+  console.log("\n[32] the filebar carries the day, date and time");
+  win = makeWindow();
+  await flush();
+  const clock = win.document.getElementById("scratchpad-clock");
+  check("a clock is rendered", Boolean(clock) && clock.textContent.length > 6, clock && clock.textContent);
+  check("it reads as a weekday plus a time", /[A-Za-z]/.test(clock.textContent) && /\d/.test(clock.textContent), clock.textContent);
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

@@ -12,7 +12,7 @@
 import { datedFileName } from "./markdown.js";
 import { createEditor } from "./editor.js";
 import { openStore, migrateLegacyStorage, withLocalStorageMirror, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
-import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO } from "./github-app.js";
+import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO, connectionFileText, connectionFileName, parseConnectionInput, parsePrivateKey } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
 import { NoteManager, todayNoteFileName } from "./notes-manager.js";
 import { setupPwaInstall } from "./pwa-install.js";
@@ -174,7 +174,20 @@ async function main() {
   });
 
   // ---- GitHub sync --------------------------------------------------------------------
+  // The GitHub settings live in their own sheet now (a native <dialog>), opened
+  // from the ⚙ GitHub sync button instead of a disclosure.
   const panel = $("scratchpad-gh-panel");
+  const ghOpenBtn = $("scratchpad-gh-open");
+  const ghCloseBtn = $("scratchpad-gh-close");
+  const ghLaunchBadge = $("scratchpad-gh-launch");
+  const menuBtn = $("scratchpad-menu-btn");
+  const actionMenu = $("scratchpad-menu");
+  const clockEl = $("scratchpad-clock");
+  const newPathInput = $("scratchpad-gh-new-path");
+  const newTypeSelect = $("scratchpad-gh-new-type");
+  const createFileBtn = $("scratchpad-gh-create-file");
+  const newFolderInput = $("scratchpad-gh-new-folder");
+  const createFolderBtn = $("scratchpad-gh-create-folder");
   const setupBtn = $("scratchpad-gh-setup");
   const installBtn = $("scratchpad-gh-install");
   const checkBtn = $("scratchpad-gh-check");
@@ -195,6 +208,13 @@ async function main() {
   const newFileBtn = $("scratchpad-gh-new-file");
   const scratchBtn = $("scratchpad-gh-scratch");
   const repoHelp = $("scratchpad-gh-repo-help");
+  const exportBtn = $("scratchpad-gh-export");
+  const keepNote = $("scratchpad-gh-keep");
+  const restoreDetails = $("scratchpad-gh-restore");
+  const restoreFileInput = $("scratchpad-gh-restore-file");
+  const restoreAppIdInput = $("scratchpad-gh-restore-app-id");
+  const restorePemInput = $("scratchpad-gh-restore-pem");
+  const restoreGoBtn = $("scratchpad-gh-restore-go");
   const filebarRepo = $("scratchpad-filebar-repo");
   const filebarSep = $("scratchpad-filebar-sep");
   const filebarFile = $("scratchpad-filebar-file");
@@ -209,6 +229,19 @@ async function main() {
 
   const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
   const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
+  const setRestoreStatus = (message, tone) => setStatus("scratchpad-gh-restore-status", message, tone);
+  // A dialog needs showModal() to land in the top layer; the attribute fallback
+  // keeps locked-down browsers and jsdom usable.
+  function openGhModal() {
+    if (!panel || panel.open) return;
+    if (typeof panel.showModal === "function") panel.showModal();
+    else panel.setAttribute("open", "");
+  }
+  const ghModalOpen = () => Boolean(panel && (panel.open || panel.hasAttribute("open")));
+
+  // Text of the file picked in the Reconnect panel, kept so the App ID field can
+  // stay optional when the file already carries it.
+  let restoreFileText = "";
 
   function setBarState(text, tone = "") {
     barState = { text, tone };
@@ -261,6 +294,17 @@ async function main() {
     tokenClearBtn.hidden = connection.kind !== "token";
     target.hidden = !connection.ready;
     scratchBtn.hidden = !connection.ready;
+    // The reconnect kit: saving a copy is only meaningful for an app connection,
+    // and the nudge disappears once one has been downloaded.
+    if (exportBtn) exportBtn.hidden = connection.kind !== "app";
+    if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
+    // The launcher carries the connection state, so the pad itself stays clean.
+    if (ghLaunchBadge) {
+      ghLaunchBadge.textContent = connection.kind === "app"
+        ? (connection.installationId ? "connected" : "install")
+        : connection.kind === "token" ? "token" : "";
+      ghLaunchBadge.classList.toggle("is-connected", connection.kind === "app" && Boolean(connection.installationId));
+    }
 
     if (connection.kind === "app") {
       accountBadge.textContent = connection.installationId
@@ -279,7 +323,7 @@ async function main() {
       if (!secure) {
         hint.textContent = "GitHub can only redirect back to a page served over http(s) — open the live PWA (or a local server) to set up saving. Meanwhile you can paste a token under Advanced.";
       } else if (connection.kind === "none") {
-        hint.textContent = "Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. The app renews its own short-lived credentials from then on.";
+        hint.textContent = "First visit here? Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. Already made that app on another browser or address? Use Reconnect below — there's no need to create a second one.";
       } else if (connection.kind === "app" && !connection.installationId) {
         hint.textContent = "Last step: choose which repositories the app may write to. GitHub then sends you back here automatically.";
       } else {
@@ -444,7 +488,7 @@ async function main() {
 
   async function saveNotes({ forced = false, auto = false } = {}) {
     if (engine.saving) return;
-    if (!targetIsValid()) { panel.open = true; return; }
+    if (!targetIsValid()) { openGhModal(); return; }
     const repo = repoSelect.value;
     const path = normalizePath(pathInput.value);
     const branch = branchInput.value.trim();
@@ -455,7 +499,7 @@ async function main() {
       const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       switch (result.status) {
         case "disconnected":
-          panel.open = true;
+          openGhModal();
           setFileStatus("Connect GitHub first.", "error");
           break;
         case "invalid-target":
@@ -513,7 +557,7 @@ async function main() {
     try {
       setFileStatus("Fetching the latest notes from GitHub…");
       const result = await engine.pull({ repo, path, branch: branchInput.value.trim() });
-      if (result.status === "disconnected") { panel.open = true; setFileStatus("Connect GitHub first.", "error"); return; }
+      if (result.status === "disconnected") { openGhModal(); setFileStatus("Connect GitHub first.", "error"); return; }
       if (result.status === "invalid-target") { setFileStatus("Choose a repository and file path first.", "error"); return; }
       if (result.status === "missing") {
         engine.conflictPaused = false;
@@ -600,7 +644,7 @@ async function main() {
     try { window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.hash}`); } catch (error) {}
     try { sessionStorage.removeItem(GH_KEYS.pending); } catch (error) {}
 
-    panel.open = true;
+    openGhModal();
     setGhStatus("Registering your GitHub app…");
     try {
       await gh.exchangeManifestCode(code);
@@ -614,21 +658,23 @@ async function main() {
     return true;
   }
 
-  async function resolveInstallation(installationIdHint = null, { quiet = false } = {}) {
+  // `lead` tucks a caller's sentence in front of the outcome — the reconnect kit uses
+  // it to say "no new app was created" even once the repository list has loaded.
+  async function resolveInstallation(installationIdHint = null, { quiet = false, lead = "" } = {}) {
     try {
       if (!quiet) setGhStatus("Checking which repository you installed the app on…");
       const match = await gh.resolveInstallation(installationIdHint);
       if (!match) return;
       reposLoaded = false;
       await render();
-      if (!quiet) setGhStatus(`Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
+      if (!quiet) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
     } catch (error) {
       if (error.code === "NO_INSTALLATION") {
         await render();
-        setGhStatus("The app isn't installed on any repository yet — click Install on a repository.", "error");
+        setGhStatus(`${lead}The app isn't installed on any repository yet — click Install on a repository.`, "error");
       } else {
         await render();
-        setGhStatus(`Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
+        setGhStatus(`${lead}Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
       }
     }
   }
@@ -652,8 +698,87 @@ async function main() {
     engine.conflictPaused = false;
     showOverwrite(false);
     await render();
-    setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone.", "success");
+    setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone, or drop its connection file back into Reconnect to use it again.", "success");
     setFileStatus("");
+  });
+
+  // ---- reconnect kit: save a copy of the key, drop it back in anywhere ----------
+  // The app's private key is the credential and it lives only in this browser's
+  // storage at this address. Downloading it once means a new device, browser or
+  // preview link can adopt the same app instead of registering another one.
+  async function downloadConnectionFile() {
+    const app = await gh.readApp();
+    if (!app) { setGhStatus("Nothing to download yet — set up GitHub saving first.", "error"); return; }
+    try {
+      const name = connectionFileName(app);
+      const url = URL.createObjectURL(new Blob([connectionFileText(app)], { type: "application/json" }));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = name;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+      await gh.markConnectionSaved();
+      await render();
+      setGhStatus(`Saved ${name}. Keep it in your password manager: choosing it under “Already have the app? Reconnect” restores saving on any browser or address, with no new app to create.`, "success");
+    } catch (error) {
+      setGhStatus(error.message, "error");
+    }
+  }
+  exportBtn?.addEventListener("click", downloadConnectionFile);
+
+  // Picking a connection file only fills the fields in; the Reconnect button is
+  // what actually verifies the key with GitHub.
+  restoreFileInput?.addEventListener("change", async () => {
+    const file = restoreFileInput.files && restoreFileInput.files[0];
+    if (!file) return;
+    try {
+      restoreFileText = await file.text();
+      // A bare .pem carries the key but not the App ID, so fill in whatever the file has and let the
+      // field supply the rest.
+      const parsed = restoreFileText.trim().startsWith("{")
+        ? parseConnectionInput(restoreFileText, { appId: restoreAppIdInput.value })
+        : { app_id: null, pem: parsePrivateKey(restoreFileText), slug: "" };
+      if (parsed.app_id) restoreAppIdInput.value = String(parsed.app_id);
+      restorePemInput.value = parsed.pem;
+      setRestoreStatus(restoreAppIdInput.value.trim()
+        ? `Loaded ${file.name}${parsed.slug ? ` (${parsed.slug})` : ""} — click Reconnect with this app.`
+        : `Loaded ${file.name}. Add the app's App ID (top of its settings page), then click Reconnect with this app.`, "success");
+    } catch (error) {
+      restoreFileText = "";
+      setRestoreStatus(`${file.name}: ${error.message}`, "error");
+    }
+  });
+
+  restoreGoBtn?.addEventListener("click", async () => {
+    let input;
+    try {
+      const source = restorePemInput.value.trim() || restoreFileText;
+      if (!source) throw new Error("Choose the connection file, or paste the app's private key.");
+      input = parseConnectionInput(source, { appId: restoreAppIdInput.value });
+    } catch (error) {
+      setRestoreStatus(error.message, "error");
+      return;
+    }
+    setRestoreStatus("Asking GitHub to confirm that App ID and key…");
+    restoreGoBtn.disabled = true;
+    try {
+      const app = await gh.adoptApp(input);
+      if (restoreDetails) restoreDetails.open = false;
+      restorePemInput.value = "";
+      restoreFileText = "";
+      reposLoaded = false;
+      scratchAttempted = false;
+      await render();
+      const lead = `Reconnected the existing app${app.slug ? ` (${app.slug})` : ""} — no new GitHub App was created. `;
+      await resolveInstallation(null, { lead });
+    } catch (error) {
+      setRestoreStatus(error.message, "error");
+      await render();
+    } finally {
+      restoreGoBtn.disabled = false;
+    }
   });
 
   saveBtn.addEventListener("click", () => saveNotes());
@@ -753,6 +878,131 @@ async function main() {
   });
   window.addEventListener("appinstalled", refreshOutboxBadge);
 
+  // ---- the ⚙ sheet and the ⋯ menu -----------------------------------------------------
+  // Everything that used to hide behind a disclosure arrow now has a real surface, and the
+  // row of buttons collapsed into one menu.
+  ghOpenBtn?.addEventListener("click", openGhModal);
+  ghCloseBtn?.addEventListener("click", () => panel?.close?.());
+  panel?.addEventListener("click", event => { if (event.target === panel) panel.close?.(); });
+
+  function closeMenu() {
+    if (!actionMenu || actionMenu.hidden) return;
+    actionMenu.hidden = true;
+    menuBtn?.setAttribute("aria-expanded", "false");
+  }
+  // Fixed-position and measured, so the menu is never clipped by a scrolling card.
+  function positionMenu() {
+    if (!actionMenu || !menuBtn) return;
+    const rect = menuBtn.getBoundingClientRect();
+    const width = actionMenu.offsetWidth || 208;
+    const height = actionMenu.offsetHeight || 224;
+    const left = Math.min(Math.max(8, rect.right - width), Math.max(8, window.innerWidth - width - 8));
+    const above = rect.top - height - 6;
+    const top = above >= 8 ? above : Math.min(rect.bottom + 6, Math.max(8, window.innerHeight - height - 8));
+    actionMenu.style.left = `${left}px`;
+    actionMenu.style.top = `${top}px`;
+  }
+  function toggleMenu() {
+    if (!actionMenu) return;
+    const next = actionMenu.hidden;
+    actionMenu.hidden = !next;
+    menuBtn?.setAttribute("aria-expanded", String(next));
+    if (next) { positionMenu(); actionMenu.querySelector("button:not([hidden])")?.focus(); }
+  }
+  window.addEventListener("resize", closeMenu);
+  window.addEventListener("scroll", closeMenu, true);
+  menuBtn?.addEventListener("click", event => { event.stopPropagation(); toggleMenu(); });
+  actionMenu?.addEventListener("click", event => { if (event.target.closest("button")) closeMenu(); });
+  document.addEventListener("click", event => {
+    if (!actionMenu || actionMenu.hidden) return;
+    if (event.target.closest("#scratchpad-menu, #scratchpad-menu-btn")) return;
+    closeMenu();
+  });
+  document.addEventListener("keydown", event => { if (event.key === "Escape") closeMenu(); });
+
+  // ---- day, date and time -------------------------------------------------------------
+  // A quietly ticking stamp: the day and date, then the time, in the visitor's locale.
+  function paintClock() {
+    if (!clockEl) return;
+    const now = new Date();
+    const day = now.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+    const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    clockEl.textContent = `${day} · ${time}`;
+    clockEl.title = now.toLocaleString();
+  }
+  paintClock();
+  setInterval(paintClock, 15000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") paintClock(); });
+
+  // ---- creating files and folders in the repository -------------------------------------
+  // GitHub has no "mkdir": a folder exists because a file inside it does. So a folder is
+  // created with a `.gitkeep`, and a path with slashes creates the directories on the way.
+  const HAS_EXTENSION = /\.[a-z0-9]{1,8}$/i;
+
+  function pathWithExtension(value, extension) {
+    const path = normalizePath(value);
+    if (!path) return "";
+    if (!extension || HAS_EXTENSION.test(path.split("/").pop())) return path;
+    return `${path}.${extension}`;
+  }
+
+  async function createRepoPath({ path, content, folder = false }) {
+    const connection = await gh.connection();
+    if (!connection.ready) { openGhModal(); setGhStatus("Connect GitHub first — the ⚙ GitHub sync button sets it up.", "error"); return; }
+    const repo = repoSelect.value;
+    if (!repo) { setGhStatus("Pick a repository first.", "error"); return; }
+    const branch = branchInput.value.trim();
+    setGhStatus(folder ? `Creating the folder “${path}”…` : `Creating “${path}”…`);
+    try {
+      const existing = await gh.readRepoFile(repo, path, branch);
+      if (existing) {
+        setGhStatus(`${repo} already has ${path} — put that path in File path to switch to it.`, "error");
+        return;
+      }
+      const result = await engine.saveNote({ repo, path, branch, content, forced: true });
+      if (result.status === "queued") {
+        setGhStatus(`Offline: ${path} is queued and will be created as soon as the connection is back.`);
+        return;
+      }
+      if (result.status !== "created") {
+        setGhStatus(result.reason || result.error?.message || `GitHub didn't create ${path}.`, "error");
+        return;
+      }
+      if (folder) {
+        setGhStatus(`Created the folder “${path}” in ${repo} — a .gitkeep file is what keeps an empty folder in git.`, "success");
+        return;
+      }
+      // A new note file becomes this pad's target, so what you type next lands there.
+      pathInput.value = path;
+      await store.kvSet(GH_KEYS.path, path);
+      notes.current.path = path;
+      await store.putNote(notes.current);
+      if (noteCurrentLabel) noteCurrentLabel.textContent = path;
+      engine.conflictPaused = false;
+      showOverwrite(false);
+      paintFileBar();
+      setGhStatus(`Created ${repo}/${path} with the notes in this pad — it now saves there.`, "success");
+      setFileStatus(`Created ${path}.`);
+    } catch (error) {
+      setGhStatus(error.message, "error");
+    }
+  }
+
+  createFileBtn?.addEventListener("click", () => {
+    const path = pathWithExtension(newPathInput.value, newTypeSelect?.value ?? "md");
+    if (!path) { setGhStatus("Type a path for the new file — notes/2026-10-31.md, for example.", "error"); newPathInput?.focus(); return; }
+    createRepoPath({ path, content: textarea.value });
+  });
+  createFolderBtn?.addEventListener("click", () => {
+    const path = normalizePath(newFolderInput.value);
+    if (!path) { setGhStatus("Type a folder path — notes/2026-10, for example.", "error"); newFolderInput?.focus(); return; }
+    createRepoPath({ path: `${path}/.gitkeep`, content: "", folder: true }).then(() => {
+      newFolderInput.value = "";
+    });
+  });
+  newPathInput?.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); createFileBtn?.click(); } });
+  newFolderInput?.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); createFolderBtn?.click(); } });
+
   // ---- launch-time URL handoff (manifest callback / install return) -------------------
   (async () => {
     const handled = await handleManifestCallback();
@@ -764,14 +1014,14 @@ async function main() {
       if (setupAction || installationId) {
         try { window.history.replaceState({}, document.title, `${here.origin}${here.pathname}${here.hash}`); } catch (error) {}
         try { sessionStorage.removeItem(GH_KEYS.pending); } catch (error) {}
-        panel.open = true;
+        openGhModal();
         await resolveInstallation(installationId);
         return;
       }
       const pending = JSON.parse(sessionStorage.getItem(GH_KEYS.pending) || "null");
       if (pending?.state === "install") {
         try { sessionStorage.removeItem(GH_KEYS.pending); } catch (error) {}
-        panel.open = true;
+        openGhModal();
         await resolveInstallation();
         return;
       }

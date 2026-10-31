@@ -4,9 +4,9 @@
   "private": true,
   "description": "Personal AI-tool dashboard and the offline Scratchpad PWA.",
   "scripts": {
-    "test": "node --test tests/scratchpad-pwa.test.mjs tests/dashboard-scratchpad-card.test.mjs && node docs/clipboard-history.test.js && node docs/favorites-scratchpad.test.js && node docs/personal-agents-bookmarklet.test.js && node docs/scratchpad-github-sync.test.js",
+    "test": "node --test tests/scratchpad-pwa.test.mjs tests/dashboard-scratchpad-card.test.mjs && node docs/clipboard-history.test.js && node docs/favorites-scratchpad.test.js && node docs/personal-agents-bookmarklet.test.js && node docs/scratchpad-github-sync.test.js && node docs/scratchpad-pwa-reconnect.test.js",
     "test:pwa": "node --test tests/scratchpad-pwa.test.mjs",
-    "test:dashboard": "node docs/clipboard-history.test.js && node docs/favorites-scratchpad.test.js && node docs/personal-agents-bookmarklet.test.js && node docs/scratchpad-github-sync.test.js",
+    "test:dashboard": "node docs/clipboard-history.test.js && node docs/favorites-scratchpad.test.js && node docs/personal-agents-bookmarklet.test.js && node docs/scratchpad-github-sync.test.js && node docs/scratchpad-pwa-reconnect.test.js",
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "devDependencies": {

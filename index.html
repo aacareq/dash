@@ -409,18 +409,15 @@
     .md-preview a { color: var(--accent); }
     .md-preview del { color: var(--text-muted); }
     /* Scratchpad → GitHub sync: a collapsed panel so the plain local notes pad stays the default experience. */
-    .gh-sync { border: 1px solid var(--border); border-radius: 10px; padding: .7rem .9rem; background: var(--bg); }
-    .gh-sync > summary { cursor: pointer; font-size: .85rem; font-weight: 750; color: var(--text); }
-    .gh-sync > summary::marker { color: var(--accent); }
-    .gh-sync-body { display: flex; flex-direction: column; gap: .6rem; margin-top: .8rem; }
+    .gh-sync-body { display: flex; flex-direction: column; gap: .6rem; }
     .gh-sync-body .token-row { align-items: flex-end; flex-wrap: wrap; }
     .gh-sync-badge { font-size: .78rem; font-weight: 700; color: var(--text-muted); }
     .gh-sync-badge.is-connected { color: #34d399; }
     .gh-sync-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .6rem; }
     .checkbox-row { display: flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 650; color: var(--text-muted); }
     .checkbox-row input { accent-color: var(--accent); }
-    .gh-sync .modal-actions { margin-top: 0; flex-wrap: wrap; justify-content: flex-start; }
-    .gh-sync .form-input[readonly] { color: var(--text-muted); font-size: .8rem; }
+    .gh-sync-body .modal-actions { margin-top: 0; flex-wrap: wrap; justify-content: flex-start; }
+    .gh-sync-body .form-input[readonly] { color: var(--text-muted); font-size: .8rem; }
     .gh-sync-advanced { border-top: 1px dashed var(--border); padding-top: .7rem; margin-top: .2rem; }
     .gh-sync-advanced > summary { cursor: pointer; font-size: .8rem; font-weight: 700; color: var(--text-muted); }
     .gh-sync-advanced[open] > summary { color: var(--text); }
@@ -434,6 +431,83 @@
       border: 1px dashed var(--border); border-radius: 8px; padding: .55rem .7rem;
     }
     .gh-sync-repo-help a { color: var(--accent); }
+    /* Reconnect kit: the "keep a copy of this key" nudge, and the numbered recovery steps. */
+    .gh-keep { border: 1px dashed var(--accent); border-radius: 8px; padding: .55rem .7rem; }
+    .gh-keep[hidden] { display: none; }
+    .gh-restore-steps { margin: 0 0 .2rem; padding-left: 1.15rem; font-size: .8rem; line-height: 1.55; color: var(--text-muted); }
+    .gh-restore-steps a { color: var(--accent); }
+    .gh-restore-steps li + li { margin-top: .3rem; }
+    .gh-sync-body input[type="file"] { padding: .35rem; font-size: .78rem; }
+
+    /* ---- premium chrome: themed scrollbars, the clock, the ⋯ menu, the GitHub sheet ------------- */
+    * { scrollbar-width: thin; scrollbar-color: rgba(129, 140, 248, .65) transparent; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, var(--accent), #4f46e5);
+      border-radius: 99px; border: 2px solid transparent; background-clip: padding-box;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #a5b4fc, var(--accent)); border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-corner { background: transparent; }
+
+    .scratch-clock {
+      margin-left: .5rem; padding: .12rem .5rem; border-radius: 99px; white-space: nowrap;
+      font-size: .72rem; font-weight: 750; letter-spacing: .01em; color: var(--accent);
+      background: var(--tag-bg); border: 1px solid var(--border);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .scratch-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .scratch-tip {
+      margin: .55rem 0 0;
+      padding: .5rem .7rem .5rem .8rem;
+      border-left: 3px solid transparent;
+      border-image: linear-gradient(180deg, var(--accent), #a855f7) 1;
+      background: linear-gradient(90deg, rgba(99, 102, 241, .10), rgba(168, 85, 247, .04));
+      border-radius: 0 8px 8px 0;
+      color: var(--text-muted);
+      font-size: .76rem;
+      line-height: 1.55;
+    }
+    .scratch-tip strong { color: var(--text); font-weight: 600; }
+    .scratch-tip code {
+      background: var(--tag-bg); padding: .05rem .28rem; border-radius: 5px;
+      font-size: .72rem; color: var(--text);
+    }
+    .scratch-gh-launch { display: inline-flex; align-items: center; gap: .4rem; }
+    .scratch-gh-launch .gh-sync-badge { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .scratch-gh-launch .gh-sync-badge.is-connected { color: #052e1b; background: var(--success); border-radius: 99px; padding: .05rem .4rem; }
+    .scratch-menu-wrap { position: relative; margin-left: auto; }
+    .scratch-menu {
+      position: fixed; z-index: 60; min-width: 12.5rem;
+      display: flex; flex-direction: column; gap: .1rem; padding: .35rem;
+      background: var(--sidebar-bg); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .5);
+    }
+    .scratch-menu[hidden] { display: none; }
+    .scratch-menu button {
+      display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left;
+      background: transparent; border: 0; border-radius: 8px; padding: .5rem .6rem;
+      color: var(--text); font-size: .84rem; font-weight: 650; cursor: pointer;
+    }
+    .scratch-menu button:hover, .scratch-menu button:focus-visible { background: var(--card-hover); outline: none; }
+    .scratch-menu button.is-danger { color: var(--danger); }
+
+    /* GitHub settings sheet + the new file/folder tools */
+    #modal-github-sync .modal-card { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
+    .gh-create { display: flex; flex-direction: column; gap: .5rem; border-top: 1px dashed var(--border); padding-top: .6rem; }
+    .gh-create-row { display: flex; gap: .5rem; }
+    .gh-create .path-row .form-input { min-width: 0; }
+    .gh-create select.form-input { flex: 0 0 auto; width: auto; padding-right: .4rem; }
+    #scratchpad-gh-create-hint { font-size: .74rem; }
+    .md-table { overflow-x: auto; margin: .6rem 0; border-radius: 10px; border: 1px solid var(--border); }
+    .md-preview table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+    .md-preview th, .md-preview td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: .4rem .6rem; text-align: left; vertical-align: top; }
+    .md-preview th:last-child, .md-preview td:last-child { border-right: 0; }
+    .md-preview tbody tr:last-child td { border-bottom: 0; }
+    .md-preview thead th { background: var(--tag-bg); font-weight: 750; color: var(--text); white-space: nowrap; }
+    .md-preview tbody tr:nth-child(even) { background: rgba(255, 255, 255, .022); }
+
     /* The scratchpad is the tallest modal once the GitHub panel is expanded — let it scroll inside the viewport. */
     #modal-scratchpad .modal-card { max-height: 88vh; max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
 
@@ -459,12 +533,12 @@
       .scratch-editor > textarea#scratchpad-text { min-height: 26dvh; }
       .md-preview { min-height: 20dvh; max-height: 34dvh; }
       .gh-sync-details { grid-template-columns: 1fr; }
-      .gh-sync { padding: .65rem .75rem; }
-      .gh-sync .modal-actions { gap: .4rem; }
-      .gh-sync .modal-actions .modal-btn { flex: 1 1 45%; }
+      .gh-sync-body .modal-actions { gap: .4rem; }
+      .gh-sync-body .modal-actions .modal-btn { flex: 1 1 45%; }
       #modal-scratchpad .modal-actions .modal-btn { flex: 1 1 30%; }
       .path-row { flex-wrap: wrap; }
       .path-row .modal-btn { flex: 1 1 auto; }
+      .gh-create-row .path-row { flex-wrap: wrap; }
       .news-tabs { gap: .35rem; }
       .emoji-popover { position: fixed; inset-inline: .6rem; right: auto; left: .6rem; width: auto; top: auto; bottom: .6rem;
         padding-bottom: max(.6rem, env(safe-area-inset-bottom)); }
@@ -922,6 +996,7 @@
           <div class="md-toolbar-group" role="group" aria-label="Insert">
             <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
             <button type="button" class="md-btn" data-md="hr" title="Divider" aria-label="Horizontal divider">― Divider</button>
+            <button type="button" class="md-btn" data-md="table" title="Insert a markdown table (header row + as many rows as you need)" aria-label="Insert table">▦ Table</button>
             <span class="emoji-anchor">
               <button type="button" class="md-btn" id="scratchpad-emoji-btn" aria-haspopup="dialog" aria-expanded="false"
                       aria-controls="scratchpad-emoji-picker" title="Add an emoji" aria-label="Add an emoji">😊 Emoji</button>
@@ -944,39 +1019,94 @@
           <span class="scratch-filebar-sep" id="scratchpad-filebar-sep" hidden>/</span>
           <span class="scratch-filebar-file" id="scratchpad-filebar-file">—</span>
           <span class="scratch-filebar-state" id="scratchpad-filebar-state" role="status" aria-live="polite">Saved locally</span>
+          <span class="scratch-clock" id="scratchpad-clock" role="timer" aria-live="off" title="Right now">—</span>
         </div>
         <div class="scratch-editor" id="scratchpad-editor">
           <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="14" placeholder="Jot anything here… it autosaves to this browser. Markdown works — use the buttons above or just type." aria-label="Scratchpad notes"></textarea>
           <div class="md-preview" id="scratchpad-preview" hidden></div>
         </div>
         <p class="status-msg" id="scratchpad-status"></p>
-        <div class="modal-actions" style="justify-content:flex-start; flex-wrap:wrap;">
-          <button type="button" class="modal-btn cancel" id="scratchpad-copy">Copy All</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-export-txt">Export .txt</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-export-md">Export .md</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-clear">Clear</button>
+        <!-- GitHub settings (connection, repo + file target, file and folder creation) live in their own
+             sheet — ⚙ GitHub sync opens it. Keeping them out of the pad leaves the notes area calm. -->
+        <div class="scratch-actions">
+          <button type="button" class="modal-btn submit scratch-gh-launch" id="scratchpad-gh-open"
+                  aria-haspopup="dialog" aria-controls="modal-github-sync"
+                  title="Repositories, file paths and the GitHub connection">
+            <span aria-hidden="true">⚙</span> GitHub sync
+            <span class="gh-sync-badge" id="scratchpad-gh-launch"></span>
+          </button>
+          <div class="scratch-menu-wrap">
+            <button type="button" class="modal-btn cancel" id="scratchpad-menu-btn" aria-haspopup="menu"
+                    aria-expanded="false" aria-controls="scratchpad-menu" title="More actions">⋯ More</button>
+            <div class="scratch-menu" id="scratchpad-menu" role="menu" hidden>
+              <button type="button" role="menuitem" id="scratchpad-copy"><span aria-hidden="true">📋</span> Copy all</button>
+              <button type="button" role="menuitem" id="scratchpad-export-txt"><span aria-hidden="true">⬇</span> Export .txt</button>
+              <button type="button" role="menuitem" id="scratchpad-export-md"><span aria-hidden="true">⬇</span> Export .md</button>
+              <button type="button" role="menuitem" id="scratchpad-save-file"><span aria-hidden="true">💾</span> Save to file…</button>
+              <button type="button" role="menuitem" id="scratchpad-open-file"><span aria-hidden="true">📂</span> Open file…</button>
+              <button type="button" role="menuitem" id="scratchpad-clear" class="is-danger"><span aria-hidden="true">🗑</span> Clear</button>
+            </div>
+          </div>
+          <input type="file" id="scratchpad-file-input" accept=".md,.txt,.json,.csv,text/markdown,text/plain,application/json,text/csv" class="hidden" />
+        </div>
+          <p class="scratch-tip">
+            <strong>▦ Table</strong> drops in a header row, a separator row and a first body row — the separator is what
+            makes it a table, and <code>:---</code>, <code>---:</code> or <code>:---:</code> set that column's alignment.
+            <strong>⚙ GitHub sync</strong> holds the repository, the file path, and the create-file / create-folder boxes;
+            <strong>⋯ More</strong> has copy, export, save/open and clear.
+          </p>
+
+        </div><!-- /#scratchpad-inline-view -->
+
+        <div id="scratchpad-embed-view" hidden>
+          <p class="modal-hint" style="margin:0;">
+            The full Scratchpad app runs here, sharing this browser's notes and GitHub connection.
+            <a href="scratchpad.html" target="_blank" rel="noopener">Open in its own window ↗</a>
+          </p>
+          <iframe id="scratchpad-app-frame" title="Scratchpad PWA"
+                  src="about:blank" loading="lazy"
+                  allow="clipboard-read; clipboard-write"></iframe>
         </div>
 
+
+        <div class="modal-actions">
+          <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- GitHub settings, in their own sheet: the connection (or the reconnect kit), the repository and
+         file target, and file/folder creation. Opened by ⚙ GitHub sync in the notes pad. -->
+    <dialog id="modal-github-sync" class="modal modal-wide">
+      <div class="modal-card">
+        <h3 class="modal-title"><span aria-hidden="true">⚙</span> GitHub sync</h3>
         <!-- Notes → GitHub. Zero-configuration: GitHub's own "app from a manifest" flow creates a private
              app owned by you and hands this page its private key through a CORS-enabled endpoint, so there is
              no client ID or token to copy. The page then signs short app JWTs with that key to mint its own
              one-hour installation tokens — which means after this one-time setup you never sign in again. -->
-        <details class="gh-sync" id="scratchpad-gh-panel">
-          <summary>Save these notes to GitHub</summary>
-          <div class="gh-sync-body">
+        <div class="gh-sync-body">
             <p class="modal-hint" id="scratchpad-gh-hint">
-              Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the
-              repo it may write to. The dashboard renews its own short-lived credentials from then on, so it
-              never asks you to sign in again.
+              Nothing to copy or paste on a first visit: one click registers a private GitHub App owned by you,
+              then you pick the repo it may write to. The dashboard renews its own short-lived credentials from
+              then on, so it never asks you to sign in again.
             </p>
             <div class="modal-actions">
               <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
               <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
               <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
               <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-export" hidden
+                      title="Download this connection so any browser can get back in without creating another app">Download connection file</button>
               <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
             </div>
             <p class="status-msg" id="scratchpad-gh-status"></p>
+
+            <p class="modal-hint gh-keep" id="scratchpad-gh-keep" hidden>
+              <strong>Keep a copy of this connection.</strong> The app's private key lives only in this browser,
+              at this address — nothing is stored on a server. If this browser's storage is ever cleared (another
+              device, a new port or preview link, a private window), that file is how saving comes back
+              <em>without</em> creating a second GitHub App.
+            </p>
 
             <div id="scratchpad-gh-target" hidden>
               <div class="gh-sync-details">
@@ -993,6 +1123,41 @@
                   <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
                 </label>
               </div>
+              <div class="gh-create">
+                <div class="gh-create-row">
+                  <label class="form-label" style="flex:1;">New file
+                    <span class="path-row">
+                      <input type="text" id="scratchpad-gh-new-path" class="form-input" placeholder="notes/2026-10-31.md"
+                             autocomplete="off" spellcheck="false" aria-label="Path of the new file" />
+                      <select id="scratchpad-gh-new-type" class="form-input" aria-label="File type"
+                              title="Extension used when the path has none">
+                        <option value="md">.md</option>
+                        <option value="txt">.txt</option>
+                        <option value="json">.json</option>
+                        <option value="csv">.csv</option>
+                        <option value="html">.html</option>
+                        <option value="">none</option>
+                      </select>
+                      <button type="button" class="modal-btn submit" id="scratchpad-gh-create-file"
+                              title="Create this file in the repo and save the notes into it">Create file</button>
+                    </span>
+                  </label>
+                </div>
+                <div class="gh-create-row">
+                  <label class="form-label" style="flex:1;">New folder
+                    <span class="path-row">
+                      <input type="text" id="scratchpad-gh-new-folder" class="form-input" placeholder="notes/2026-10"
+                             autocomplete="off" spellcheck="false" aria-label="Path of the new folder" />
+                      <button type="button" class="modal-btn cancel" id="scratchpad-gh-create-folder"
+                              title="Create this folder in the repo (a .gitkeep file keeps it)">Create folder</button>
+                    </span>
+                  </label>
+                </div>
+                <p class="modal-hint" id="scratchpad-gh-create-hint">
+                  A path with slashes makes the folders for you; these buttons create a file or an empty folder ahead
+                  of time. Any extension works — markdown is just the default.
+                </p>
+              </div>
               <div class="modal-actions">
                 <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save now</button>
                 <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull latest</button>
@@ -1006,6 +1171,47 @@
               </label>
               <p class="status-msg" id="scratchpad-gh-file-status"></p>
             </div>
+
+            <details class="gh-sync-advanced" id="scratchpad-gh-restore">
+              <summary>Already have the app? Reconnect instead of creating another</summary>
+              <p class="modal-hint">
+                Every browser and address keeps its own storage, so a new device, browser or preview link looks
+                like a first visit. You do <strong>not</strong> need a second GitHub App — restore the one you
+                already have:
+              </p>
+              <ol class="gh-restore-steps">
+                <li><strong>If you saved the connection file</strong> (<code>dash-github-connection-*.json</code>)
+                  when you set this up, choose it below — it fills in both fields for you.</li>
+                <li><strong>If you didn't,</strong> open
+                  <a href="https://github.com/settings/apps" target="_blank" rel="noopener noreferrer">GitHub → Settings → Developer settings → GitHub Apps</a>,
+                  pick your <em>dash notes</em> app, copy its <strong>App ID</strong> from the top of the page,
+                  then click <strong>Generate a private key</strong> — GitHub downloads a <code>.pem</code> file.</li>
+                <li>Click <strong>Reconnect with this app</strong>. GitHub confirms the pair, and this browser
+                  picks up the installation that is already there.</li>
+              </ol>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">Connection file (.json or .pem) — optional
+                  <input type="file" id="scratchpad-gh-restore-file" class="form-input"
+                         accept=".json,.pem,application/json,text/plain" />
+                </label>
+              </div>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">App ID
+                  <input type="text" id="scratchpad-gh-restore-app-id" class="form-input" inputmode="numeric"
+                         placeholder="123456" autocomplete="off" spellcheck="false" />
+                </label>
+              </div>
+              <div class="token-row">
+                <label class="form-label" style="flex:1;">Private key (.pem)
+                  <textarea id="scratchpad-gh-restore-pem" class="form-input" rows="3" spellcheck="false"
+                            placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
+                </label>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="modal-btn submit" id="scratchpad-gh-restore-go">Reconnect with this app</button>
+              </div>
+              <p class="status-msg" id="scratchpad-gh-restore-status"></p>
+            </details>
 
             <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
               <summary>Advanced: use a personal access token instead</summary>
@@ -1022,22 +1228,6 @@
                 <button type="button" class="modal-btn cancel" id="scratchpad-gh-token-clear" hidden>Remove token</button>
               </div>
             </details>
-          </div>
-        </details>
-
-        </div><!-- /#scratchpad-inline-view -->
-
-        <div id="scratchpad-embed-view" hidden>
-          <p class="modal-hint" style="margin:0;">
-            The full Scratchpad app runs here, sharing this browser's notes and GitHub connection.
-            <a href="scratchpad.html" target="_blank" rel="noopener">Open in its own window ↗</a>
-          </p>
-          <iframe id="scratchpad-app-frame" title="Scratchpad PWA"
-                  src="about:blank" loading="lazy"
-                  allow="clipboard-read; clipboard-write"></iframe>
-        </div>
-
-
         <div class="modal-actions">
           <button type="button" class="modal-btn cancel" data-close-modal>Close</button>
         </div>
@@ -2406,6 +2596,61 @@
       if (dialog && typeof dialog.showModal === "function") dialog.showModal();
     }
 
+    // The GitHub settings sheet: its own modal, opened from ⚙ GitHub sync in the notes pad (and from the
+    // Clipboard history shortcut when there is no connection yet).
+    function openGithubSyncModal() { openModal("modal-github-sync"); }
+
+    // ---- day, date and time ----------------------------------------------------------------------------
+    // A quietly ticking stamp in the notes filebar: the day and date, then the time, in the visitor's locale.
+    function startScratchpadClock() {
+      const el = document.getElementById("scratchpad-clock");
+      if (!el) return;
+      const paint = () => {
+        const now = new Date();
+        const day = now.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+        const time = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+        el.textContent = `${day} · ${time}`;
+        el.title = now.toLocaleString();
+      };
+      paint();
+      setInterval(paint, 15000);
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") paint(); });
+    }
+
+    // The ⋯ menu collapses what used to be a row of buttons (copy, export, save/open, clear).
+    function wireScratchpadMenu() {
+      const button = document.getElementById("scratchpad-menu-btn");
+      const menu = document.getElementById("scratchpad-menu");
+      if (!button || !menu) return;
+      const close = () => { menu.hidden = true; button.setAttribute("aria-expanded", "false"); };
+      // Fixed-position and measured, so the menu is never clipped by the scrolling modal card.
+      const position = () => {
+        const rect = button.getBoundingClientRect();
+        const width = menu.offsetWidth || 208;
+        const height = menu.offsetHeight || 224;
+        const left = Math.min(Math.max(8, rect.right - width), Math.max(8, window.innerWidth - width - 8));
+        const above = rect.top - height - 6;
+        const top = above >= 8 ? above : Math.min(rect.bottom + 6, Math.max(8, window.innerHeight - height - 8));
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+      };
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        const next = menu.hidden;
+        menu.hidden = !next;
+        button.setAttribute("aria-expanded", String(next));
+        if (next) { position(); menu.querySelector("button")?.focus(); }
+      });
+      window.addEventListener("resize", close);
+      window.addEventListener("scroll", close, true);
+      menu.addEventListener("click", event => { if (event.target.closest("button")) close(); });
+      document.addEventListener("click", event => {
+        if (menu.hidden || event.target.closest("#scratchpad-menu, #scratchpad-menu-btn")) return;
+        close();
+      });
+      document.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
+    }
+
     function setStatus(elementId, message, tone) {
       const el = document.getElementById(elementId);
       if (!el) return;
@@ -3090,6 +3335,122 @@
       });
     }
 
+    // ---- the reconnect kit ------------------------------------------------------------------------------
+    // The app's private key is the whole credential and it only lives in this browser's storage at this
+    // address. So a new device, browser or preview link looks like a first visit — and the only way back used
+    // to be "Create GitHub App" again. A connection file (or the same key re-downloaded from GitHub) is enough
+    // to adopt the existing app instead. Keep this in step with assets/github-app.js.
+    const GH_CONNECTION_KIND = "dash-github-connection";
+    const GH_CONNECTION_VERSION = 1;
+    const GH_PEM_BLOCK = /-----BEGIN (?:RSA |ENCRYPTED )?PRIVATE KEY-----[\s\S]*?-----END (?:RSA |ENCRYPTED )?PRIVATE KEY-----/;
+
+    function ghParsePrivateKey(text) {
+      const value = String(text || "").trim();
+      if (!value) throw new Error("Paste the private key GitHub downloaded for the app (a .pem file).");
+      if (/ENCRYPTED PRIVATE KEY/.test(value)) {
+        throw new Error("That is a passphrase-protected key — GitHub's \"Generate a private key\" downloads an unencrypted .pem, so use that one.");
+      }
+      const match = value.match(GH_PEM_BLOCK);
+      if (match) return match[0].trim();
+      const body = value.replace(/\s+/g, "");
+      if (body.length > 100 && /^[A-Za-z0-9+/=]+$/.test(body)) {
+        return `-----BEGIN RSA PRIVATE KEY-----\n${body.match(/.{1,64}/g).join("\n")}\n-----END RSA PRIVATE KEY-----`;
+      }
+      throw new Error("That doesn't look like a private key — it should start with -----BEGIN RSA PRIVATE KEY-----.");
+    }
+
+    // One shape for both sources: the file the dashboard saved, or GitHub's own manifest-conversion JSON.
+    function ghParseConnectionInput(text, { appId = "" } = {}) {
+      const raw = String(text || "").trim();
+      if (!raw) throw new Error("Choose the connection file, or paste the app's private key.");
+      let record = null;
+      if (raw.startsWith("{")) {
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch (e) { throw new Error("That file isn't valid JSON — use the connection file the dashboard downloaded, or the .pem key."); }
+        if (!parsed || typeof parsed !== "object") throw new Error("That file isn't a connection file.");
+        record = {
+          app_id: parsed.app_id !== undefined ? parsed.app_id : (parsed.id !== undefined ? parsed.id : null),
+          pem: parsed.pem || parsed.private_key || "",
+          slug: parsed.slug || "",
+          name: parsed.name || "",
+          owner: typeof parsed.owner === "string" ? parsed.owner : ((parsed.owner && parsed.owner.login) || ""),
+          html_url: parsed.html_url || ""
+        };
+      }
+      const pem = ghParsePrivateKey(record ? record.pem : raw);
+      // GitHub's manifest-conversion response nests the app id in `id`, so accept both spellings.
+      const id = Number((record && record.app_id) || appId);
+      if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("Add the app's numeric ID too — it's shown at the top of the app's settings page.");
+      }
+      return { app_id: id, pem, slug: record ? record.slug : "", name: record ? record.name : "", owner: record ? record.owner : "", html_url: record ? record.html_url : "" };
+    }
+
+    function ghConnectionFileFor(app) {
+      if (!app || !app.app_id || !app.pem) throw new Error("There's no GitHub App connection in this browser to save.");
+      return {
+        kind: GH_CONNECTION_KIND,
+        version: GH_CONNECTION_VERSION,
+        app_id: app.app_id,
+        slug: app.slug || "",
+        name: app.name || "",
+        owner: app.owner || "",
+        html_url: app.html_url || "",
+        pem: app.pem,
+        exported_at: new Date().toISOString(),
+        note: "Private key for the dash notes GitHub App. Anyone holding this file can write to the repositories the app is installed on, so keep it in a password manager and delete the app on GitHub if it leaks. Drop it into the dashboard's “Already have the app? Reconnect” section to restore saving on another browser or address."
+      };
+    }
+    function ghConnectionFileName(app) {
+      const label = String((app && (app.slug || app.app_id)) || "app").replace(/[^a-zA-Z0-9._-]+/g, "-");
+      return `dash-github-connection-${label}.json`;
+    }
+    function ghMarkConnectionSaved() {
+      const app = ghReadApp();
+      if (!app) return null;
+      const next = { ...app, connection_saved_at: Date.now() };
+      ghWriteApp(next);
+      return next;
+    }
+
+    // Adopt a key the user already owns. GitHub confirms the pair with GET /app — a request signed with the very
+    // key being tested — so a wrong App ID fails here rather than at the first save, and nothing is written until
+    // GitHub agrees (a typo can never clobber a working connection).
+    async function ghAdoptApp({ app_id, pem, slug = "", name = "", owner = "", html_url = "" }) {
+      const id = Number(app_id);
+      if (!Number.isInteger(id) || id <= 0) {
+        throw new Error("The app ID is a number — copy it from the top of the app's settings page.");
+      }
+      const key = ghParsePrivateKey(pem);
+      await ghImportAppKey(key); // reject a truncated/foreign key before any network call
+      const candidate = { app_id: id, slug, name, owner, pem: key, html_url, installation_id: null, adopted_at: Date.now() };
+      const res = await ghAppFetch(candidate, "/app");
+      if (res.status === 401 || res.status === 403) {
+        throw Object.assign(
+          new Error("GitHub rejected that App ID + private key. Use the ID from the same app the key was generated for."),
+          { status: res.status }
+        );
+      }
+      if (res.status === 404) {
+        throw Object.assign(
+          new Error("GitHub doesn't know that app — it may have been deleted in Settings → Developer settings → GitHub Apps."),
+          { status: res.status }
+        );
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || `GitHub couldn't confirm that app (${res.status})`), { status: res.status });
+      const record = {
+        ...candidate,
+        app_id: data.id || id,
+        slug: data.slug || slug,
+        name: data.name || name,
+        owner: (data.owner && data.owner.login) || owner,
+        html_url: data.html_url || html_url
+      };
+      ghWriteApp(record);
+      return record;
+    }
+
     // ---- Scratchpad markdown tools ---------------------------------------------------------------------
     // The saved notes are almost always .md files, so the editor gets the syntax people actually reach for:
     // bold/italic/strike, H1–H3, bullet/numbered/task lists, quotes and dividers — applied to the selection
@@ -3114,6 +3475,49 @@
         .replace(/~~([^~]+)~~/g, "<del>$1</del>")
         .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, (_, label, url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${label}</a>`);
 
+      // ---- tables -------------------------------------------------------------------------------------
+      // GitHub-flavoured pipe tables, byte-identical to assets/markdown.js: header row, a `| --- | :-: |`
+      // separator that also carries the alignment, then body rows. `\|` keeps a literal pipe in a cell.
+      const TABLE_SEPARATOR = /^\s*\|?\s*:?-{1,}:?\s*(?:\|\s*:?-{1,}:?\s*)+\|?\s*$/;
+      const splitTableRow = line => {
+        const trimmed = String(line || "").trim().replace(/^\|/, "").replace(/\|$/, "");
+        const cells = [];
+        let current = "";
+        for (let index = 0; index < trimmed.length; index += 1) {
+          const char = trimmed[index];
+          if (char === "\\" && trimmed[index + 1] === "|") { current += "|"; index += 1; continue; }
+          if (char === "|") { cells.push(current.trim()); current = ""; continue; }
+          current += char;
+        }
+        cells.push(current.trim());
+        return cells;
+      };
+      const renderTable = (headerLine, separatorLine, bodyLines) => {
+        const header = splitTableRow(headerLine);
+        const widths = splitTableRow(separatorLine).map(cell => {
+          const left = cell.startsWith(":");
+          const right = cell.endsWith(":");
+          if (left && right) return "center";
+          if (right) return "right";
+          if (left) return "left";
+          return "";
+        });
+        const columns = Math.max(header.length, widths.length);
+        const cell = (tag, text, index) => {
+          const style = widths[index] ? ` style="text-align:${widths[index]}"` : "";
+          return `<${tag}${style}>${inline(text)}</${tag}>`;
+        };
+        const head = `<thead><tr>${Array.from({ length: columns }, (_, i) => cell("th", header[i] || "", i)).join("")}</tr></thead>`;
+        const body = bodyLines.length
+          ? `<tbody>${bodyLines.map(row => {
+              const cells = splitTableRow(row);
+              const width = Math.max(columns, cells.length);
+              return `<tr>${Array.from({ length: width }, (_, i) => cell("td", cells[i] || "", i)).join("")}</tr>`;
+            }).join("")}</tbody>`
+          : "";
+        return `<div class="md-table"><table>${head}${body}</table></div>`;
+      };
+
       const lines = String(source || "").replace(/\r\n?/g, "\n").split("\n");
       let html = "";
       let listTag = null;
@@ -3122,37 +3526,51 @@
       const closeList = () => { if (listTag) { html += `</${listTag}>`; listTag = null; } };
       const openList = tag => { if (listTag !== tag) { closeList(); html += `<${tag}>`; listTag = tag; } };
 
-      lines.forEach((line, index) => {
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
         if (/^\s*```/.test(line)) {
           if (inCode) { html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`; codeBuffer.length = 0; inCode = false; }
           else { closeList(); inCode = true; }
-          return;
+          continue;
         }
-        if (inCode) { codeBuffer.push(line); return; }
-        if (!line.trim()) { closeList(); return; }
-        if (/^\s*(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) { closeList(); html += "<hr>"; return; }
+        if (inCode) { codeBuffer.push(line); continue; }
+        if (!line.trim()) { closeList(); continue; }
+        // A header row followed by a separator row is a table; keep eating rows while they stay piped.
+        if (/\|/.test(line) && TABLE_SEPARATOR.test(lines[index + 1] || "")) {
+          closeList();
+          const body = [];
+          let lookahead = index + 2;
+          while (lookahead < lines.length && lines[lookahead].trim() && /\|/.test(lines[lookahead]) && !/^\s*```/.test(lines[lookahead])) {
+            body.push(lines[lookahead]);
+            lookahead += 1;
+          }
+          html += renderTable(line, lines[index + 1], body);
+          index = lookahead - 1;
+          continue;
+        }
+        if (/^\s*(-{3,}|_{3,}|\*{3,})\s*$/.test(line)) { closeList(); html += "<hr>"; continue; }
         const heading = line.match(/^\s*(#{1,6})\s+(.*)$/);
         if (heading) {
           closeList();
           const level = Math.min(heading[1].length, 6);
           html += `<h${level}>${inline(heading[2])}</h${level}>`;
-          return;
+          continue;
         }
         const quote = line.match(/^\s*>\s?(.*)$/);
-        if (quote) { closeList(); html += `<blockquote>${inline(quote[1])}</blockquote>`; return; }
+        if (quote) { closeList(); html += `<blockquote>${inline(quote[1])}</blockquote>`; continue; }
         const task = line.match(/^\s*[-*+]\s+\[([ xX])\]\s*(.*)$/);
         if (task) {
           openList("ul");
           html += `<li class="md-task"><input type="checkbox" data-md-line="${index}" aria-label="Toggle task"${task[1].toLowerCase() === "x" ? " checked" : ""} /><span>${inline(task[2]) || "&nbsp;"}</span></li>`;
-          return;
+          continue;
         }
         const bullet = line.match(/^\s*[-*+]\s+(.*)$/);
-        if (bullet) { openList("ul"); html += `<li>${inline(bullet[1])}</li>`; return; }
+        if (bullet) { openList("ul"); html += `<li>${inline(bullet[1])}</li>`; continue; }
         const numbered = line.match(/^\s*\d+[.)]\s+(.*)$/);
-        if (numbered) { openList("ol"); html += `<li>${inline(numbered[1])}</li>`; return; }
+        if (numbered) { openList("ol"); html += `<li>${inline(numbered[1])}</li>`; continue; }
         closeList();
         html += `<p>${inline(line)}</p>`;
-      });
+      }
       if (inCode && codeBuffer.length) html += `<pre><code>${escapeHtml(codeBuffer.join("\n"))}</code></pre>`;
       closeList();
       return html;
@@ -3379,6 +3797,21 @@
         applyEdit(start, end, text, start + text.length, start + text.length);
       }
 
+      // A 3x3 skeleton with the header placeholder selected, so typing replaces it.
+      function insertTable() {
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const before = textarea.value.slice(0, start);
+        const after = textarea.value.slice(end);
+        const lead = before && !before.endsWith("\n") ? "\n\n" : "";
+        const tail = !after || after.startsWith("\n") ? "\n" : "\n\n";
+        const firstCell = "Column 1";
+        const table = `| ${firstCell} | Column 2 | Column 3 |\n| --- | --- | --- |\n|  |  |  |`;
+        const text = `${lead}${table}${tail}`;
+        const cellStart = start + lead.length + 2;
+        applyEdit(start, end, text, cellStart, cellStart + firstCell.length);
+      }
+
       // Emoji go through the same edit helper as the toolbar: insert at the caret, or replace the selection.
       function insertEmoji(char) {
         const start = textarea.selectionStart;
@@ -3391,6 +3824,7 @@
         else if (tool === "italic") wrapSelection("*", "italic text");
         else if (tool === "strike") wrapSelection("~~", "strikethrough");
         else if (tool === "hr") insertDivider();
+        else if (tool === "table") insertTable();
         else if (LINE_TOOLS[tool]) toggleLinePrefix(tool);
       }
 
@@ -3484,6 +3918,43 @@
       };
       document.getElementById("scratchpad-export-txt")?.addEventListener("click", () => exportAs("txt"));
       document.getElementById("scratchpad-export-md")?.addEventListener("click", () => exportAs("md"));
+
+      // Save to / open from a real file on this device: File System Access where it exists, a download and a
+      // file input everywhere else.
+      const fileInput = document.getElementById("scratchpad-file-input");
+      const saveToFile = async () => {
+        const name = `scratchpad-${isoDaysAgo(0)}.md`;
+        if (window.showSaveFilePicker) {
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: name,
+              types: [{ description: "Markdown", accept: { "text/markdown": [".md"] } }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(textarea.value);
+            await writable.close();
+            setStatus("scratchpad-status", `Saved to ${handle.name}.`, "success");
+            return;
+          } catch (error) {
+            if (error && error.name === "AbortError") return;
+          }
+        }
+        exportAs("md");
+      };
+      document.getElementById("scratchpad-save-file")?.addEventListener("click", saveToFile);
+      document.getElementById("scratchpad-open-file")?.addEventListener("click", () => fileInput?.click());
+      fileInput?.addEventListener("change", async () => {
+        const file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        textarea.value = await file.text();
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+        setStatus("scratchpad-status", `Opened ${file.name}.`, "success");
+        fileInput.value = "";
+      });
+
+      // One ⋯ menu instead of a row of buttons, and the day/date/time stamp.
+      wireScratchpadMenu();
+      startScratchpadClock();
       const markdown = initScratchpadMarkdown(textarea);
 
       document.getElementById("scratchpad-clear")?.addEventListener("click", () => {
@@ -3499,7 +3970,7 @@
 
     // ---- Scratchpad → GitHub (App-manifest setup, then installation tokens) ------------------------------
     function initScratchpadGithubSync(textarea) {
-      const panel = document.getElementById("scratchpad-gh-panel");
+      const panel = document.getElementById("modal-github-sync");
       const setupBtn = document.getElementById("scratchpad-gh-setup");
       const installBtn = document.getElementById("scratchpad-gh-install");
       const checkBtn = document.getElementById("scratchpad-gh-check");
@@ -3520,6 +3991,20 @@
       const newFileBtn = document.getElementById("scratchpad-gh-new-file");
       const scratchBtn = document.getElementById("scratchpad-gh-scratch");
       const repoHelp = document.getElementById("scratchpad-gh-repo-help");
+      const exportBtn = document.getElementById("scratchpad-gh-export");
+      const keepNote = document.getElementById("scratchpad-gh-keep");
+      const restoreDetails = document.getElementById("scratchpad-gh-restore");
+      const restoreFileInput = document.getElementById("scratchpad-gh-restore-file");
+      const restoreAppIdInput = document.getElementById("scratchpad-gh-restore-app-id");
+      const restorePemInput = document.getElementById("scratchpad-gh-restore-pem");
+      const restoreGoBtn = document.getElementById("scratchpad-gh-restore-go");
+      const ghOpenBtn = document.getElementById("scratchpad-gh-open");
+      const ghLaunchBadge = document.getElementById("scratchpad-gh-launch");
+      const newPathInput = document.getElementById("scratchpad-gh-new-path");
+      const newTypeSelect = document.getElementById("scratchpad-gh-new-type");
+      const createFileBtn = document.getElementById("scratchpad-gh-create-file");
+      const newFolderInput = document.getElementById("scratchpad-gh-new-folder");
+      const createFolderBtn = document.getElementById("scratchpad-gh-create-folder");
       const filebarRepo = document.getElementById("scratchpad-filebar-repo");
       const filebarSep = document.getElementById("scratchpad-filebar-sep");
       const filebarFile = document.getElementById("scratchpad-filebar-file");
@@ -3528,6 +4013,10 @@
 
       const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
       const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
+      const setRestoreStatus = (message, tone) => setStatus("scratchpad-gh-restore-status", message, tone);
+      // Text of the file picked in the Reconnect panel, so the App ID field can stay optional when the file
+      // already carries it.
+      let restoreFileText = "";
 
       // `conflictPaused` holds a save back once GitHub's copy has moved on; autosave stays out of the way until
       // the user either pulls the newer file or explicitly overwrites it.
@@ -3605,6 +4094,17 @@
         if (tokenClearBtn) tokenClearBtn.hidden = connection.kind !== "token";
         if (target) target.hidden = !connection.ready;
         if (scratchBtn) scratchBtn.hidden = !connection.ready;
+        // The reconnect kit: saving a copy only means something for an app connection,
+        // and the nudge goes away once one has been downloaded.
+        if (exportBtn) exportBtn.hidden = connection.kind !== "app";
+        if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
+        // The launcher carries the connection state, so the pad itself stays clean.
+        if (ghLaunchBadge) {
+          ghLaunchBadge.textContent = connection.kind === "app"
+            ? (connection.installationId ? "connected" : "install")
+            : connection.kind === "token" ? "token" : "";
+          ghLaunchBadge.classList.toggle("is-connected", connection.kind === "app" && Boolean(connection.installationId));
+        }
 
         if (connection.kind === "app") {
           accountBadge.textContent = connection.installationId
@@ -3623,7 +4123,7 @@
           if (!secure) {
             hint.textContent = "GitHub can only redirect back to a page served over http(s) — open the live dashboard (or a local server) to set up saving. Meanwhile you can paste a token under Advanced.";
           } else if (connection.kind === "none") {
-            hint.textContent = "Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. The dashboard renews its own short-lived credentials from then on, so it never asks you to sign in again.";
+            hint.textContent = "First visit here? Nothing to copy or paste: one click registers a private GitHub App owned by you, then you pick the repo it may write to. Already made that app on another browser or address? Use Reconnect below — there's no need to create a second one.";
           } else if (connection.kind === "app" && !connection.installationId) {
             hint.textContent = "Last step: choose which repositories the app may write to. GitHub then sends you back here automatically.";
           } else {
@@ -3812,7 +4312,7 @@
 
       async function saveNotes({ forced = false, auto = false } = {}) {
         if (saving) return;
-        if (!ghConnection().ready) { panel.open = true; setFileStatus("Connect GitHub first.", "error"); return; }
+        if (!ghConnection().ready) { openGithubSyncModal(); setFileStatus("Connect GitHub first.", "error"); return; }
         if (!targetIsValid()) return;
         const repo = repoSelect.value;
         const path = ghNormalizePath(pathInput.value);
@@ -3887,7 +4387,7 @@
       }
 
       async function pullNotes() {
-        if (!ghConnection().ready) { panel.open = true; setFileStatus("Connect GitHub first.", "error"); return; }
+        if (!ghConnection().ready) { openGithubSyncModal(); setFileStatus("Connect GitHub first.", "error"); return; }
         if (!targetIsValid()) return;
         const repo = repoSelect.value;
         const path = ghNormalizePath(pathInput.value);
@@ -3984,7 +4484,7 @@
         try { window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.hash}`); } catch (e) {}
         try { sessionStorage.removeItem(GH.keys.pending); } catch (e) {}
 
-        panel.open = true;
+        openGithubSyncModal();
         openModal("modal-scratchpad");
         setGhStatus("Registering your GitHub app…");
         try {
@@ -4026,7 +4526,9 @@
       }
 
       // Back on the page: ask GitHub (as the app) which installation it just created, and remember it forever.
-      async function resolveInstallation(installationIdHint = null, { quiet = false } = {}) {
+      // `lead` tucks a caller's sentence in front of the outcome — the reconnect kit uses it to say "no new
+      // app was created" even once the repository list has loaded.
+      async function resolveInstallation(installationIdHint = null, { quiet = false, lead = "" } = {}) {
         const app = ghReadApp();
         if (!app || !ghCryptoReady()) { render(); return; }
         try {
@@ -4036,7 +4538,7 @@
           if (!res.ok) throw new Error(installs.message || `GitHub API error (${res.status})`);
           if (!Array.isArray(installs) || !installs.length) {
             render();
-            setGhStatus("The app isn't installed on any repository yet — click Install on a repository.", "error");
+            setGhStatus(`${lead}The app isn't installed on any repository yet — click Install on a repository.`, "error");
             return;
           }
           const match = (installationIdHint && installs.find(item => String(item.id) === String(installationIdHint)))
@@ -4050,10 +4552,10 @@
           });
           reposLoaded = false;
           render();
-          if (!quiet) setGhStatus(`Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
+          if (!quiet) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
         } catch (error) {
           render();
-          setGhStatus(`Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
+          setGhStatus(`${lead}Couldn't confirm the installation: ${error.message}. Click Re-check connection to retry.`, "error");
         }
       }
 
@@ -4075,9 +4577,148 @@
         conflictPaused = false;
         showOverwrite(false);
         render();
-        setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone.", "success");
+        setGhStatus("Disconnected and credentials removed from this browser. The GitHub App itself still exists — delete it in GitHub → Settings → Developer settings → GitHub Apps if you want it gone, or drop its connection file back into Reconnect to use it again.", "success");
         setFileStatus("");
       });
+
+      // ---- reconnect kit: save a copy of the key, drop it back in anywhere -------------------------------
+      // The app's private key is the credential and it lives only in this browser's storage at this address.
+      // Downloading it once means a new device, browser or preview link can adopt the same app instead of
+      // registering a second one.
+      function downloadConnectionFile() {
+        const app = ghReadApp();
+        if (!app) { setGhStatus("Nothing to download yet — set up GitHub saving first.", "error"); return; }
+        try {
+          const name = ghConnectionFileName(app);
+          const url = URL.createObjectURL(new Blob([JSON.stringify(ghConnectionFileFor(app), null, 2)], { type: "application/json" }));
+          const anchor = document.createElement("a");
+          anchor.href = url;
+          anchor.download = name;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+          URL.revokeObjectURL(url);
+          ghMarkConnectionSaved();
+          render();
+          setGhStatus(`Saved ${name}. Keep it in your password manager: choosing it under “Already have the app? Reconnect” restores saving on any browser or address, with no new app to create.`, "success");
+        } catch (error) {
+          setGhStatus(error.message, "error");
+        }
+      }
+      exportBtn?.addEventListener("click", downloadConnectionFile);
+
+      // Picking a connection file only fills the fields in; the Reconnect button is what verifies the key.
+      restoreFileInput?.addEventListener("change", async () => {
+        const file = restoreFileInput.files && restoreFileInput.files[0];
+        if (!file) return;
+        try {
+          restoreFileText = await file.text();
+          // A bare .pem carries the key but not the App ID, so fill in whatever the file has and let the
+          // field supply the rest.
+          const parsed = restoreFileText.trim().startsWith("{")
+            ? ghParseConnectionInput(restoreFileText, { appId: restoreAppIdInput.value })
+            : { app_id: null, pem: ghParsePrivateKey(restoreFileText), slug: "" };
+          if (parsed.app_id) restoreAppIdInput.value = String(parsed.app_id);
+          restorePemInput.value = parsed.pem;
+          setRestoreStatus(restoreAppIdInput.value.trim()
+            ? `Loaded ${file.name}${parsed.slug ? ` (${parsed.slug})` : ""} — click Reconnect with this app.`
+            : `Loaded ${file.name}. Add the app's App ID (top of its settings page), then click Reconnect with this app.`, "success");
+        } catch (error) {
+          restoreFileText = "";
+          setRestoreStatus(`${file.name}: ${error.message}`, "error");
+        }
+      });
+
+      restoreGoBtn?.addEventListener("click", async () => {
+        let input;
+        try {
+          const source = restorePemInput.value.trim() || restoreFileText;
+          if (!source) throw new Error("Choose the connection file, or paste the app's private key.");
+          input = ghParseConnectionInput(source, { appId: restoreAppIdInput.value });
+        } catch (error) {
+          setRestoreStatus(error.message, "error");
+          return;
+        }
+        setRestoreStatus("Asking GitHub to confirm that App ID and key…");
+        restoreGoBtn.disabled = true;
+        try {
+          const app = await ghAdoptApp(input);
+          if (restoreDetails) restoreDetails.open = false;
+          restorePemInput.value = "";
+          restoreFileText = "";
+          reposLoaded = false;
+          scratchAttempted = false;
+          render();
+          const lead = `Reconnected the existing app${app.slug ? ` (${app.slug})` : ""} — no new GitHub App was created. `;
+          await resolveInstallation(null, { lead });
+        } catch (error) {
+          setRestoreStatus(error.message, "error");
+          render();
+        } finally {
+          restoreGoBtn.disabled = false;
+        }
+      });
+
+      // ---- creating files and folders in the repository -----------------------------------------------
+      // GitHub has no "mkdir": a folder exists because a file inside it does. So a folder is created with a
+      // `.gitkeep`, and any path with slashes creates the directories on the way.
+      const HAS_EXTENSION = /\.[a-z0-9]{1,8}$/i;
+      const pathWithExtension = (value, extension) => {
+        const path = ghNormalizePath(value);
+        if (!path) return "";
+        if (!extension || HAS_EXTENSION.test(path.split("/").pop())) return path;
+        return `${path}.${extension}`;
+      };
+
+      async function createRepoPath({ path, content, folder = false }) {
+        if (!ghConnection().ready) { openGithubSyncModal(); setGhStatus("Connect GitHub first — the ⚙ GitHub sync button sets it up.", "error"); return; }
+        const repo = repoSelect?.value;
+        if (!repo) { setGhStatus("Pick a repository first.", "error"); return; }
+        const branch = branchInput?.value.trim() || "";
+        setGhStatus(folder ? `Creating the folder “${path}”…` : `Creating “${path}”…`);
+        try {
+          if (await ghReadRepoFile(repo, path, branch)) {
+            setGhStatus(`${repo} already has ${path} — put that path in File path to switch to it.`, "error");
+            return;
+          }
+          const data = await ghWriteRepoFile({ repo, path, content, message: `Create ${path} via dashboard`, branch });
+          const sha = data.content?.sha;
+          if (sha) {
+            const key = `${repo}@${branch || "default"}:${path}`;
+            const map = ghReadJson(GH.keys.shas, {}) || {};
+            map[key] = sha;
+            ghWriteJson(GH.keys.shas, map);
+          }
+          if (folder) {
+            setGhStatus(`Created the folder “${path}” in ${repo} — a .gitkeep file is what keeps an empty folder in git.`, "success");
+            return;
+          }
+          pathInput.value = path;
+          ghWriteStore(GH.keys.path, path);
+          conflictPaused = false;
+          showOverwrite(false);
+          paintFileBar();
+          setGhStatus(`Created ${repo}/${path} with the notes in this pad — it now saves there.`, "success");
+          setFileStatus(`Created ${path}.`);
+        } catch (error) {
+          setGhStatus(error.message, "error");
+        }
+      }
+
+      ghOpenBtn?.addEventListener("click", openGithubSyncModal);
+      createFileBtn?.addEventListener("click", () => {
+        const path = pathWithExtension(newPathInput.value, newTypeSelect ? newTypeSelect.value : "md");
+        if (!path) { setGhStatus("Type a path for the new file — notes/2026-10-31.md, for example.", "error"); newPathInput?.focus(); return; }
+        createRepoPath({ path, content: textarea.value });
+      });
+      createFolderBtn?.addEventListener("click", async () => {
+        const path = ghNormalizePath(newFolderInput.value);
+        if (!path) { setGhStatus("Type a folder path — notes/2026-10, for example.", "error"); newFolderInput?.focus(); return; }
+        await createRepoPath({ path: `${path}/.gitkeep`, content: "", folder: true });
+        newFolderInput.value = "";
+      });
+      newPathInput?.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); createFileBtn?.click(); } });
+      newFolderInput?.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); createFolderBtn?.click(); } });
 
       saveBtn?.addEventListener("click", () => saveNotes());
       pullBtn?.addEventListener("click", pullNotes);
@@ -4161,7 +4802,7 @@
           if (setupAction || installationId) {
             try { window.history.replaceState({}, document.title, `${here.origin}${here.pathname}${here.hash}`); } catch (e) {}
             try { sessionStorage.removeItem(GH.keys.pending); } catch (e) {}
-            panel.open = true;
+            openGithubSyncModal();
             openModal("modal-scratchpad");
             await resolveInstallation(installationId);
             return;
@@ -4171,7 +4812,7 @@
         try { pending = JSON.parse(sessionStorage.getItem(GH.keys.pending) || "null"); } catch (e) { pending = null; }
         if (pending?.state === "install") {
           try { sessionStorage.removeItem(GH.keys.pending); } catch (e) {}
-          panel.open = true;
+          openGithubSyncModal();
           openModal("modal-scratchpad");
           await resolveInstallation();
           return;
@@ -4575,7 +5216,7 @@
       setupBtn?.addEventListener("click", () => {
         dialog.close();
         openModal("modal-scratchpad");
-        document.getElementById("scratchpad-gh-panel")?.setAttribute("open", "");
+        openGithubSyncModal();
       });
 
       addForm?.addEventListener("submit", event => {

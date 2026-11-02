@@ -74,19 +74,19 @@ const favoriteTitles = doc => favoriteCards(doc).map(card => card.querySelector(
 const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
 
 (async () => {
-  console.log("\n[1] fresh visitor: Scratchpad is the first Favorites card on the home view");
+  console.log("\n[1] fresh visitor: Scratchpad follows the personal agents bookmarklet on the home view");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
     const ids = favoriteIds(doc);
-    check("first favorite is the Scratchpad", ids[0] === SCRATCHPAD_ID, JSON.stringify(ids.slice(0, 3)));
-    check("scratchpad title leads the grid", favoriteTitles(doc)[0] === "Scratchpad / Quick Notes");
-    check("pinned bookmarklets follow the Scratchpad", ids[1] === "bookmarklets:github-arena-agent", ids[1]);
+    check("second favorite is the Scratchpad", ids[1] === SCRATCHPAD_ID, JSON.stringify(ids.slice(0, 3)));
+    check("scratchpad title follows the bookmarklet", favoriteTitles(doc)[1] === "Scratchpad / Quick Notes");
+    check("personal agents bookmarklet leads Favorites", ids[0] === "bookmarklets:personal-ai-agents-always-on", ids[0]);
     check("scratchpad appears once in Favorites", ids.filter(id => id === SCRATCHPAD_ID).length === 1);
     check("fresh favorites include Gemini and Claude once each",
       ids.filter(id => id === GEMINI_ID).length === 1 && ids.filter(id => id === CLAUDE_ID).length === 1, JSON.stringify(ids));
-    const first = favoriteCards(doc)[0];
+    const first = favoriteCards(doc)[1];
     check("pinned card is marked as an in-page tool", first.classList.contains("modal-trigger") && /Opens here/.test(first.textContent));
     check("favorites count includes the Scratchpad", Number(doc.getElementById("cnt-favorites").textContent) === ids.length,
       `${doc.getElementById("cnt-favorites").textContent} vs ${ids.length}`);
@@ -101,12 +101,12 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     await flush();
     const dialog = doc.getElementById("modal-scratchpad");
     check("dialog starts closed", !dialog.open);
-    favoriteCards(doc)[0].querySelector(".card-main").click();
+    favoriteCards(doc)[1].querySelector(".card-main").click();
     await flush();
     check("card click opens modal-scratchpad", dialog.open === true);
     dialog.close();
     // The secondary "Open" action on the pinned copy opens it too.
-    const openButton = [...favoriteCards(doc)[0].querySelectorAll(".card-action")].find(btn => btn.textContent === "Open");
+    const openButton = [...favoriteCards(doc)[1].querySelectorAll(".card-action")].find(btn => btn.textContent === "Open");
     check("pinned card has an Open action", Boolean(openButton));
     openButton.click();
     await flush();
@@ -118,25 +118,25 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     win.close();
   }
 
-  console.log("\n[3] the ★ Favorites menu view also leads with the Scratchpad");
+  console.log("\n[3] the ★ Favorites menu view also pins Scratchpad second");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
     doc.querySelector('[data-section="favorites"]').click();
     await flush();
-    check("first favorite in menu view is the Scratchpad", favoriteIds(doc)[0] === SCRATCHPAD_ID, JSON.stringify(favoriteIds(doc).slice(0, 3)));
+    check("second favorite in menu view is the Scratchpad", favoriteIds(doc)[1] === SCRATCHPAD_ID, JSON.stringify(favoriteIds(doc).slice(0, 3)));
     check("no page errors in menu view", win.__errors.length === 0, win.__errors.join("; "));
     win.close();
   }
 
-  console.log("\n[4] existing saved favorites (no Scratchpad starred) still get it pinned first");
+  console.log("\n[4] existing saved favorites (no Scratchpad starred) still get it pinned second");
   {
     const win = makeWindow({ storage: { "commandos-favorites-v1": ["daily:gmail"] } });
     const doc = win.document;
     await flush();
     const ids = favoriteIds(doc);
-    check("scratchpad pinned first despite saved list", ids[0] === SCRATCHPAD_ID, JSON.stringify(ids));
+    check("scratchpad pinned second despite saved list", ids[1] === SCRATCHPAD_ID, JSON.stringify(ids));
     check("saved favorite still present after the pins", ids.includes("daily:gmail"), JSON.stringify(ids));
     // 1 scratchpad + 5 bookmarklets + Gmail + the ensured Gemini/Claude topped up into the saved list.
     check("count badge matches pinned + saved + ensured", doc.getElementById("cnt-favorites").textContent === "9",
@@ -144,23 +144,23 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     win.close();
   }
 
-  console.log("\n[5] a starred Scratchpad stays first and is never duplicated");
+  console.log("\n[5] a starred Scratchpad stays second and is never duplicated");
   {
     // Scratchpad saved last on purpose: pinning must pull it to the front.
     const win = makeWindow({ storage: { "commandos-favorites-v1": ["daily:github", SCRATCHPAD_ID] } });
     const doc = win.document;
     await flush();
     const ids = favoriteIds(doc);
-    check("starred scratchpad is still first", ids[0] === SCRATCHPAD_ID, JSON.stringify(ids));
+    check("starred scratchpad is still second", ids[1] === SCRATCHPAD_ID, JSON.stringify(ids));
     check("starred scratchpad is not duplicated", ids.filter(id => id === SCRATCHPAD_ID).length === 1);
-    const favButton = favoriteCards(doc)[0].querySelector("[data-favorite]");
+    const favButton = favoriteCards(doc)[1].querySelector("[data-favorite]");
     check("pinned card shows as saved when starred", favButton.textContent.includes("Saved"), favButton.textContent);
 
     // Un-starring a pinned card clears the saved flag but cannot remove the pin.
     favButton.click();
     await flush();
     const afterIds = favoriteIds(win.document);
-    check("un-starred scratchpad stays pinned first", afterIds[0] === SCRATCHPAD_ID, JSON.stringify(afterIds));
+    check("un-starred scratchpad stays pinned second", afterIds[1] === SCRATCHPAD_ID, JSON.stringify(afterIds));
     check("saved list no longer contains the scratchpad",
       !JSON.parse(win.localStorage.getItem("commandos-favorites-v1")).includes(SCRATCHPAD_ID));
     win.close();
@@ -177,9 +177,9 @@ const favoriteIds = doc => favoriteCards(doc).map(card => card.dataset.id);
     search.value = "scratchpad";
     search.dispatchEvent(new win.Event("input", { bubbles: true }));
     await flush();
-    const first = favoriteCards(doc)[0];
+    const first = favoriteCards(doc)[1];
     check("scratchpad card survives a scratchpad search", first.dataset.id === SCRATCHPAD_ID && !first.classList.contains("is-filtered"));
-    check("non-matching favorites are filtered out", favoriteCards(doc).slice(1).every(card => card.classList.contains("is-filtered")));
+    check("non-matching favorites are filtered out", favoriteCards(doc).filter(card => card.dataset.id !== SCRATCHPAD_ID).every(card => card.classList.contains("is-filtered")));
     win.close();
   }
 

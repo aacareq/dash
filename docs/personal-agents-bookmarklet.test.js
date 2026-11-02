@@ -116,13 +116,13 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
     win.close();
   }
 
-  console.log("\n[3] the bookmarklet is also pinned in Favorites, after the Scratchpad");
+  console.log("\n[3] the bookmarklet is also pinned first in Favorites");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
     const ids = [...doc.querySelectorAll('[data-home-key="favorites"] .card')].map(c => c.dataset.id);
-    check("scratchpad still leads Favorites", ids[0] === "workingon:scratchpad-quick-notes", JSON.stringify(ids.slice(0, 3)));
+    check("personal agents bookmarklet leads Favorites", ids[0] === BOOKMARKLET_ID, JSON.stringify(ids.slice(0, 3)));
     check("new bookmarklet is pinned in Favorites exactly once",
       ids.filter(id => id === BOOKMARKLET_ID).length === 1, JSON.stringify(ids));
     check("favorites copy carries the same bookmarklet link",

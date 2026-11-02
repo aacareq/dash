@@ -21,10 +21,12 @@
       --border: rgba(255, 255, 255, 0.1);
       --tag-bg: rgba(129, 140, 248, 0.13);
       --radius: 14px;
+      color-scheme: dark;
       --font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     .light {
+      color-scheme: light;
       --bg: #f4f5f9;
       --sidebar-bg: #ffffff;
       --card-bg: rgba(30, 27, 75, 0.035);
@@ -215,6 +217,9 @@
       font-size: .84rem;
     }
     .theme-toggle:hover { background: var(--card-hover); }
+    .light .favorite.is-favorite { color: #805800; border-color: #ad7900; background: #fff6d9; }
+    .light .status-msg.is-error, .light .scratch-filebar-state.is-error { color: #b42318; }
+    .light .status-msg.is-success, .light .scratch-filebar-state.is-saved, .light .gh-sync-badge.is-connected { color: #087443; }
 
     /* Main workspace */
     main { margin-left: 260px; flex-grow: 1; padding: 2.5rem; max-width: 1500px; width: calc(100% - 260px); }
@@ -616,6 +621,8 @@
     .card-details summary::-webkit-details-marker { display: none; }
     .card-details[open] summary { color: var(--text); border-color: var(--accent); }
     .detail-panel { position: absolute; z-index: 4; left: .7rem; right: .7rem; bottom: 2.85rem; /* sits above the footer so its toggle stays clickable */ padding: .8rem; background: var(--sidebar-bg); border: 1px solid var(--accent); box-shadow: 0 12px 25px rgba(0,0,0,.28); border-radius: 10px; color: var(--text-muted); font-size: .78rem; line-height: 1.45; }
+    .detail-panel { max-height: min(18rem, 65vh); overflow-y: auto; }
+    .detail-panel a.detail-url { display: block; }
     .detail-panel strong { display: block; color: var(--text); margin-bottom: .2rem; }
     .detail-url { overflow-wrap: anywhere; color: var(--accent); margin-top: .4rem; font-size: .7rem; }
     .empty-state { padding: 1.25rem; color: var(--text-muted); background: var(--card-bg); border: 1px dashed var(--border); border-radius: var(--radius); font-size: .9rem; }
@@ -752,6 +759,7 @@
       <button class="nav-btn" type="button" data-section="personalagents"><span>Personal AI Agents</span> <span class="count" id="cnt-personalagents">0</span></button>
       <button class="nav-btn" type="button" data-section="bookmarklets"><span>Bookmarklets</span> <span class="count" id="cnt-bookmarklets">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
+      <button class="nav-btn" type="button" data-section="freeinference"><span>Free Inference</span> <span class="count" id="cnt-freeinference">0</span></button>
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
@@ -772,7 +780,7 @@
         <button class="config-btn" type="button" id="btn-import-config" title="Import dashboard config from JSON">📂 Import</button>
         <input type="file" id="file-import-config" accept=".json" class="sr-only" />
       </div>
-      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Toggle color theme">🌓 <span>Theme</span></button>
+      <button class="theme-toggle" type="button" id="theme-toggle" aria-label="Light mode" aria-pressed="false">☀️ <span>Light mode</span></button>
     </div>
   </aside>
 
@@ -820,6 +828,7 @@
             <option value="personalagents">Personal AI Agents</option>
             <option value="bookmarklets">Bookmarklets</option>
             <option value="inference">Inference</option>
+            <option value="freeinference">Free Inference</option>
             <option value="zerocost">Zero-Cost APIs</option>
             <option value="agent">Agents</option>
             <option value="codingagents">Coding Agents</option>
@@ -1419,7 +1428,6 @@
           { name: "Groq", url: "https://groq.com", desc: "Access very fast hosted inference for supported open models.", best: "Low-latency inference", tags: ["API", "fast", "open models"], group: "Fast API inference" },
           { name: "DeepInfra", url: "https://deepinfra.com", desc: "Run hosted open models through serverless inference APIs.", best: "Open-model API workloads", tags: ["API", "open models", "fast"], group: "Fast API inference" },
           { name: "SiliconFlow", url: "https://siliconflow.com", desc: "Use hosted open-source models through an API platform.", best: "Open-model API access", tags: ["API", "open models", "fast"], group: "Fast API inference" },
-          { name: "GitHub Marketplace", url: "https://github.com/marketplace/models", desc: "Try hosted models from GitHub's model catalog.", best: "Developer model experiments", tags: ["API", "free", "coding"], group: "Fast API inference" },
           { name: "Hugging Face", url: "https://huggingface.co", desc: "Discover open models, datasets, demos, and community tools.", best: "Open-model discovery", tags: ["open models", "models", "community"], group: "Open-model platforms" },
           { name: "Mistral", url: "https://chat.mistral.ai", desc: "Use Mistral's assistants and models for writing, coding, and experimentation.", best: "European open-model access", tags: ["open models", "coding", "API"], group: "Open-model platforms" },
           { name: "Qwen", url: "https://chat.qwen.ai", desc: "Use Alibaba's multilingual assistant and model platform.", best: "Multilingual AI work", tags: ["open models", "multilingual", "coding"], group: "Open-model platforms" },
@@ -1432,6 +1440,22 @@
           { name: "Meta AI", url: "https://meta.ai", desc: "Use Meta's consumer assistant and an entry point to Llama models.", best: "Llama model access", tags: ["open models", "multimodal", "general"], group: "More assistants" },
           { name: "Poe", url: "https://poe.com", desc: "Try multiple bots and build custom AI experiences in one place.", best: "Multi-model exploration", tags: ["models", "custom bots", "writing"], group: "More assistants" },
           { name: "Cohere", url: "https://cohere.com", desc: "Build RAG, search, and enterprise language applications.", best: "RAG and enterprise NLP", tags: ["API", "RAG", "enterprise"], group: "More assistants" }
+        ]
+      },
+      freeinference: {
+        title: "Free Inference",
+        summary: "Free model APIs and cloud compute for experiments, plus clearly marked credit-limited trials. Checked November 2, 2026; quotas and availability change.",
+        note: 'Start with an unbilled free tier for zero-cost work. Credit-based services can charge after allowances run out; check billing, model terms and privacy before sending data. Open Details on each card for limits and the provider’s source.',
+        items: [
+          { name: "NVIDIA Build", url: "https://build.nvidia.com/models", desc: "Try hosted NVIDIA NIM model endpoints marked Free Endpoint; get an API key to integrate.", best: "Exploring hosted model APIs", tags: ["API", "free endpoint", "models"], group: "Free inference APIs", detail: "NVIDIA offers free serverless APIs for development on selected models. Availability, rate limits and trial terms vary by endpoint; check the model page before relying on it.", source: "https://build.nvidia.com/explore/discover?integrate_nim=true&hosted_api=true" },
+          { name: "Google AI Studio / Gemini API", url: "https://aistudio.google.com/apikey", desc: "Use eligible Gemini models in AI Studio or through a free-tier API key.", best: "Multimodal API prototypes", tags: ["API", "free tier", "multimodal"], group: "Free inference APIs", detail: "New projects can use selected models at model-specific free-tier rate limits. Linking billing changes the tier; free-tier data-use terms differ from paid terms. Check your project limits and model pricing.", source: "https://ai.google.dev/gemini-api/docs/billing" },
+          { name: "GroqCloud", url: "https://console.groq.com/keys", desc: "Fast hosted open-model and audio inference on the free developer plan.", best: "Low-latency API experiments", tags: ["API", "free tier", "fast"], group: "Free inference APIs", detail: "Free-plan request and token limits vary by model and apply across the organization. See your console's Limits page for exact current quotas; higher limits require an upgrade.", source: "https://console.groq.com/docs/rate-limits" },
+          { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Run supported models at the edge with 10,000 free neurons per day.", best: "Edge apps and serverless inference", tags: ["API", "free tier", "edge"], group: "Free inference APIs", detail: "The free daily allowance resets at 00:00 UTC. Usage is measured in neurons, not requests; some models require Workers Paid, where excess usage is billed.", source: "https://developers.cloudflare.com/workers-ai/platform/pricing/" },
+          { name: "OpenRouter free models", url: "https://openrouter.ai/models?q=:free", desc: "Route requests to selected :free model variants through one API.", best: "Comparing multiple models", tags: ["API", "free models", "routing"], group: "Free inference APIs", detail: "Choose the :free variant explicitly: other variants are paid. Free models have platform and upstream rate limits, can change or be unavailable, and are not intended for dependable production traffic.", source: "https://openrouter.ai/docs/api_reference/limits" },
+          { name: "Google Colab", url: "https://colab.research.google.com/", desc: "Run Python notebooks with free GPU or TPU access when available.", best: "Interactive model experiments", tags: ["compute", "GPU", "notebook", "free"], group: "Free cloud compute", detail: "Select Runtime → Change runtime type to request an accelerator. Free GPUs are heavily restricted, not guaranteed, and usage and session limits fluctuate. Save outputs outside the temporary VM.", source: "https://research.google.com/colaboratory/faq.html" },
+          { name: "Kaggle Notebooks", url: "https://www.kaggle.com/code", desc: "Run hosted notebooks with free GPU and TPU accelerators, subject to quota and availability.", best: "Training and data science notebooks", tags: ["compute", "GPU", "TPU", "notebook", "free"], group: "Free cloud compute", detail: "In notebook Settings choose Accelerator. Kaggle documents a weekly GPU quota, typically 30 hours or higher depending on demand; check your account quota. Busy accelerators may queue; save your outputs.", source: "https://www.kaggle.com/docs/efficient-gpu-usage" },
+          { name: "Modal Starter", url: "https://modal.com/", desc: "Serverless CPU and GPU functions with $30/month in included compute credits.", best: "Custom inference and GPU jobs", tags: ["compute", "GPU", "monthly credits"], group: "Credit-limited compute & trials", detail: "Starter has no base subscription fee. Credits cover eligible CPU, memory and GPU compute, not Shared Endpoints; usage beyond the allowance or excluded services is billed. Set a workspace budget.", source: "https://modal.com/pricing" },
+          { name: "Cerebras Inference trial", url: "https://cloud.cerebras.ai/", desc: "New accounts can try hosted inference with $5 in one-time credits.", best: "Short high-speed API evaluation", tags: ["API", "trial", "payment method"], group: "Credit-limited compute & trials", detail: "A verified payment method is required; credits expire after 30 days. Access stops when credits expire or run out unless you buy more. This is not a recurring free tier.", source: "https://inference-docs.cerebras.ai/support/rate-limits" }
         ]
       },
       codingagents: {
@@ -1457,7 +1481,6 @@
           { name: "Google AI Studio API Keys", url: "https://aistudio.google.com/apikey", desc: "Create and manage Gemini API keys for Google AI Studio.", best: "Gemini API access", tags: ["API", "gemini", "free"], aliases: ["get gemini API keys", "gemini keys"] },
           { name: "Cloudflare Workers AI", url: "https://dash.cloudflare.com/?to=/:account/ai", desc: "Run AI models near users through Cloudflare's edge platform.", best: "Edge AI applications", tags: ["API", "edge", "cloudflare"] },
           { name: "OpenRouter (:free)", url: "https://openrouter.ai/models?q=:free", desc: "Browse routed free-tier models from one API-compatible catalog.", best: "Trying many models", tags: ["API", "free", "models"] },
-          { name: "GitHub Models", url: "https://github.com/marketplace/models", desc: "Experiment with hosted models in GitHub's developer workflow.", best: "Model tests with GitHub", tags: ["API", "free", "coding"], group: "Fast API inference" },
           { name: "Harness Hub", url: "zerocost.html", desc: "Use BYOK workspaces, loops, a DAG canvas, and a prompt library.", best: "Prompt and workflow testing", tags: ["prompts", "workflows", "BYOK"], internal: true }
         ]
       },
@@ -1684,19 +1707,15 @@
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
     const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    /*
-      Pinned favorites: cards that always sit at the front of the Favorites grid, independently of the saved
-      list. The Scratchpad leads — it is the dashboard's own notes pad, so it stays one click away even before
-      anything is starred — followed by the bookmarklets, each of which launches a whole workflow in a single
-      click. Both reuse the exact same card definitions shown in their browsable clusters ("Working On" and
-      "Bookmarklets"), tagged with those clusters' section keys so ids line up and the copies can never drift
-      apart: the Scratchpad card opens the same `modal-scratchpad` dialog, and each bookmarklet link both runs
-      the bookmarklet and can be dragged onto the bookmarks bar.
-    */
+    // Keep the personal agents bookmarklet first, then Scratchpad and the remaining bookmarklets.
+    // Pinned cards reuse the definitions in their original clusters and never duplicate saved favorites.
     const scratchpadCard = database.workingon.items.find(item => item.modal === "modal-scratchpad");
+    const personalAgentsBookmarklet = bookmarkletItems.find(item => item.name === "Personal AI Agents — Always-On");
+    const pinnedBookmarklet = item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` });
     const pinnedFavorites = [
+      ...(personalAgentsBookmarklet ? [pinnedBookmarklet(personalAgentsBookmarklet)] : []),
       ...(scratchpadCard ? [{ ...scratchpadCard, sectionKey: "workingon", id: `workingon:${slugify(scratchpadCard.name)}` }] : []),
-      ...bookmarkletItems.map(item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` }))
+      ...bookmarkletItems.filter(item => item !== personalAgentsBookmarklet).map(pinnedBookmarklet)
     ];
     /*
       Ensured favorites: Gemini and Claude belong in Favorites even in browsers whose saved list was stored
@@ -1739,7 +1758,18 @@
         customTools = [];
         recentLaunches = [];
       }
-      document.body.classList.toggle("light", state.theme === "light");
+      applyTheme();
+    }
+
+    function applyTheme() {
+      const light = state.theme === "light";
+      document.body.classList.toggle("light", light);
+      const toggle = document.getElementById("theme-toggle");
+      toggle.setAttribute("aria-pressed", String(light));
+      toggle.setAttribute("aria-label", "Light mode");
+      toggle.innerHTML = '☀️ <span>Light mode</span>';
+      toggle.title = light ? "Switch to dark mode" : "Switch to light mode";
+      document.querySelector('meta[name="theme-color"]').setAttribute("content", light ? "#f4f5f9" : "#0b0914");
     }
 
     function saveFavorites() {
@@ -1822,10 +1852,10 @@
           state.favorites = new Set(config.favorites);
           saveFavorites();
         }
-        if (config.theme) {
+        if (["light", "dark"].includes(config.theme)) {
           state.theme = config.theme;
           try { localStorage.setItem("commandos-theme", state.theme); } catch (e) {}
-          document.body.classList.toggle("light", state.theme === "light");
+          applyTheme();
         }
         if (Array.isArray(config.customTools)) {
           customTools = config.customTools;
@@ -1861,7 +1891,7 @@
       card.dataset.id = item.id;
       card.dataset.section = item.sectionKey;
       card.dataset.group = (item.group || "").toLowerCase();
-      const searchable = [item.name, item.desc, item.best, ...(item.tags || []), ...(item.aliases || []), item.group || ""].join(" ").toLowerCase();
+      const searchable = [item.name, item.desc, item.best, ...(item.tags || []), ...(item.aliases || []), item.group || "", item.detail || ""].join(" ").toLowerCase();
       card.dataset.search = searchable;
       if (item.template) {
         card.dataset.template = item.template;
@@ -1992,6 +2022,15 @@
       url.className = "detail-url";
       url.textContent = item.modal ? "Opens as a dialog on this page — no URL to leave." : item.url;
       panel.append(detailTitle, detailText, url);
+      if (item.source) {
+        const source = document.createElement("a");
+        source.className = "detail-url";
+        source.href = item.source;
+        source.target = "_blank";
+        source.rel = "noopener noreferrer";
+        source.textContent = "Provider source ↗";
+        panel.appendChild(source);
+      }
       details.append(summary, panel);
       details.addEventListener("toggle", () => { if (details.open) closeOtherDetails(details); });
       footer.append(actions, details);
@@ -2081,7 +2120,7 @@
     function renderCards(items, grid) { items.forEach(item => grid.appendChild(makeCard(item))); }
 
     // Keep saved tools in the user's chosen order (the supplied defaults are GitHub, Gemini, Arena AI, Claude),
-    // with the pinned cards (Scratchpad first, then the bookmarklets) held at the front so they survive any
+    // with the pinned cards (personal agents first, then Scratchpad and the other bookmarklets) held at the front so they survive any
     // change to the saved list — starring a pinned card must not move it back among the saved ones, or show it twice.
     function getFavoritesList(allItems) {
       const pinnedIds = new Set(pinnedFavorites.map(item => item.id));
@@ -2097,7 +2136,7 @@
       favoriteSection.className = "dashboard-section home-section";
       favoriteSection.dataset.home = "true";
       favoriteSection.dataset.homeKey = "favorites";
-      favoriteSection.appendChild(makeSectionHeader("Favorites", "Scratchpad pinned first, then pinned bookmarklets and your saved launch points. Use ☆ Save on any card to change your saved list."));
+      favoriteSection.appendChild(makeSectionHeader("Favorites", "Personal AI Agents pinned first, followed by Scratchpad, bookmarklets, and your saved launch points. Use ☆ Save on any card to change your saved list."));
       const favoriteGrid = document.createElement("div");
       favoriteGrid.className = "grid";
       if (favorites.length) renderCards(favorites, favoriteGrid);
@@ -2496,7 +2535,8 @@
       document.getElementById("clear-search").addEventListener("click", () => setSearch(""));
       document.querySelectorAll(".nav-btn").forEach(button => button.addEventListener("click", () => selectSection(button.dataset.section, button)));
       document.getElementById("theme-toggle").addEventListener("click", () => {
-        state.theme = document.body.classList.toggle("light") ? "light" : "dark";
+        state.theme = state.theme === "light" ? "dark" : "light";
+        applyTheme();
         try { localStorage.setItem("commandos-theme", state.theme); } catch (error) { /* preference is optional */ }
       });
       window.addEventListener("keydown", event => {

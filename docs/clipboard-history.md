@@ -53,7 +53,7 @@ A clipboard routinely holds passwords, tokens and personal data. So:
   **New collection** clears the list.
 - Once saved, clips are **in the repo's git history**, readable by anyone with
   access. Don't save a collection that contains secrets — or use a private repo
-  (the scratch repo is private by default).
+  (the clips repo is created private by default).
 
 ## Capturing
 
@@ -95,17 +95,17 @@ console.log(x);
   contains a fence gets a longer fence (```` ```` ````).
 - Pinned clips are marked; the list in the tool shows pinned items first.
 - Re-saving updates the same file (via its blob SHA, so a concurrent change
-  triggers a re-read and retry instead of a hard failure).
+  pauses the save rather than overwriting the remote version).
 
-## Saving to the scratch repo
+## Saving to the clips repo
 
-- Target: `<account>/scratch`, path `clips/clips-<YYYY-MM-DD-HHMM>.md` — both
+- Target: `<account>/clips`, path `clips/clips-<YYYY-MM-DD-HHMM>.md` — both
   shown in the header bar above the list.
 - Uses the **same connection** as the Scratchpad: if GitHub saving is set up
   there, this works immediately; if not, the panel says so and offers a button
   that opens the Scratchpad's GitHub section.
-- If the `scratch` repo doesn't exist yet, it's created (private, initial
-  commit) before the first write.
+- If the `clips` repo is missing, creation is attempted (private, initial
+  commit). If access or creation fails, add the private repo to the app installation; see the [integration guide](working-on-integrations.md). Existing files in `scratch` are not moved.
 - **Autosave** (off by default) pushes the collection ~3 s after each new clip.
 - A refused write (app not installed on the repo) is reported in the status
   line and the header's error state, not silently dropped.
@@ -117,7 +117,7 @@ console.log(x);
 | `dash-clipboard-history-v1` | `{ startedAt, items: [{ id, text, createdAt, pinned }] }` |
 | `dash-clipboard-path` | a custom file path, if one was set |
 | `dash-clipboard-autosave` | `"true"` when autosave is on |
-| `dash-clipboard-sha-v1` | last saved blob SHA |
+| `dash-clipboard-clips-repo-sha-v2` | last saved repo, path and blob SHA |
 
 ## Tests
 

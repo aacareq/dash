@@ -1,4 +1,4 @@
-// Behaviour tests for the Clipboard History tool (multi-item clipboard → clips/ in the scratch repo).
+// Behaviour tests for the Clipboard History tool (multi-item clipboard → clips/ in the clips repo).
 //
 //   npm install jsdom
 //   node docs/clipboard-history.test.js
@@ -91,12 +91,13 @@ function makeWindow({ storage = null, clipboard = null, fetchImpl = null, openDi
 
 // Stateful-enough GitHub stub for clips: repo contents + repo creation.
 function makeGithub({ existingFile = null, denyWrite = false, repos = [] } = {}) {
-  const state = { puts: [], gets: 0, creates: 0, file: existingFile };
+  const state = { puts: [], gets: 0, creates: 0, createdNames: [], file: existingFile };
   async function handle(target, options = {}) {
     const method = (options.method || "GET").toUpperCase();
     if (method === "POST" && (target.endsWith("/user/repos") || /\/orgs\/[^/]+\/repos$/.test(target))) {
       state.creates += 1;
       const body = JSON.parse(options.body || "{}");
+      state.createdNames.push(body.name);
       return jsonRes({ full_name: `octocat/${body.name}`, name: body.name }, true, 201);
     }
     if (target.includes("/access_tokens") && method === "POST") {
@@ -240,7 +241,7 @@ const CONNECTED = {
   check("clip truncated to 20k chars", stored.text.length === 20000, String(stored.text.length));
   check("truncation is reported", /truncated/.test(win.document.getElementById("clipboard-status").textContent), win.document.getElementById("clipboard-status").textContent);
 
-  console.log("\n[7] saving the collection to clips/ in the scratch repo");
+  console.log("\n[7] saving the collection to clips/ in the clips repo");
   let github = makeGithub();
   win = makeWindow({ storage: { ...CONNECTED, "dash-clipboard-history-v1": { startedAt: Date.parse("2026-10-24T11:42:00"), items: [
     { id: "a", text: "first clip", createdAt: Date.parse("2026-10-24T11:42:05"), pinned: false },
@@ -249,13 +250,13 @@ const CONNECTED = {
   await flush();
   await win.__openClipboard();
   const d7 = win.document;
-  check("header shows the scratch repo", d7.getElementById("clipboard-filebar-repo").textContent === "octocat/scratch", d7.getElementById("clipboard-filebar-repo").textContent);
+  check("header shows the clips repo", d7.getElementById("clipboard-filebar-repo").textContent === "octocat/clips", d7.getElementById("clipboard-filebar-repo").textContent);
   check("file lives under clips/", /^clips\/clips-2026-10-24-1142\.md$/.test(d7.getElementById("clipboard-filebar-file").textContent), d7.getElementById("clipboard-filebar-file").textContent);
   d7.getElementById("clipboard-save").click();
   await flush(); await flush();
   check("one commit made", github.state.puts.length === 1, String(github.state.puts.length));
   const put = github.state.puts[0] || { target: "", body: {} };
-  check("PUT targets clips/clips-<date-time>.md", /^https:\/\/api\.github\.com\/repos\/octocat\/scratch\/contents\/clips\/clips-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(put.target), put.target);
+  check("PUT targets clips/clips-<date-time>.md", /^https:\/\/api\.github\.com\/repos\/octocat\/clips\/contents\/clips\/clips-\d{4}-\d{2}-\d{2}-\d{4}\.md$/.test(put.target), put.target);
   const content = Buffer.from(put.body.content || "", "base64").toString("utf8");
   check("markdown has a title with the date", /^# Clips — /.test(content), content.slice(0, 40));
   check("each clip is a fenced block", (content.match(/```text/g) || []).length === 2, String((content.match(/```text/g) || []).length));
@@ -318,9 +319,9 @@ const CONNECTED = {
   await win.__openClipboard();
   win.document.getElementById("clipboard-save").click();
   await flush(); await flush(); await flush();
-  check("the scratch repo was created", github.state.creates === 1, String(github.state.creates));
-  check("then the clips file was written", github.state.puts.length === 1 && /repos\/octocat\/scratch\/contents\/clips\//.test(github.state.puts[0].target), JSON.stringify(github.state.puts.map(p => p.target)));
-  check("the repo choice is remembered for other tools", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
+  check("the clips repo was created", github.state.createdNames.includes("clips"), String(github.state.creates));
+  check("then the clips file was written", github.state.puts.length === 1 && /repos\/octocat\/clips\/contents\/clips\//.test(github.state.puts[0].target), JSON.stringify(github.state.puts.map(p => p.target)));
+  check("the Scratchpad repo choice is not changed to clips", win.localStorage.getItem("dash-scratchpad-gh-repo") !== "octocat/clips");
 
   console.log("\n[12] autosave after a new clip");
   github = makeGithub();
@@ -359,6 +360,57 @@ const CONNECTED = {
   await flush(); await flush();
   check("status explains the failure", /can't write|couldn't|Not Found/i.test(win.document.getElementById("clipboard-status").textContent), win.document.getElementById("clipboard-status").textContent);
   check("header shows the error state", win.document.getElementById("clipboard-filebar-state").classList.contains("is-error"));
+
+  console.log("\n[15] dedicated task set uses the shared app and protects remote edits");
+  let remoteTask = null;
+  const taskPuts = [];
+  const taskRequests = [];
+  async function taskGithub(target, options = {}) {
+    const method = options.method || "GET";
+    taskRequests.push({ target, method, options });
+    if (target.includes("/access_tokens")) return jsonRes({ token: "ghs_shared" });
+    if (target.endsWith("/repos/octocat/tasksets")) return jsonRes({ private: true });
+    if (target.includes("/repos/octocat/tasksets/contents/taskset.json")) {
+      if (method === "PUT") {
+        const body = JSON.parse(options.body); taskPuts.push(body);
+        remoteTask = { type: "file", sha: `task-${taskPuts.length}`, content: body.content };
+        return jsonRes({ content: { sha: remoteTask.sha } });
+      }
+      return remoteTask ? jsonRes(remoteTask) : jsonRes({}, false, 404);
+    }
+    if (target.includes("/installation/repositories")) return jsonRes({ repositories: [{ full_name: "octocat/tasksets", default_branch: "main" }] });
+    if (target.includes("/repos/") && target.includes("/contents/")) {
+      if (method === "PUT") return jsonRes({ content: { sha: "work-sha" } });
+      return jsonRes({}, false, 404);
+    }
+    if (target.endsWith("/user/repos") && method === "POST") return jsonRes({ full_name: "octocat/scratch" }, true, 201);
+    return jsonRes({}, false, 404);
+  }
+  win = makeWindow({ storage: CONNECTED, fetchImpl: taskGithub });
+  await flush();
+  const dt = win.document;
+  dt.getElementById("taskset-title").value = "Ship the release";
+  dt.getElementById("taskset-add-form").dispatchEvent(new win.Event("submit", { bubbles: true, cancelable: true }));
+  dt.getElementById("taskset-save").click(); await flush(); await flush();
+  check("local task is saved to tasksets", taskPuts.length === 1 && Buffer.from(taskPuts[0].content, "base64").toString().includes("Ship the release"));
+  remoteTask.sha = "external-change";
+  dt.getElementById("taskset-save").click(); await flush(); await flush();
+  check("changed task set is not overwritten", taskPuts.length === 1 && /changed on GitHub/.test(dt.getElementById("taskset-status").textContent));
+  dt.getElementById("taskset-load").click(); await flush(); await flush();
+  check("load confirms before replacing local tasks", win.__calls.confirms.some(message => /Replace the local task set/.test(message)) && /Loaded/.test(dt.getElementById("taskset-status").textContent));
+  dt.getElementById("ghwork-load-repos").click(); await flush(); await flush();
+  check("Work List lists app installation repositories", taskRequests.some(call => call.target.includes("/installation/repositories") && call.options.headers.Authorization === "Bearer ghs_shared") && dt.getElementById("ghwork-repo").value === "octocat/tasksets");
+  dt.getElementById("ghwork-path").value = "work.md";
+  dt.getElementById("ghwork-content").value = "shared app content";
+  dt.getElementById("ghwork-create").click(); await flush(); await flush();
+  check("Work List writes with the shared installation token", taskRequests.some(call => call.method === "PUT" && call.target.endsWith("/contents/work.md") && call.options.headers.Authorization === "Bearer ghs_shared"));
+
+  console.log("\n[16] clips do not overwrite a file changed elsewhere");
+  github = makeGithub({ existingFile: { type: "file", sha: "other", content: Buffer.from("remote").toString("base64") } });
+  win = makeWindow({ storage: { ...CONNECTED, "dash-clipboard-history-v1": { startedAt: Date.now(), items: [{ id: "a", text: "local", createdAt: Date.now(), pinned: false }] } }, fetchImpl: github.handle });
+  await flush(); await win.__openClipboard();
+  win.document.getElementById("clipboard-save").click(); await flush(); await flush();
+  check("existing remote collection is not overwritten", github.state.puts.length === 0 && /already exists or changed/.test(win.document.getElementById("clipboard-status").textContent));
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

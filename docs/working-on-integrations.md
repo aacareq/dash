@@ -1,0 +1,26 @@
+# Working On: connections and setup
+
+Dash is static: there is no server to hold credentials or refresh Google tokens. GitHub features share the Scratchpad connection in the same browser and origin. Open Scratchpad → GitHub sync to register/install the app or reconnect using a previously exported connection file. Treat that file and the browser-stored app private key as secrets: anyone with the key can act as the app. Use HTTPS, a trusted device, and keep the connection file private.
+
+| Tool | Service and setup | What to expect |
+| --- | --- | --- |
+| Tasks List | Local tasks plus optional GitHub backup. Set up Scratchpad GitHub sync, then save to `tasksets/taskset.json`. | Separate from Google Tasks; saving and loading are explicit, not automatic. Loading replaces local tasks after confirmation. A changed remote file blocks saving. |
+| Google Tasks (optional) | [OAuth Playground](https://developers.google.com/oauthplayground): authorize `https://www.googleapis.com/auth/tasks`, exchange the code for tokens, and paste the **access token** in Tasks. | Short-lived token; renew it when it expires. Google Tasks and the local task set do not sync with each other. |
+| Work List | Same Scratchpad GitHub connection; select an accessible repository. [Manage installation access](https://github.com/settings/installations). | Loads the first 100 accessible repositories. Existing file changes are checked before saving. A [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new) is an optional fallback, with appropriate Contents permissions and repository access. |
+| Calendar | [OAuth Playground](https://developers.google.com/oauthplayground): authorize `https://www.googleapis.com/auth/calendar`, exchange the code, and paste the access token into Calendar. | Tokens expire; the app does not refresh them. Tasks and Calendar can use a token with both scopes, but paste it into each open dialog. |
+| Scratchpad | Scratchpad → GitHub sync; [manage GitHub app installations](https://github.com/settings/installations). | Notes work locally/offline; GitHub sync uses the selected repository and conflict checks. |
+| Clipboard History | Same Scratchpad connection; save to `clips/clips-<date-time>.md`. | Local until saved. Existing collections in the old `scratch` repository are not moved or deleted. A collision or remotely changed collection blocks saving; start a new collection. Browser clipboard access is permission/gesture dependent; paste works as a fallback. |
+| Pomodoro | Local browser timer. | No account or backend required. |
+| News | Public feeds/APIs and RSS proxies. | No token in the UI; third-party proxies can be unavailable and receive feed requests. Cached headlines may be shown. |
+
+## Dedicated GitHub repositories
+
+The app checks for `tasksets` and `clips` in the Scratchpad installation account and attempts to create missing repositories as private with an initial commit. It refuses to save to an existing public repository. A GitHub 404 can also mean an existing private repo is not accessible; a failed creation is not proof that the repo is absent. If creation fails, create a private repository in GitHub and [add it to the app installation](https://github.com/settings/installations), then retry. Existing Scratchpad installations may lack repository creation permission or access to newly created repos. Organization policy and admin approval can also prevent creation. Do not grant access to every repository unless you intend to.
+
+## Research and next steps
+
+- GitHub [installation tokens](https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/authenticating-as-a-github-app-installation) expire after one hour; the existing Scratchpad app mints replacements, so Work List and GitHub backups do not need a separate PAT. GitHub's [repository creation permission](https://github.blog/changelog/2026-10-13-github-app-improvements-for-least-privilege-and-management/) is narrower than administration permission, but existing apps may need a permission update and owner approval. This change does not automatically modify existing app permissions.
+- Google's [Tasks JavaScript quickstart](https://developers.google.com/workspace/tasks/quickstart/js) uses Google Identity Services with an OAuth client ID and consent. The least-friction future improvement is an authorized web client and a Connect Google button requesting Tasks and Calendar scopes; that requires Google Cloud project/consent configuration and allowed origins. It is not configured here, so the Playground remains a manual, expiring-token fallback. Do not embed a client secret or refresh token in this static site.
+- The [Clipboard API](https://developer.mozilla.org/en-US/docs/Web/API/Clipboard_API) is restricted to secure contexts and browser-specific permissions/user gestures. A static web page cannot reliably monitor the system clipboard in the background across browsers.
+
+Saving is not end-to-end encryption: repository owners and anyone with repository access can read saved task and clipboard contents. Review clips before enabling autosave. Credentials are stored in browser storage by the existing Scratchpad implementation and may be exposed to malicious scripts running on the same origin.

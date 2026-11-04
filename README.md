@@ -42,10 +42,7 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   list, a GitHub-backed work list that can create **and edit** files in a
   chosen repo, a Google Calendar mini agenda, a Pomodoro/focus timer, an
   exportable scratchpad, a multi-item clipboard, and a multi-source
-  news/headlines feed. The Google
-  Tasks, GitHub, and Google Calendar tools need a token pasted in (kept only
-  in this browser's `localStorage`) since the dashboard has no backend of its
-  own. The GitHub work list has a "Load Existing File" button that fetches a
+  news/headlines feed. The Tasks List supports a local task set saved to a private `tasksets` repository using the Scratchpad GitHub connection, as well as a separate optional Google Tasks view. Work List uses the same Scratchpad connection (with a personal access token as a fallback). Google Tasks and Calendar still require short-lived Google OAuth access tokens pasted into their dialogs. See [Working On integration guide](docs/working-on-integrations.md) for setup and limitations. The GitHub work list has a "Load Existing File" button that fetches a
   file's current content and version (SHA) from a chosen repo/path into the
   editor; saving then updates that same file in place (via the GitHub
   Contents API's `sha` field) instead of only ever being able to create new
@@ -89,8 +86,8 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   keeps a list of captured clips (pasted into the dialog, copied on the page, or
   read from the system clipboard with **Capture clipboard**), lets you pin,
   copy back and delete items, and saves the whole collection to
-  `clips/clips-<date-time>.md` in the same **scratch** repo as the notes — no
-  second setup. It also spells out the browser's limits: there is no
+  `clips/clips-<date-time>.md` in a dedicated private **clips** repo using the same GitHub connection — no
+  second app setup. It also spells out the browser's limits: there is no
   clipboard-change event and no background read, so it can't watch what you copy
   in other apps; Safari/Firefox may block programmatic reads (pasting always
   works). See [`docs/clipboard-history.md`](docs/clipboard-history.md).

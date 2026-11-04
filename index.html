@@ -745,7 +745,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.5.1</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.5.2</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -855,7 +855,13 @@
     <!-- "Working On" tool modals: in-page dialogs for tasks, GitHub work items, calendar, a timer, notes, and headlines -->
     <dialog id="modal-google-tasks" class="modal modal-wide">
       <div class="modal-card">
-        <h3 class="modal-title">Tasks List — Google Tasks</h3>
+        <h3 class="modal-title">Tasks List</h3>
+        <p class="modal-hint">Keep a local task set and save it to a private <code>tasksets</code> repository using the Scratchpad GitHub connection. <a href="https://github.com/settings/installations" target="_blank" rel="noopener noreferrer">Manage app repository access</a>. Google Tasks below remains separate; it is not automatically synced.</p>
+        <form id="taskset-add-form" class="inline-form"><input id="taskset-title" class="form-input" placeholder="Add a local task…" required /><button class="modal-btn submit">Add</button></form>
+        <div id="taskset-list" class="task-list"></div>
+        <div class="modal-actions" style="justify-content:flex-start; flex-wrap:wrap"><button type="button" class="modal-btn submit" id="taskset-save">Save task set to GitHub</button><button type="button" class="modal-btn cancel" id="taskset-load">Load task set from GitHub</button><button type="button" class="modal-btn cancel" id="taskset-setup">GitHub setup</button></div>
+        <p id="taskset-status" class="status-msg" role="status"></p>
+        <h4>Google Tasks (optional)</h4>
         <p class="modal-hint">Paste a Google OAuth access token with the <code>tasks</code> scope (e.g. from <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noopener noreferrer">OAuth Playground</a>). It's stored only in this browser's local storage and used directly against the Google Tasks API.</p>
         <div class="token-row">
           <label class="form-label" style="flex:1;">Access token
@@ -881,9 +887,10 @@
     <dialog id="modal-github-work" class="modal modal-wide">
       <div class="modal-card">
         <h3 class="modal-title">Work List — Create &amp; Edit Files in GitHub</h3>
-        <p class="modal-hint">Paste a GitHub personal access token with <code>repo</code> scope. It's stored only in this browser's local storage and sent directly to the GitHub API. Use <strong>Load Existing File</strong> to pull a file's current content and version before editing, <strong>Check for Updates</strong> to see if it has changed on GitHub without touching your editor, and saving always re-checks GitHub first so someone else's changes can never be silently overwritten.</p>
+        <p class="modal-hint">Uses the Scratchpad GitHub connection when available; only repositories granted to that app are shown. <a href="https://github.com/settings/installations" target="_blank" rel="noopener noreferrer">Manage app access</a>. A personal access token is an optional fallback. Use <strong>Load Existing File</strong> to pull a file's current content and version before editing, <strong>Check for Updates</strong> to see if it has changed on GitHub without touching your editor, and saving always re-checks GitHub first so someone else's changes can never be silently overwritten.</p>
+        <div class="modal-actions" style="justify-content:flex-start"><button type="button" class="modal-btn cancel" id="ghwork-setup">Set up Scratchpad GitHub connection</button></div>
         <div class="token-row">
-          <label class="form-label" style="flex:1;">Personal access token
+          <label class="form-label" style="flex:1;">Optional personal access token (<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">create token</a>)
             <input type="password" id="ghwork-token" class="form-input" placeholder="ghp_...." autocomplete="off" />
           </label>
           <button type="button" class="modal-btn submit" id="ghwork-save-token">Save</button>
@@ -922,7 +929,7 @@
     <dialog id="modal-calendar" class="modal modal-wide">
       <div class="modal-card">
         <h3 class="modal-title">Time-Block Schedule — Google Calendar</h3>
-        <p class="modal-hint">Uses the same Google token as Tasks, authorized with the <code>calendar</code> scope too. Stored only in this browser's local storage.</p>
+        <p class="modal-hint">Uses a Google OAuth access token with the <code>calendar</code> scope. Create one with <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noopener noreferrer">OAuth Playground</a>; tokens expire and are stored only in this browser. Paste it here even if saved in Tasks.</p>
         <div class="token-row">
           <label class="form-label" style="flex:1;">Access token
             <input type="password" id="gcal-token" class="form-input" placeholder="ya29...." autocomplete="off" />
@@ -1249,7 +1256,7 @@
         <p class="modal-hint">
           A browser can't watch the system clipboard in the background — it only gets text when you paste, copy
           something on this page, or click <strong>Capture clipboard</strong> (which may ask permission). Everything
-          captured here stays in this browser until you save the collection to GitHub.
+          captured here stays in this browser until you save the collection to the private <code>clips</code> GitHub repository. <a href="https://github.com/settings/installations" target="_blank" rel="noopener noreferrer">Manage app repository access</a>.
         </p>
 
         <div class="scratch-filebar" id="clipboard-filebar">
@@ -1544,7 +1551,7 @@
           {
             name: "Tasks List",
             modal: "modal-google-tasks",
-            desc: "A task list backed by Google Tasks. Connect with an access token to view and add tasks without leaving the dashboard.",
+            desc: "A local task set saved to GitHub, with optional Google Tasks access.",
             best: "Google Tasks, in-dashboard",
             tags: ["tasks", "google", "API"],
             aliases: ["google tasks", "to-do list"]
@@ -1584,7 +1591,7 @@
           {
             name: "Clipboard History",
             modal: "modal-clipboard",
-            desc: "Keeps more than one thing in the clipboard: capture what you paste or copy, pin the keepers, and save the whole collection to clips/clips-<date>.md in your scratch repo.",
+            desc: "Keeps more than one thing in the clipboard: capture what you paste or copy, pin the keepers, and save the whole collection to clips/clips-<date>.md in a dedicated clips repo.",
             best: "A clipboard that remembers the last few things",
             tags: ["clipboard", "clips", "markdown", "github"],
             aliases: ["clipboard manager", "clip history", "multi clipboard", "clips", "paste history"]
@@ -2782,11 +2789,78 @@
       });
     }
 
+    // A local task set with an explicit, conflict-checked GitHub backup. This is independent of Google Tasks.
+    function initTasksetTool() {
+      const key = "dash-taskset-v1", shaKey = "dash-taskset-remote-v1";
+      const list = document.getElementById("taskset-list");
+      let items = ghReadJson(key, []);
+      if (!Array.isArray(items)) items = [];
+      let busy = false;
+      const status = (message, tone) => setStatus("taskset-status", message, tone);
+      const persist = () => ghWriteJson(key, items);
+      function render() {
+        list.replaceChildren();
+        items.forEach((item, index) => {
+          const row = document.createElement("div"); row.className = "task-item";
+          const checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.checked = !!item.done;
+          checkbox.setAttribute("aria-label", `Complete ${item.title}`);
+          checkbox.addEventListener("change", () => { item.done = checkbox.checked; persist(); });
+          const title = document.createElement("span"); title.textContent = item.title;
+          const remove = document.createElement("button"); remove.type = "button"; remove.className = "modal-btn cancel"; remove.textContent = "Delete";
+          remove.addEventListener("click", () => { items.splice(index, 1); persist(); render(); });
+          row.append(checkbox, title, remove); list.append(row);
+        });
+      }
+      document.getElementById("taskset-add-form").addEventListener("submit", event => {
+        event.preventDefault(); const input = document.getElementById("taskset-title");
+        const title = input.value.trim(); if (!title) return;
+        items.push({ title, done: false }); input.value = ""; persist(); render();
+      });
+      document.getElementById("taskset-setup").addEventListener("click", () => openSharedGithubSetup("modal-google-tasks"));
+      async function run(load) {
+        if (busy) return;
+        if (load && !window.confirm("Replace the local task set with the saved GitHub copy? Unsaved local changes will be lost.")) return;
+        busy = true;
+        try {
+          status(load ? "Loading task set…" : "Saving task set…");
+          const repo = await ghEnsureNamedRepo("tasksets");
+          const path = "taskset.json";
+          const remote = await ghReadRepoFile(repo, path);
+          if (load) {
+            if (!remote) throw new Error("No saved task set found in tasksets yet.");
+            const parsed = JSON.parse(remote.content);
+            if (!Array.isArray(parsed.items) || !parsed.items.every(item => item && typeof item.title === "string" && typeof item.done === "boolean")) throw new Error("The saved task set has an invalid format.");
+            items = parsed.items; persist(); render();
+            ghWriteJson(shaKey, { repo, sha: remote.sha });
+            status(`Loaded ${repo}/${path}.`, "success");
+          } else {
+            const known = ghReadJson(shaKey, null);
+            if (remote && (!known || known.repo !== repo || known.sha !== remote.sha)) throw new Error("A task set already exists or changed on GitHub. Load it first; saving is paused to protect it.");
+            if (!remote && known && known.repo === repo && known.sha) throw new Error("The remote task set was deleted. Saving is paused to protect it.");
+            const saved = await ghWriteRepoFile({ repo, path, content: JSON.stringify({ version: 1, items }, null, 2) + "\n", sha: remote?.sha, message: "Save dashboard task set" });
+            ghWriteJson(shaKey, { repo, sha: saved.content?.sha || "" });
+            status(`Saved ${repo}/${path}.`, "success");
+          }
+        } catch (error) { status(error.message || "GitHub operation failed.", "error"); }
+        finally { busy = false; }
+      }
+      document.getElementById("taskset-save").addEventListener("click", () => run(false));
+      document.getElementById("taskset-load").addEventListener("click", () => run(true));
+      render();
+    }
+
     // ---- Work List (GitHub API — create and edit files in a repo, kept in sync with GitHub) ------------
     function initGithubWorkTool() {
       const tokenInput = document.getElementById("ghwork-token");
       const saved = (() => { try { return localStorage.getItem("dash-github-token") || ""; } catch (e) { return ""; } })();
       if (tokenInput) tokenInput.value = saved;
+
+      document.getElementById("ghwork-setup")?.addEventListener("click", () => openSharedGithubSetup("modal-github-work"));
+      async function workToken() {
+        const connection = ghConnection();
+        if (connection.ready) return connection.kind === "app" ? ghMintInstallationToken(connection.app, connection.installationId) : connection.token;
+        return tokenInput.value.trim();
+      }
 
       // Base64 helpers that are safe for UTF-8 file content (plain atob/btoa only handle Latin1).
       function encodeUtf8Base64(text) { return btoa(unescape(encodeURIComponent(text))); }
@@ -2842,16 +2916,19 @@
       });
 
       document.getElementById("ghwork-load-repos")?.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
+        const token = await workToken().catch(error => { setStatus("ghwork-status", error.message, "error"); return ""; });
         const select = repoSelect;
-        if (!token) { setStatus("ghwork-status", "Paste a personal access token first.", "error"); return; }
+        if (!token) { setStatus("ghwork-status", "Connect GitHub in Scratchpad settings or enter a token first.", "error"); return; }
         setStatus("ghwork-status", "Loading repositories…");
         try {
-          const res = await fetch("https://api.github.com/user/repos?per_page=100&sort=updated", {
+          const shared = ghConnection().ready;
+          const app = shared && ghConnection().kind === "app";
+          const res = await fetch(app ? "https://api.github.com/installation/repositories?per_page=100" : "https://api.github.com/user/repos?per_page=100&sort=updated", {
             headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" }
           });
           if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
-          const repos = await res.json();
+          const payload = await res.json();
+          const repos = app ? (payload.repositories || []) : payload;
           select.replaceChildren();
           repos.forEach(repo => {
             const option = document.createElement("option");
@@ -2870,7 +2947,7 @@
       // of only ever creating brand-new files. Also used to re-sync: calling this again always replaces
       // the editor with whatever is live on GitHub right now, discarding any unsaved local edits.
       document.getElementById("ghwork-load-file")?.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
+        const token = await workToken().catch(error => { setStatus("ghwork-status", error.message, "error"); return ""; });
         const repo = repoSelect.value;
         const path = pathInput.value.trim().replace(/^\/+/, "");
         if (!token || !repo || !path) { setStatus("ghwork-file-status", "Pick a repo and enter a file path first.", "error"); return; }
@@ -2891,7 +2968,7 @@
       // A non-destructive check: compares what's on GitHub right now against what's loaded in the editor
       // without touching the textarea, so you can tell whether you're about to edit a stale copy.
       document.getElementById("ghwork-check-updates")?.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
+        const token = await workToken().catch(error => { setStatus("ghwork-status", error.message, "error"); return ""; });
         const repo = repoSelect.value;
         const path = pathInput.value.trim().replace(/^\/+/, "");
         if (!token || !repo || !path) { setStatus("ghwork-file-status", "Pick a repo and enter a file path first.", "error"); return; }
@@ -2939,7 +3016,7 @@
       }
 
       createBtn?.addEventListener("click", async () => {
-        const token = tokenInput.value.trim();
+        const token = await workToken().catch(error => { setStatus("ghwork-status", error.message, "error"); return ""; });
         const repo = repoSelect.value;
         const path = pathInput.value.trim().replace(/^\/+/, "");
         const editing = Boolean(loadedFileSha);
@@ -3220,6 +3297,39 @@
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return { ok: false, error: Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status }) };
       return { ok: true, repo: data.full_name || ghScratchRepoFullName() || `${owner}/${GH_SCRATCH_REPO}`, created: true };
+    }
+
+    // Resolve a dedicated repository without changing the Scratchpad's selected repo or branch.
+    async function ghEnsureNamedRepo(name) {
+      const connection = ghConnection();
+      if (!connection.ready) throw new Error("Connect GitHub in Scratchpad settings first.");
+      let owner = connection.kind === "app" ? (connection.app.installation_account || connection.app.owner) : connection.label;
+      if (!owner) {
+        const user = await ghAuthorizedFetch("/user");
+        const data = await user.json();
+        if (!user.ok || !data.login) throw new Error("Could not determine the GitHub account. Reconnect in Scratchpad settings.");
+        owner = data.login;
+      }
+      const repo = `${owner}/${name}`;
+      const check = await ghAuthorizedFetch(`/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}`);
+      if (check.ok) {
+        const existing = await check.json();
+        if (existing.private === false) throw new Error(`${repo} is public. Make it private before saving sensitive dashboard data.`);
+        return repo;
+      }
+      if (check.status !== 404) throw new Error(`Cannot check ${repo} (${check.status}).`);
+      const createPath = connection.kind === "app" && connection.app.installation_type === "Organization" ? `/orgs/${encodeURIComponent(owner)}/repos` : "/user/repos";
+      const created = await ghAuthorizedFetch(createPath, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, private: true, auto_init: true, description: `Private dashboard ${name}` }) });
+      const data = await created.json().catch(() => ({}));
+      if (!created.ok) throw new Error(`Cannot access or create ${repo}: ${data.message || created.status}. If it already exists, add it to the Scratchpad app at https://github.com/settings/installations; otherwise grant repository creation permission or create it privately and add it to the app.`);
+      if (data.full_name && data.full_name.toLowerCase() !== repo.toLowerCase()) throw new Error(`GitHub created ${data.full_name} instead of ${repo}; check the installation account.`);
+      return repo;
+    }
+
+    function openSharedGithubSetup(dialogId) {
+      document.getElementById(dialogId)?.close();
+      openModal("modal-scratchpad");
+      openGithubSyncModal();
     }
 
     // 2026-10-24-1142 — the suffix dashboard files are named with, in the visitor's own timezone.
@@ -4891,7 +5001,7 @@
         history: "dash-clipboard-history-v1",
         path: "dash-clipboard-path",
         autosave: "dash-clipboard-autosave",
-        sha: "dash-clipboard-sha-v1"
+        sha: "dash-clipboard-clips-repo-sha-v2"
       },
       maxItems: 100,
       maxTextLength: 20000,
@@ -4944,7 +5054,7 @@
       let history = readHistory();
       let saveTimer;
       let saveState = { text: "Nothing saved yet", tone: "" };
-      let lastSavedSha = ghReadStore(CLIPBOARD.keys.sha) || "";
+      let lastSaved = ghReadJson(CLIPBOARD.keys.sha, null);
       let saving = false;
 
       const clipFileName = () => `${CLIPBOARD.clipDir}/clips-${ghTimestampSlug(new Date(history.startedAt))}.md`;
@@ -4961,7 +5071,7 @@
       }
       function paintBar() {
         const connection = ghConnection();
-        const repo = ghReadStore(GH.keys.repo) || ghScratchRepoFullName();
+        const repo = ghScratchRepoFullName().replace(/\/scratch$/, "/clips");
         const ready = connection.ready && repo;
         if (barRepo) {
           barRepo.textContent = ready ? repo : (connection.kind === "none" ? "Local only" : "Choose a repository");
@@ -5146,9 +5256,9 @@
         saveTimer = setTimeout(() => saveCollection({ auto: true }), 3000);
       }
 
-      function rememberSha(sha) {
-        lastSavedSha = sha || "";
-        ghWriteStore(CLIPBOARD.keys.sha, lastSavedSha);
+      function rememberClipSha(sha, repo = "", path = "") {
+        lastSaved = sha ? { sha, repo, path } : null;
+        ghWriteJson(CLIPBOARD.keys.sha, lastSaved);
       }
 
       async function saveCollection({ auto = false } = {}) {
@@ -5164,33 +5274,14 @@
         saving = true;
         if (saveBtn) saveBtn.disabled = true;
         try {
-          let repo = ghReadStore(GH.keys.repo) || ghScratchRepoFullName();
-          if (!repo) {
-            setBarState("Can't write", "error");
-            setClipStatus("GitHub is connected but no repository is known yet. Open the Scratchpad panel once to pick one.", "error");
-            return;
-          }
+          const repo = await ghEnsureNamedRepo("clips");
           const path = filePath();
           const content = renderClipsMarkdown(history.items, { startedAt: history.startedAt });
           if (!auto) setClipStatus("Saving the collection to GitHub…");
-
-          let remote = null;
-          try {
-            remote = await ghReadRepoFile(repo, path, ghReadStore(GH.keys.branch));
-          } catch (error) {
-            // A brand-new `scratch` repo may not be reachable yet, or may not exist at all.
-            if (error.status !== 404 && error.status !== 403) throw error;
-            if (error.status === 403 && /not found/i.test(error.message)) remote = null;
-          }
-
-          if (!remote && !ghReadStore(GH.keys.repo)) {
-            // Nothing at the default location: make sure the scratch repo itself exists before giving up.
-            const ensured = await ghEnsureScratchRepo().catch(() => ({ ok: false }));
-            if (ensured.ok) {
-              repo = ensured.repo;
-              ghWriteStore(GH.keys.repo, repo);
-            }
-          }
+          const remote = await ghReadRepoFile(repo, path);
+          const lastSavedSha = lastSaved?.repo === repo && lastSaved?.path === path ? lastSaved.sha : "";
+          if (remote && (!lastSavedSha || remote.sha !== lastSavedSha)) throw new Error("This collection already exists or changed on GitHub. Start a new collection to avoid overwriting it.");
+          if (!remote && lastSavedSha) throw new Error("This collection was deleted on GitHub. Start a new collection to avoid recreating it silently.");
 
           let data;
           try {
@@ -5198,21 +5289,15 @@
               repo,
               path,
               content,
-              branch: ghReadStore(GH.keys.branch),
               sha: remote?.sha,
               message: `Clips — ${history.items.length} item${history.items.length === 1 ? "" : "s"} (${new Date().toLocaleString()})`
             });
           } catch (error) {
-            if (error.status === 409) {
-              // Someone/something else wrote this file between our read and write: re-read and retry once.
-              const fresh = await ghReadRepoFile(repo, path).catch(() => null);
-              data = await ghWriteRepoFile({ repo, path, content, sha: fresh?.sha, message: `Clips — ${history.items.length} items (retry)` });
-            } else {
-              throw error;
-            }
+            if (error.status === 409 || error.status === 422) throw new Error("The collection changed while saving. Start a new collection and try again.");
+            throw error;
           }
 
-          rememberSha(data.content?.sha || "");
+          rememberClipSha(data.content?.sha || "", repo, path);
           paintBar();
           setBarState(`Saved ${history.items.length} clip${history.items.length === 1 ? "" : "s"} · ${timeLabel(Date.now())}`, "success");
           setClipStatus(`Saved ${path} in ${repo}${auto ? " (autosave)" : ""}.`, "success");
@@ -5221,7 +5306,7 @@
           setBarState(unreachable ? "Can't write to the repo" : "Save failed", "error");
           setClipStatus(
             unreachable
-              ? `The app can't write to this repo (${error.message}). Add it to the app's installation, or run Use scratch repo in the Scratchpad, then save again.`
+              ? `The app can't write to this repo (${error.message}). Add clips to the app installation at https://github.com/settings/installations, then save again.`
               : error.message,
             "error"
           );
@@ -5243,7 +5328,7 @@
         history = { startedAt: Date.now(), items: [] };
         persist();
         ghWriteStore(CLIPBOARD.keys.path, "");
-        rememberSha("");
+        rememberClipSha("");
         renderList();
         setBarState("Nothing saved yet");
         setClipStatus("New collection started — it saves to a fresh clips-<date-time>.md.", "success");
@@ -5494,6 +5579,7 @@
     function initWorkingOnTools() {
       initModalCloseButtons();
       initGoogleTasksTool();
+      initTasksetTool();
       initGithubWorkTool();
       initGoogleCalendarTool();
       initPomodoroTool();

@@ -36,9 +36,11 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code, Meta Muse,
   OpenAI dots, Claude Duet, and ChatGPT Work). Some services require an eligible
   plan or waitlist; ChatGPT Work links to the general ChatGPT entry point. Its
-  matching bookmarklet (in Bookmarklets and pinned in Favorites) opens every
-  link in the cluster at once, and is built from the cluster's own list so the
-  two can never drift apart.
+  matching bookmarklet opens the original three: Muse.ai, Grok Bot, and Claude Code.
+  Separate bookmarklets open the proactive cloud agents and self-hosted agents.
+  Allow pop-ups for the dashboard or the page where a saved bookmarklet is run;
+  browsers can otherwise block additional tabs. Re-drag previously saved bookmarklets
+  to update their code.
 - **Working On** (4th in the menu, right after Daily Core) — in-dashboard
   tools that open as wide dialogs instead of navigating away: a Google Tasks
   list, a GitHub-backed work list that can create **and edit** files in a

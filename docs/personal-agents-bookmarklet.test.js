@@ -1,14 +1,4 @@
-// Behaviour tests for the "Personal AI Agents — Always-On" bookmarklet.
-//
-//   npm install jsdom
-//   node docs/personal-agents-bookmarklet.test.js
-//
-// The Bookmarklets cluster (and the pinned bookmarklets in Favorites) includes
-// a bookmarklet that opens every link in the Personal AI Agents — Always-On
-// cluster. Its URL list is derived from that cluster's own card definitions,
-// so these tests compare the two rendered clusters against each other: the
-// bookmarklet must open exactly the personal-agent links, in cluster order,
-// with nothing missing, extra, or duplicated.
+// Behavior tests for the original and new agent bookmarklets.
 const { JSDOM, VirtualConsole } = require("jsdom");
 const fs = require("fs");
 const nodeCrypto = require("crypto");
@@ -18,7 +8,8 @@ const { webcrypto } = nodeCrypto;
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const SITE = "https://aacareq.github.io/dash/index.html";
 const BOOKMARKLET_ID = "bookmarklets:personal-ai-agents-always-on";
-const EXPECTED_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code", "https://ai.meta.com/muse/", "https://chatgpt.com/dots", "https://claude.com/product/claude-duet", "https://chatgpt.com/"];
+const CLUSTER_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code", "https://ai.meta.com/muse/", "https://chatgpt.com/dots", "https://claude.com/product/claude-duet", "https://chatgpt.com/"];
+const EXPECTED_URLS = CLUSTER_URLS.slice(0, 3);
 
 const flush = () => new Promise(r => setTimeout(r, 80));
 
@@ -44,6 +35,7 @@ function makeWindow({ storage = null } = {}) {
       Object.defineProperty(window, "isSecureContext", { configurable: true, value: true });
       window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} });
       window.confirm = () => true;
+      window.alert = () => {};
       // The tabs a bookmarklet would open, captured instead of really opened.
       window.open = (url, target) => { opens.push({ url: String(url), target }); return null; };
       window.Element.prototype.scrollIntoView = function scrollIntoView() {};
@@ -82,14 +74,14 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
       personalCards(doc).map(c => c.querySelector(".card-title")?.textContent).join(",") === "Muse.ai,Grok Bot,Claude Code,Meta Muse,OpenAI dots,Claude Duet,ChatGPT Work",
       JSON.stringify(personalCards(doc).map(c => c.dataset.id)));
     check("cluster links are the expected URLs",
-      personalCards(doc).map(c => c.querySelector(".card-main")?.href).join(",") === EXPECTED_URLS.join(","),
+      personalCards(doc).map(c => c.querySelector(".card-main")?.href).join(",") === CLUSTER_URLS.join(","),
       JSON.stringify(personalCards(doc).map(c => c.querySelector(".card-main")?.href)));
     const card = newBookmarkletCard(doc);
     check("bookmarklet card is in the Bookmarklets cluster", Boolean(card));
     check("bookmarklet appears once in the cluster", bookmarkletCards(doc).filter(c => c.dataset.id === BOOKMARKLET_ID).length === 1);
     check("card is rendered as a runnable bookmarklet",
       card?.classList.contains("bookmarklet") && /Bookmarklet/.test(card?.textContent || ""));
-    check("bookmarklets count badge includes it", doc.getElementById("cnt-bookmarklets").textContent === "5",
+    check("bookmarklets count badge includes it", doc.getElementById("cnt-bookmarklets").textContent === "7",
       doc.getElementById("cnt-bookmarklets").textContent);
     check("personal agents count badge is 7", doc.getElementById("cnt-personalagents").textContent === "7",
       doc.getElementById("cnt-personalagents").textContent);
@@ -97,15 +89,15 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
     win.close();
   }
 
-  console.log("\n[2] the bookmarklet opens exactly the cluster's links, in order, each in a new tab");
+  console.log("\n[2] the bookmarklet opens the original three links in order");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
     const href = newBookmarkletCard(doc).querySelector(".card-main").href;
     check("card link is a javascript: bookmarklet", href.startsWith("javascript:"), href.slice(0, 60));
-    check("bookmarklet lists exactly the cluster URLs in order",
-      urlsIn(href).join(",") === personalCards(doc).map(c => c.querySelector(".card-main")?.href).join(","),
+    check("bookmarklet lists the original URLs in order",
+      urlsIn(href).join(",") === EXPECTED_URLS.join(","),
       JSON.stringify(urlsIn(href)));
     check("no link is duplicated", new Set(urlsIn(href)).size === urlsIn(href).length, JSON.stringify(urlsIn(href)));
     // Run the bookmarklet the way a browser runs a clicked (or bookmarks-bar) javascript: link.
@@ -145,6 +137,30 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
     check("other bookmarklets are filtered out",
       bookmarkletCards(doc).filter(c => c.dataset.id !== BOOKMARKLET_ID).every(c => c.classList.contains("is-filtered")));
     check("no page errors", win.__errors.length === 0, win.__errors.join("; "));
+    win.close();
+  }
+
+  console.log("\n[5] dashboard clicks and saved bookmarklets launch the requested sets and report blocked tabs");
+  {
+    const win = makeWindow();
+    await flush();
+    const cases = [
+      [BOOKMARKLET_ID, EXPECTED_URLS],
+      ["bookmarklets:proactive-autonomous-cloud-agents", ["https://ai.meta.com/muse/", "https://claude.com/product/claude-duet", "https://grok.com/bot/", "https://chatgpt.com/"]],
+      ["bookmarklets:open-source-self-hosted-personal-agents", ["https://github.com/NousResearch/hermes-agent", "https://openclaw.ai/"]]
+    ];
+    let alerts = 0;
+    win.alert = () => alerts++;
+    for (const [id, expected] of cases) {
+      const link = win.document.querySelector(`#group-bookmarklets .card[data-id="${id}"] .card-main`);
+      win.__opens.length = 0;
+      link.click();
+      check(id + " click opens all requested URLs", win.__opens.map(o => o.url).join(",") === expected.join(","));
+      win.__opens.length = 0;
+      win.eval(link.href.slice("javascript:".length));
+      check(id + " saved bookmarklet opens all requested URLs", win.__opens.map(o => o.url).join(",") === expected.join(","));
+    }
+    check("blocked pop-ups are reported for clicks and saved bookmarklets", alerts === 6, String(alerts));
     win.close();
   }
 

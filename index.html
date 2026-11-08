@@ -745,7 +745,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.5.4</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.5.5</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1322,12 +1322,7 @@
     // Rolling dates keep time-boxed searches (e.g. "repos created this week") current on every load.
     const isoDaysAgo = days => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 
-    /*
-      Personal AI Agents — Always-On: standing agent sessions. Defined once here so the browsable
-      "Personal AI Agents — Always-On" cluster (below, in `database`) and its "open all of them" bookmarklet
-      (in `bookmarkletItems`, next) share the exact same links — adding an agent here adds its tab to the
-      bookmarklet too, instead of the two lists drifting apart.
-    */
+    // Keep the original three-tab shortcut separate from the broader agent directory.
     const personalAgentItems = [
       { name: "Muse.ai", url: "https://muse.ai/", desc: "An always-on personal AI agent workspace for ongoing research and creative tasks.", best: "Background agent sessions", tags: ["agents", "always-on", "personal"] },
       { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI’s always-on AI teammates with multi-agent coordination.", best: "Coordinating persistent agents", tags: ["agents", "always-on", "grok", "xai"] },
@@ -1337,8 +1332,24 @@
       { name: "Claude Duet", url: "https://claude.com/product/claude-duet", desc: "Anthropic's agent for background work and personal productivity; access may require a waitlist.", best: "Background productivity", tags: ["agents", "always-on", "anthropic"] },
       { name: "ChatGPT Work", url: "https://chatgpt.com/", desc: "OpenAI's ChatGPT entry point for delegated research and work.", best: "Delegated research", tags: ["agents", "research", "openai"] }
     ];
-    // A bookmarklet that opens every link in a card list, in list order, each in its own tab.
-    const bookmarkletFor = items => `javascript:(function(){[${items.map(item => `'${item.url}'`).join(",")}].forEach(url=>window.open(url,'_blank'));})()`;
+    const alwaysOnLinks = personalAgentItems.slice(0, 3);
+    const proactiveLinks = [
+      { name: "Meta Muse", url: "https://ai.meta.com/muse/" },
+      { name: "Claude Duet", url: "https://claude.com/product/claude-duet" },
+      { name: "Grok Bot", url: "https://grok.com/bot/" },
+      { name: "ChatGPT (Scheduled & Agent Modes)", url: "https://chatgpt.com/" }
+    ];
+    const selfHostedLinks = [
+      { name: "Hermes Agent", url: "https://github.com/NousResearch/hermes-agent" },
+      { name: "OpenClaw", url: "https://openclaw.ai/" }
+    ];
+    // Synchronous opens preserve the click gesture. Browsers may still block multiple tabs.
+    function openAgentTabs(urls) {
+      let blocked = false;
+      urls.forEach(url => { if (!window.open(url, "_blank")) blocked = true; });
+      if (blocked) alert("Some tabs were blocked. Allow pop-ups for this site and run the bookmarklet again.");
+    }
+    const bookmarkletFor = items => `javascript:(${openAgentTabs.toString()})(${JSON.stringify(items.map(item => item.url))})`;
 
     /*
       Bookmarklets: javascript: links that open several tabs at once. Defined once here so both the browsable
@@ -1388,12 +1399,33 @@
       },
       {
         name: "Personal AI Agents — Always-On",
-        url: bookmarkletFor(personalAgentItems),
-        desc: `One click opens every Personal AI Agents — Always-On link — ${personalAgentItems.map(item => item.name).join(", ")} — side by side.`,
-        best: "Checking in on every standing agent",
+        url: bookmarkletFor(alwaysOnLinks),
+        launchUrls: alwaysOnLinks.map(item => item.url),
+        desc: "One click opens Muse.ai, Grok Bot, and Claude Code.",
+        best: "Checking in on standing agents",
         tags: ["bookmarklet", "agents", "always-on", "personal"],
         aliases: ["personal ai agents bookmarklet", "always-on agents bookmarklet", "open all personal agents", "open Muse Grok Bot and Claude Code"],
-        detail: `Opens ${personalAgentItems.length} tabs (every link in the Personal AI Agents — Always-On cluster): ${personalAgentItems.map(item => item.name).join(", ")}. Allow pop-ups if the browser blocks the extra tabs, or drag this card's link onto your bookmarks bar to run it from anywhere.`,
+        detail: "Opens three tabs: Muse.ai, Grok Bot, and Claude Code. Allow pop-ups if the browser blocks extra tabs. Drag this link to your bookmarks bar to run it elsewhere.",
+        bookmarklet: true
+      },
+      {
+        name: "Proactive & Autonomous Cloud Agents",
+        url: bookmarkletFor(proactiveLinks),
+        launchUrls: proactiveLinks.map(item => item.url),
+        desc: "Meta Muse, Claude Duet, Grok Bot, and ChatGPT scheduled and agent modes.",
+        best: "Proactive cloud agents",
+        tags: ["bookmarklet", "agents", "cloud", "autonomous"],
+        detail: "Opens four tabs. Allow pop-ups for this site if extra tabs are blocked. Availability and access may vary.",
+        bookmarklet: true
+      },
+      {
+        name: "Open-Source & Self-Hosted Personal Agents",
+        url: bookmarkletFor(selfHostedLinks),
+        launchUrls: selfHostedLinks.map(item => item.url),
+        desc: "Hermes Agent and OpenClaw: self-hosted agents for messaging, browser, and shell workflows.",
+        best: "Self-hosted personal agents",
+        tags: ["bookmarklet", "agents", "open source", "self-hosted"],
+        detail: "Opens Hermes Agent and OpenClaw in two tabs. Allow pop-ups for this site if the second tab is blocked.",
         bookmarklet: true
       }
     ];
@@ -1402,7 +1434,7 @@
       personalagents: {
         title: "Personal AI Agents — Always-On",
         summary: "Standing agent sessions that keep working in the background, ready whenever you check in.",
-        // Shared with the "Personal AI Agents — Always-On" bookmarklet above, so it always opens all of these.
+        // The original three agents also power the Always-On bookmarklet.
         items: personalAgentItems
       },
       daily: {
@@ -1935,7 +1967,13 @@
       if (!item.modal && isExternal(item.url) && !item.internal) { link.target = "_blank"; link.rel = "noopener noreferrer"; }
       const action = item.bookmarklet ? "Run" : item.modal ? "Open" : "Open";
       link.setAttribute("aria-label", `${action} ${item.name}${!item.modal && isExternal(item.url) && !item.internal ? " in a new tab" : ""}`);
-      if (item.modal) {
+      if (item.launchUrls) {
+        link.addEventListener("click", event => {
+          event.preventDefault();
+          trackLaunch(item);
+          openAgentTabs(item.launchUrls);
+        });
+      } else if (item.modal) {
         link.addEventListener("click", event => {
           event.preventDefault();
           openModal(item.modal);

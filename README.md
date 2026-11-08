@@ -33,7 +33,9 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   every tab can open. The same cards are also pinned in Favorites, right after
   the Scratchpad.
 - **Personal AI Agents — Always-On** — a menu cluster for standing agent
-  sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code). Its
+  sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code, Meta Muse,
+  OpenAI dots, Claude Duet, and ChatGPT Work). Some services require an eligible
+  plan or waitlist; ChatGPT Work links to the general ChatGPT entry point. Its
   matching bookmarklet (in Bookmarklets and pinned in Favorites) opens every
   link in the cluster at once, and is built from the cluster's own list so the
   two can never drift apart.

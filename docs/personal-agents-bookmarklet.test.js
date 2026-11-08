@@ -18,7 +18,7 @@ const { webcrypto } = nodeCrypto;
 const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const SITE = "https://aacareq.github.io/dash/index.html";
 const BOOKMARKLET_ID = "bookmarklets:personal-ai-agents-always-on";
-const EXPECTED_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code"];
+const EXPECTED_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code", "https://ai.meta.com/muse/", "https://chatgpt.com/dots", "https://claude.com/product/claude-duet", "https://chatgpt.com/"];
 
 const flush = () => new Promise(r => setTimeout(r, 80));
 
@@ -73,13 +73,13 @@ const newBookmarkletCard = doc => bookmarkletCards(doc).find(c => c.dataset.id =
 const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m => m[0]);
 
 (async () => {
-  console.log("\n[1] the Personal AI Agents cluster is unchanged and the bookmarklet card exists");
+  console.log("\n[1] the Personal AI Agents cluster includes the requested services and the bookmarklet card exists");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
-    check("cluster still lists Muse.ai, Grok Bot, Claude Code in order",
-      personalCards(doc).map(c => c.querySelector(".card-title")?.textContent).join(",") === "Muse.ai,Grok Bot,Claude Code",
+    check("cluster lists the existing and newly added agents in order",
+      personalCards(doc).map(c => c.querySelector(".card-title")?.textContent).join(",") === "Muse.ai,Grok Bot,Claude Code,Meta Muse,OpenAI dots,Claude Duet,ChatGPT Work",
       JSON.stringify(personalCards(doc).map(c => c.dataset.id)));
     check("cluster links are the expected URLs",
       personalCards(doc).map(c => c.querySelector(".card-main")?.href).join(",") === EXPECTED_URLS.join(","),
@@ -91,7 +91,7 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
       card?.classList.contains("bookmarklet") && /Bookmarklet/.test(card?.textContent || ""));
     check("bookmarklets count badge includes it", doc.getElementById("cnt-bookmarklets").textContent === "5",
       doc.getElementById("cnt-bookmarklets").textContent);
-    check("personal agents count badge is still 3", doc.getElementById("cnt-personalagents").textContent === "3",
+    check("personal agents count badge is 7", doc.getElementById("cnt-personalagents").textContent === "7",
       doc.getElementById("cnt-personalagents").textContent);
     check("no page errors", win.__errors.length === 0, win.__errors.join("; "));
     win.close();

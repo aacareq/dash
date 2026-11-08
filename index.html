@@ -745,7 +745,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.5.3</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.5.4</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1330,8 +1330,12 @@
     */
     const personalAgentItems = [
       { name: "Muse.ai", url: "https://muse.ai/", desc: "An always-on personal AI agent workspace for ongoing research and creative tasks.", best: "Background agent sessions", tags: ["agents", "always-on", "personal"] },
-      { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI's standing Grok bot agent for continuous conversations and tasks.", best: "Persistent Grok sessions", tags: ["agents", "always-on", "grok"] },
-      { name: "Claude Code", url: "https://claude.ai/code", desc: "Anthropic's agentic coding environment for ongoing, code-focused work.", best: "Always-on coding agent", tags: ["agents", "always-on", "coding"] }
+      { name: "Grok Bot", url: "https://grok.com/bot/", desc: "xAI’s always-on AI teammates with multi-agent coordination.", best: "Coordinating persistent agents", tags: ["agents", "always-on", "grok", "xai"] },
+      { name: "Claude Code", url: "https://claude.ai/code", desc: "Anthropic's agentic coding environment for ongoing, code-focused work.", best: "Always-on coding agent", tags: ["agents", "always-on", "coding"] },
+      { name: "Meta Muse", url: "https://ai.meta.com/muse/", desc: "Meta's personal agent with a dedicated cloud computer.", best: "Personal tasks", tags: ["agents", "always-on", "personal", "meta"] },
+      { name: "OpenAI dots", url: "https://chatgpt.com/dots", desc: "OpenAI's proactive personal and work agent.", best: "Ongoing personal and work projects", tags: ["agents", "always-on", "openai"] },
+      { name: "Claude Duet", url: "https://claude.com/product/claude-duet", desc: "Anthropic's agent for background work and personal productivity; access may require a waitlist.", best: "Background productivity", tags: ["agents", "always-on", "anthropic"] },
+      { name: "ChatGPT Work", url: "https://chatgpt.com/", desc: "OpenAI's ChatGPT entry point for delegated research and work.", best: "Delegated research", tags: ["agents", "research", "openai"] }
     ];
     // A bookmarklet that opens every link in a card list, in list order, each in its own tab.
     const bookmarkletFor = items => `javascript:(function(){[${items.map(item => `'${item.url}'`).join(",")}].forEach(url=>window.open(url,'_blank'));})()`;

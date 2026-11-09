@@ -89,6 +89,7 @@ export class MemoryStore {
   async kvDelete(key) { this.kvMap.delete(key); }
   async getNote(id) { return this.notesMap.get(id) || null; }
   async putNote(note) { this.notesMap.set(note.id, { ...note, updatedAt: Date.now(), ...note }); return note; }
+  async deleteNote(id) { this.notesMap.delete(id); }
   async enqueueOutbox(entry) { this.outboxMap.set(entry.id, entry); return entry; }
   async listOutbox() { return [...this.outboxMap.values()].sort((a, b) => a.createdAt - b.createdAt); }
   async updateOutbox(id, patch) {
@@ -151,6 +152,9 @@ export class IndexedDBStore {
     const record = { updatedAt: Date.now(), ...note };
     await IndexedDBStore._request(this._tx("notes", "readwrite").put(record));
     return record;
+  }
+  async deleteNote(id) {
+    await IndexedDBStore._request(this._tx("notes", "readwrite").delete(id));
   }
   async enqueueOutbox(entry) {
     await IndexedDBStore._request(this._tx("outbox", "readwrite").put(entry));
@@ -235,6 +239,7 @@ export function withLocalStorageMirror(baseStore, legacy = (typeof localStorage 
     },
     getNote: (...args) => pass("getNote", ...args),
     putNote: (...args) => pass("putNote", ...args),
+    deleteNote: (...args) => pass("deleteNote", ...args),
     enqueueOutbox: (...args) => pass("enqueueOutbox", ...args),
     listOutbox: (...args) => pass("listOutbox", ...args),
     updateOutbox: (...args) => pass("updateOutbox", ...args),

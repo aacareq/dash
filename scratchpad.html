@@ -32,20 +32,148 @@
   <main class="shell">
     <div>
       <h1>Scratchpad / Quick Notes</h1>
-      <p class="subtitle">Autosaves on this device, works fully offline, and commits to GitHub whenever you're connected.</p>
+      <p class="subtitle">Every edit saves on this device right away. Connect a GitHub repo when you want cloud backup, folders, and sync.</p>
     </div>
 
     <p id="ios-hint" class="hidden">
       On iPhone or iPad: tap the Share button and choose <strong>Add to Home Screen</strong> to install this as an app.
     </p>
 
-    <div class="note-switcher" aria-label="Note management">
-      <button type="button" class="modal-btn cancel" id="note-open-today"
+    <!-- Section 1: Dual Storage Clarity Strip — Local Device vs GitHub Repo -->
+    <section class="storage-clarity-bar" id="scratchpad-clarity-bar" aria-label="Storage and sync status">
+      <div class="storage-pill is-local">
+        <span class="status-dot is-local-ok" id="scratchpad-local-dot" aria-hidden="true"></span>
+        <span>💾 <strong>This device</strong>: <span id="scratchpad-local-summary">Autosaves locally</span></span>
+      </div>
+      <div class="storage-pill is-repo" id="scratchpad-repo-pill">
+        <span class="status-dot" id="scratchpad-repo-dot" aria-hidden="true"></span>
+        <span>☁️ <strong>GitHub repo</strong>: <span id="scratchpad-repo-summary">Local only (not connected)</span></span>
+      </div>
+      <button type="button" class="autosave-pill" id="scratchpad-quick-autosave" aria-pressed="true"
+              title="Toggle automatic saving to GitHub after you pause typing">
+        ⚡ Repo auto-save: ON
+      </button>
+    </section>
+
+    <!-- Section 2: Workspace Quick-Action Bar (Bigger, color-coded buttons) -->
+    <section class="workspace-bar" aria-label="Note, file and folder actions">
+      <button type="button" class="ws-btn ws-today" id="note-open-today"
               title="Open (or create) today's single reusable note — notes-YYYY-MM-DD.md">📅 Today's note</button>
-      <button type="button" class="modal-btn cancel" id="note-new-dated"
-              title="Start another note with its own dated file — notes-YYYY-MM-DD-HHMM.md">➕ New note</button>
+      <button type="button" class="ws-btn ws-new" id="note-new-dated"
+              title="Start another blank note with its own dated file — notes-YYYY-MM-DD-HHMM.md">✨ New note</button>
+      <button type="button" class="ws-btn ws-folder" id="note-today-folder"
+              title="Create today's folder (notes/YYYY-MM-DD) locally and on GitHub">📁 Today's folder</button>
+      <button type="button" class="ws-btn ws-files" id="scratchpad-files-toggle"
+              aria-expanded="false" aria-controls="scratchpad-workspace-panel"
+              title="Browse notes, create files/folders, and rename files or directories">
+        🗂 Files &amp; folders <span class="ws-count" id="scratchpad-files-count">1</span>
+      </button>
+      <button type="button" class="ws-btn ws-rename" id="scratchpad-rename-file-open"
+              title="Rename or move the active file">✏️ Rename file</button>
+      <button type="button" class="ws-btn ws-rename" id="scratchpad-rename-dir-open"
+              title="Rename a folder locally and in the GitHub repo">📁 Rename folder</button>
       <span class="note-current" id="note-current" title="The file this note saves to"></span>
-    </div>
+    </section>
+
+    <!-- Section 3: Collapsible Files & Directories Workspace Manager -->
+    <section class="ws-panel" id="scratchpad-workspace-panel" aria-label="Files and directories manager" hidden>
+      <div class="ws-panel-head">
+        <div>
+          <h2 class="ws-panel-title">🗂 Workspace Files &amp; Directories</h2>
+          <p class="ws-panel-sub">Create notes, files and folders for today, switch active files, or rename files and directories cleanly.</p>
+        </div>
+        <button type="button" class="modal-btn cancel" id="scratchpad-workspace-close">Done</button>
+      </div>
+
+      <datalist id="scratchpad-ws-dirs-list"></datalist>
+
+      <div class="ws-grid">
+        <!-- Explorer -->
+        <div class="ws-card ws-card-browse" id="scratchpad-ws-explorer">
+          <div class="ws-card-title">
+            <span>📂 Notes &amp; Folders</span>
+            <button type="button" class="ws-chip-btn" id="scratchpad-ws-refresh" title="Refresh files and folders from GitHub">🔄 Refresh</button>
+          </div>
+          <input type="search" id="scratchpad-ws-filter" class="form-input" placeholder="Filter notes or folders…" autocomplete="off" aria-label="Filter notes and folders" />
+          <div class="ws-list" id="scratchpad-ws-list" role="list"></div>
+        </div>
+
+        <!-- Create Today / New File / New Directory -->
+        <div class="ws-card ws-card-create" id="scratchpad-ws-create">
+          <h3 class="ws-card-title">➕ Create for Today &amp; New</h3>
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Quick presets for today</p>
+            <div class="ws-today-presets">
+              <button type="button" class="ws-chip-btn" id="scratchpad-ws-today-note">📅 Today's note</button>
+              <button type="button" class="ws-chip-btn" id="scratchpad-ws-today-folder">📁 Today's folder</button>
+              <button type="button" class="ws-chip-btn" id="scratchpad-ws-today-in-folder">📝 Note in today's folder</button>
+            </div>
+          </div>
+
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Create a named file</p>
+            <div class="path-row">
+              <input type="text" id="scratchpad-ws-file-dir" class="form-input" list="scratchpad-ws-dirs-list"
+                     placeholder="Folder (optional, e.g. notes/2026-11-09)" autocomplete="off" spellcheck="false" aria-label="Folder for new file" />
+              <button type="button" class="ws-chip-btn" id="scratchpad-ws-fill-today-dir" title="Fill today's folder path">📅 Today</button>
+            </div>
+            <div class="path-row">
+              <input type="text" id="scratchpad-ws-file-name" class="form-input"
+                     placeholder="File name (e.g. standup)" autocomplete="off" spellcheck="false" aria-label="New file name" />
+              <select id="scratchpad-ws-file-ext" class="form-input" style="flex:0 0 auto;width:auto;" aria-label="New file extension">
+                <option value="md">.md</option>
+                <option value="txt">.txt</option>
+                <option value="json">.json</option>
+                <option value="csv">.csv</option>
+                <option value="html">.html</option>
+                <option value="">none</option>
+              </select>
+            </div>
+            <div class="ws-path-preview" id="scratchpad-ws-file-preview">Will create: <strong>notes-YYYY-MM-DD.md</strong></div>
+            <div class="ws-btn-row">
+              <button type="button" class="modal-btn submit" id="scratchpad-ws-create-blank">📄 Create blank file</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-ws-create-from-current">💾 Save current text to new file</button>
+            </div>
+          </div>
+
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Create a directory (folder)</p>
+            <div class="path-row">
+              <input type="text" id="scratchpad-ws-new-dir" class="form-input"
+                     placeholder="Folder path (e.g. notes/2026-11-09)" autocomplete="off" spellcheck="false" aria-label="New directory path" />
+              <button type="button" class="ws-chip-btn" id="scratchpad-ws-fill-today-folder" title="Fill today's folder path">📅 Today</button>
+            </div>
+            <div class="ws-path-preview" id="scratchpad-ws-dir-preview">Folder path: <strong>notes/…</strong></div>
+            <button type="button" class="modal-btn cancel" id="scratchpad-ws-create-dir">📁 Create directory</button>
+          </div>
+        </div>
+
+        <!-- Rename Active File & Rename Directory -->
+        <div class="ws-card ws-card-rename" id="scratchpad-ws-rename">
+          <h3 class="ws-card-title">✏️ Rename File or Directory</h3>
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Rename active file (updates locally &amp; in GitHub)</p>
+            <div class="ws-path-preview">Current: <strong id="scratchpad-rename-file-current">—</strong></div>
+            <input type="text" id="scratchpad-rename-file-input" class="form-input"
+                   placeholder="New file path (e.g. projects/roadmap.md)" autocomplete="off" spellcheck="false" aria-label="New path for active file" />
+            <div class="ws-path-preview" id="scratchpad-rename-file-preview">Enter a new path to preview rename</div>
+            <button type="button" class="modal-btn submit" id="scratchpad-rename-file-btn">✏️ Rename active file</button>
+          </div>
+
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Rename a directory (moves all files inside it)</p>
+            <input type="text" id="scratchpad-rename-dir-from" class="form-input" list="scratchpad-ws-dirs-list"
+                   placeholder="Current folder (e.g. notes/2026-10)" autocomplete="off" spellcheck="false" aria-label="Current directory to rename" />
+            <input type="text" id="scratchpad-rename-dir-to" class="form-input"
+                   placeholder="New folder name (e.g. archive/2026-10)" autocomplete="off" spellcheck="false" aria-label="New directory name" />
+            <div class="ws-path-preview" id="scratchpad-rename-dir-preview">Choose a folder and new name</div>
+            <button type="button" class="modal-btn cancel" id="scratchpad-rename-dir-btn">📁 Rename directory</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="status-msg" id="scratchpad-ws-status" role="status" aria-live="polite"></p>
+    </section>
 
     <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
       <div class="md-toolbar-group" role="group" aria-label="Text styling">
@@ -90,6 +218,8 @@
       <span class="scratch-filebar-repo" id="scratchpad-filebar-repo">Local only</span>
       <span class="scratch-filebar-sep" id="scratchpad-filebar-sep" hidden>/</span>
       <span class="scratch-filebar-file" id="scratchpad-filebar-file">—</span>
+      <button type="button" class="scratch-filebar-inline-btn" id="scratchpad-filebar-rename" title="Rename the active file">✏️ Rename</button>
+      <span class="scratch-local-pill" id="scratchpad-local-state">💾 Local: Saved</span>
       <span class="scratch-filebar-state" id="scratchpad-filebar-state" role="status" aria-live="polite">Saved on this device</span>
       <span class="scratch-clock" id="scratchpad-clock" role="timer" aria-live="off" title="Right now">—</span>
     </div>
@@ -101,9 +231,13 @@
       <div class="md-preview" id="scratchpad-preview" hidden></div>
     </div>
 
-    <p class="status-msg" id="scratchpad-status"></p>
+    <p class="status-msg" id="scratchpad-status" role="status" aria-live="polite"></p>
 
     <div class="scratch-actions">
+      <button type="button" class="modal-btn submit" id="scratchpad-quick-save" hidden
+              title="Push your active note to the connected GitHub repository now">⬆ Save to repo</button>
+      <button type="button" class="modal-btn cancel" id="scratchpad-quick-pull" hidden
+              title="Pull the latest version of this file from GitHub">⬇ Pull latest</button>
       <button type="button" class="modal-btn submit scratch-gh-launch" id="scratchpad-gh-open" aria-haspopup="dialog"
               aria-controls="scratchpad-gh-panel" title="Repositories, file paths and the GitHub connection">
         <span aria-hidden="true">⚙</span> GitHub sync
@@ -124,9 +258,9 @@
       <input type="file" id="scratchpad-file-input" accept=".md,.txt,.json,.csv,text/markdown,text/plain,application/json,text/csv" class="hidden" />
     </div>
     <p class="scratch-tip">
-      <strong>▦ Table</strong> drops in a header row, a separator row and a first body row — the separator is what
-      makes it a table, and <code>:---</code>, <code>---:</code> or <code>:---:</code> set that column's alignment.
-      <strong>⚙ GitHub sync</strong> holds the repository, the file path, and the create-file / create-folder boxes;
+      <strong>▦ Table</strong> drops in a header, separator and body row (<code>:---</code>, <code>---:</code>, <code>:---:</code> align columns).
+      <strong>🗂 Files &amp; folders</strong> creates today's files/directories and renames active files or folders;
+      <strong>⚙ GitHub sync</strong> manages your repo &amp; connection;
       <strong>⋯ More</strong> has copy, export, save/open and clear.
     </p>
     <p id="fs-unsupported" class="hidden">
@@ -140,149 +274,162 @@
           <button type="button" class="modal-btn cancel" id="scratchpad-gh-close" data-close-sheet>Close</button>
         </header>
         <div class="gh-sync-body">
-        <p class="modal-hint" id="scratchpad-gh-hint">
-          Nothing to copy or paste on a first visit: one click registers a private GitHub App owned by you, then
-          you pick the repo it may write to. The app renews its own short-lived credentials from then on, so it
-          never asks you to sign in again.
-        </p>
-        <div class="modal-actions">
-          <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
-          <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
-          <button type="button" class="modal-btn cancel" id="scratchpad-gh-export" hidden
-                  title="Download this connection so any browser can get back in without creating another app">Download connection file</button>
-          <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
-        </div>
-        <p class="status-msg" id="scratchpad-gh-status"></p>
-
-        <p class="modal-hint gh-keep" id="scratchpad-gh-keep" hidden>
-          <strong>Keep a copy of this connection.</strong> The app's private key lives only in this browser, at
-          this address — nothing is stored on a server. If this browser's storage is ever cleared (another
-          device, a new port or preview link, a private window), that file is how saving comes back
-          <em>without</em> creating a second GitHub App.
-        </p>
-
-        <div id="scratchpad-gh-target" hidden>
-          <div class="gh-sync-details">
-            <label class="form-label">Repository
-              <select id="scratchpad-gh-repo" class="form-input"><option value="">Loading repositories…</option></select>
-            </label>
-            <label class="form-label">File path
-              <span class="path-row">
-                <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes-2026-10-27-1542.md" autocomplete="off" spellcheck="false" />
-                <button type="button" class="modal-btn cancel" id="scratchpad-gh-new-file" title="Start a new note file named with today's date and time">New dated file</button>
-              </span>
-            </label>
-            <label class="form-label">Branch (optional)
-              <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
-            </label>
-          </div>
-          <div class="gh-create">
-            <div class="gh-create-row">
-              <label class="form-label" style="flex:1;">New file
-                <span class="path-row">
-                  <input type="text" id="scratchpad-gh-new-path" class="form-input" placeholder="notes/2026-10-31.md"
-                         autocomplete="off" spellcheck="false" aria-label="Path of the new file" />
-                  <select id="scratchpad-gh-new-type" class="form-input" aria-label="File type"
-                          title="Extension used when the path has none">
-                    <option value="md">.md</option>
-                    <option value="txt">.txt</option>
-                    <option value="json">.json</option>
-                    <option value="csv">.csv</option>
-                    <option value="html">.html</option>
-                    <option value="">none</option>
-                  </select>
-                  <button type="button" class="modal-btn submit" id="scratchpad-gh-create-file"
-                          title="Create this file in the repo and save the notes into it">Create file</button>
-                </span>
-              </label>
-            </div>
-            <div class="gh-create-row">
-              <label class="form-label" style="flex:1;">New folder
-                <span class="path-row">
-                  <input type="text" id="scratchpad-gh-new-folder" class="form-input" placeholder="notes/2026-10"
-                         autocomplete="off" spellcheck="false" aria-label="Path of the new folder" />
-                  <button type="button" class="modal-btn cancel" id="scratchpad-gh-create-folder"
-                          title="Create this folder in the repo (a .gitkeep file keeps it)">Create folder</button>
-                </span>
-              </label>
-            </div>
-            <p class="modal-hint" id="scratchpad-gh-create-hint">
-              Typing a path with slashes in <strong>File path</strong> creates the folders for you; these buttons
-              make a file or an empty folder ahead of time. Any extension works — markdown is just the default.
+          <section class="gh-section">
+            <h3 class="gh-section-title">1. GitHub Connection</h3>
+            <p class="modal-hint" id="scratchpad-gh-hint">
+              Nothing to copy or paste on a first visit: one click registers a private GitHub App owned by you, then
+              you pick the repo it may write to. The app renews its own short-lived credentials from then on, so it
+              never asks you to sign in again.
             </p>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save now</button>
-            <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull latest</button>
-            <button type="button" class="modal-btn cancel" id="scratchpad-gh-scratch" title="Create a private repo called scratch, or switch to it if it already exists">Use scratch repo</button>
-            <button type="button" class="modal-btn submit" id="scratchpad-gh-overwrite" hidden>Overwrite anyway</button>
-          </div>
-          <div class="gh-sync-repo-help" id="scratchpad-gh-repo-help" hidden></div>
-          <label class="checkbox-row">
-            <input type="checkbox" id="scratchpad-gh-autosave" />
-            Autosave to GitHub a few seconds after I stop typing (offline edits queue and send on reconnect)
-          </label>
-          <p class="status-msg" id="scratchpad-gh-file-status"></p>
-        </div>
+            <div class="modal-actions">
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-setup">Set up GitHub saving</button>
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-install" hidden>Install on a repository</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-check" hidden>Re-check connection</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-forget" hidden>Disconnect</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-export" hidden
+                      title="Download this connection so any browser can get back in without creating another app">Download connection file</button>
+              <span class="gh-sync-badge" id="scratchpad-gh-account"></span>
+            </div>
+            <p class="status-msg" id="scratchpad-gh-status"></p>
 
-        <details class="gh-sync-advanced" id="scratchpad-gh-restore">
-          <summary>Already have the app? Reconnect instead of creating another</summary>
-          <p class="modal-hint">
-            Every browser and address keeps its own storage, so a new device, browser or preview link looks like
-            a first visit. You do <strong>not</strong> need a second GitHub App — restore the one you already
-            have:
-          </p>
-          <ol class="gh-restore-steps">
-            <li><strong>If you saved the connection file</strong> (<code>dash-github-connection-*.json</code>)
-              when you set this up, choose it below — it fills in both fields for you.</li>
-            <li><strong>If you didn't,</strong> open
-              <a href="https://github.com/settings/apps" target="_blank" rel="noopener noreferrer">GitHub → Settings → Developer settings → GitHub Apps</a>,
-              pick your <em>dash notes</em> app, copy its <strong>App ID</strong> from the top of the page, then
-              click <strong>Generate a private key</strong> — GitHub downloads a <code>.pem</code> file.</li>
-            <li>Click <strong>Reconnect with this app</strong>. GitHub confirms the pair, and this browser picks up
-              the installation that is already there.</li>
-          </ol>
-          <div class="token-row">
-            <label class="form-label" style="flex:1;">Connection file (.json or .pem) — optional
-              <input type="file" id="scratchpad-gh-restore-file" class="form-input"
-                     accept=".json,.pem,application/json,text/plain" />
-            </label>
-          </div>
-          <div class="token-row">
-            <label class="form-label" style="flex:1;">App ID
-              <input type="text" id="scratchpad-gh-restore-app-id" class="form-input" inputmode="numeric"
-                     placeholder="123456" autocomplete="off" spellcheck="false" />
-            </label>
-          </div>
-          <div class="token-row">
-            <label class="form-label" style="flex:1;">Private key (.pem)
-              <textarea id="scratchpad-gh-restore-pem" class="form-input" rows="3" spellcheck="false"
-                        placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
-            </label>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="modal-btn submit" id="scratchpad-gh-restore-go">Reconnect with this app</button>
-          </div>
-          <p class="status-msg" id="scratchpad-gh-restore-status"></p>
-        </details>
+            <p class="modal-hint gh-keep" id="scratchpad-gh-keep" hidden>
+              <strong>Keep a copy of this connection.</strong> The app's private key lives only in this browser, at
+              this address — nothing is stored on a server. If this browser's storage is ever cleared (another
+              device, a new port or preview link, a private window), that file is how saving comes back
+              <em>without</em> creating a second GitHub App.
+            </p>
+          </section>
 
-        <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
-          <summary>Advanced: use a personal access token instead</summary>
-          <p class="modal-hint">
-            Only needed if you would rather not register an app — for example when this page is opened from a
-            <code>file://</code> URL, where GitHub can't redirect back to it. A fine-grained token with
-            <strong>Contents: Read and write</strong> is enough.
-          </p>
-          <div class="token-row">
-            <label class="form-label" style="flex:1;">Token
-              <input type="password" id="scratchpad-gh-token" class="form-input" placeholder="github_pat_… or ghp_…" autocomplete="off" />
-            </label>
-            <button type="button" class="modal-btn submit" id="scratchpad-gh-token-save">Use token</button>
-            <button type="button" class="modal-btn cancel" id="scratchpad-gh-token-clear" hidden>Remove token</button>
+          <div id="scratchpad-gh-target" hidden>
+            <section class="gh-section is-repo-sec">
+              <h3 class="gh-section-title">2. Repository &amp; Auto-Save</h3>
+              <div class="gh-sync-details">
+                <label class="form-label">Repository
+                  <select id="scratchpad-gh-repo" class="form-input"><option value="">Loading repositories…</option></select>
+                </label>
+                <label class="form-label">Branch (optional)
+                  <input type="text" id="scratchpad-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" />
+                </label>
+              </div>
+              <div class="modal-actions">
+                <button type="button" class="modal-btn cancel" id="scratchpad-gh-scratch" title="Create a private repo called scratch, or switch to it if it already exists">Use scratch repo</button>
+              </div>
+              <div class="gh-sync-repo-help" id="scratchpad-gh-repo-help" hidden></div>
+              <label class="checkbox-row">
+                <input type="checkbox" id="scratchpad-gh-autosave" />
+                Autosave to GitHub a few seconds after I stop typing (offline edits queue and send on reconnect)
+              </label>
+            </section>
+
+            <section class="gh-section is-files-sec" style="margin-top:.75rem;">
+              <h3 class="gh-section-title">3. Active Target &amp; Repo Files</h3>
+              <label class="form-label">Active file path
+                <span class="path-row">
+                  <input type="text" id="scratchpad-gh-path" class="form-input" placeholder="notes-2026-10-27-1542.md" autocomplete="off" spellcheck="false" />
+                  <button type="button" class="modal-btn cancel" id="scratchpad-gh-new-file" title="Start a new note file named with today's date and time">New dated file</button>
+                </span>
+              </label>
+              <div class="modal-actions">
+                <button type="button" class="modal-btn submit" id="scratchpad-gh-save">Save now</button>
+                <button type="button" class="modal-btn cancel" id="scratchpad-gh-pull">Pull latest</button>
+                <button type="button" class="modal-btn submit" id="scratchpad-gh-overwrite" hidden>Overwrite anyway</button>
+              </div>
+              <p class="status-msg" id="scratchpad-gh-file-status"></p>
+
+              <div class="gh-create">
+                <div class="gh-create-row">
+                  <label class="form-label" style="flex:1;">Create new file (saves current notes into it)
+                    <span class="path-row">
+                      <input type="text" id="scratchpad-gh-new-path" class="form-input" placeholder="notes/2026-10-31.md"
+                             autocomplete="off" spellcheck="false" aria-label="Path of the new file" />
+                      <select id="scratchpad-gh-new-type" class="form-input" aria-label="File type"
+                              title="Extension used when the path has none">
+                        <option value="md">.md</option>
+                        <option value="txt">.txt</option>
+                        <option value="json">.json</option>
+                        <option value="csv">.csv</option>
+                        <option value="html">.html</option>
+                        <option value="">none</option>
+                      </select>
+                      <button type="button" class="modal-btn submit" id="scratchpad-gh-create-file"
+                              title="Create this file in the repo and save the notes into it">Create file</button>
+                    </span>
+                  </label>
+                </div>
+                <div class="gh-create-row">
+                  <label class="form-label" style="flex:1;">Create new folder
+                    <span class="path-row">
+                      <input type="text" id="scratchpad-gh-new-folder" class="form-input" placeholder="notes/2026-10"
+                             autocomplete="off" spellcheck="false" aria-label="Path of the new folder" />
+                      <button type="button" class="modal-btn cancel" id="scratchpad-gh-create-folder"
+                              title="Create this folder in the repo (a .gitkeep file keeps it)">Create folder</button>
+                    </span>
+                  </label>
+                </div>
+                <p class="modal-hint" id="scratchpad-gh-create-hint">
+                  Typing a path with slashes in <strong>Active file path</strong> creates the folders for you; these buttons
+                  make a file or an empty folder ahead of time. For renaming files or folders, use <strong>🗂 Files &amp; folders</strong>.
+                </p>
+              </div>
+            </section>
           </div>
-        </details>
+
+          <details class="gh-sync-advanced" id="scratchpad-gh-restore">
+            <summary>Already have the app? Reconnect instead of creating another</summary>
+            <p class="modal-hint">
+              Every browser and address keeps its own storage, so a new device, browser or preview link looks like
+              a first visit. You do <strong>not</strong> need a second GitHub App — restore the one you already
+              have:
+            </p>
+            <ol class="gh-restore-steps">
+              <li><strong>If you saved the connection file</strong> (<code>dash-github-connection-*.json</code>)
+                when you set this up, choose it below — it fills in both fields for you.</li>
+              <li><strong>If you didn't,</strong> open
+                <a href="https://github.com/settings/apps" target="_blank" rel="noopener noreferrer">GitHub → Settings → Developer settings → GitHub Apps</a>,
+                pick your <em>dash notes</em> app, copy its <strong>App ID</strong> from the top of the page, then
+                click <strong>Generate a private key</strong> — GitHub downloads a <code>.pem</code> file.</li>
+              <li>Click <strong>Reconnect with this app</strong>. GitHub confirms the pair, and this browser picks up
+                the installation that is already there.</li>
+            </ol>
+            <div class="token-row">
+              <label class="form-label" style="flex:1;">Connection file (.json or .pem) — optional
+                <input type="file" id="scratchpad-gh-restore-file" class="form-input"
+                       accept=".json,.pem,application/json,text/plain" />
+              </label>
+            </div>
+            <div class="token-row">
+              <label class="form-label" style="flex:1;">App ID
+                <input type="text" id="scratchpad-gh-restore-app-id" class="form-input" inputmode="numeric"
+                       placeholder="123456" autocomplete="off" spellcheck="false" />
+              </label>
+            </div>
+            <div class="token-row">
+              <label class="form-label" style="flex:1;">Private key (.pem)
+                <textarea id="scratchpad-gh-restore-pem" class="form-input" rows="3" spellcheck="false"
+                          placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea>
+              </label>
+            </div>
+            <div class="modal-actions">
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-restore-go">Reconnect with this app</button>
+            </div>
+            <p class="status-msg" id="scratchpad-gh-restore-status"></p>
+          </details>
+
+          <details class="gh-sync-advanced" id="scratchpad-gh-fallback">
+            <summary>Advanced: use a personal access token instead</summary>
+            <p class="modal-hint">
+              Only needed if you would rather not register an app — for example when this page is opened from a
+              <code>file://</code> URL, where GitHub can't redirect back to it. A fine-grained token with
+              <strong>Contents: Read and write</strong> is enough.
+            </p>
+            <div class="token-row">
+              <label class="form-label" style="flex:1;">Token
+                <input type="password" id="scratchpad-gh-token" class="form-input" placeholder="github_pat_… or ghp_…" autocomplete="off" />
+              </label>
+              <button type="button" class="modal-btn submit" id="scratchpad-gh-token-save">Use token</button>
+              <button type="button" class="modal-btn cancel" id="scratchpad-gh-token-clear" hidden>Remove token</button>
+            </div>
+          </details>
         </div>
       </div>
     </dialog>

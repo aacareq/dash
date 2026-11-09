@@ -167,4 +167,75 @@ export class SyncEngine {
     await this.gh.rememberSha(this.fileKey(repo, path, branch), remote.sha);
     return { status: "loaded", ...remote, path, repo };
   }
+
+  // Renames a file on GitHub (if connected) and updates any queued outbox entry.
+  async renameFile({ repo, oldPath, newPath, branch = "", content }) {
+    const from = normalizePath(oldPath);
+    const to = normalizePath(newPath);
+    if (!from || !to || from === to) return { status: "invalid-target" };
+
+    // Update any offline queued commit targeting the old path.
+    for (const entry of await this.store.listOutbox()) {
+      if (entry.repo === repo && normalizePath(entry.path) === from) {
+        await this.store.updateOutbox(entry.id, { path: to, sha: null });
+      }
+    }
+
+    const connection = await this.gh.connection();
+    if (!connection.ready || !repo) {
+      return { status: "local-only", oldPath: from, newPath: to };
+    }
+
+    try {
+      const result = await this.gh.renameRepoFile({ repo, oldPath: from, newPath: to, branch, content });
+      this.conflictPaused = false;
+      return { ...result, repo };
+    } catch (error) {
+      return { status: "error", error, kind: classifySyncError(error) };
+    }
+  }
+
+  // Renames a directory on GitHub (if connected) and updates any queued outbox entries.
+  async renameDirectory({ repo, oldDir, newDir, branch = "" }) {
+    const from = normalizePath(oldDir);
+    const to = normalizePath(newDir);
+    if (!from || !to || from === to || to.startsWith(`${from}/`)) {
+      return { status: "invalid-target" };
+    }
+
+    const prefix = `${from}/`;
+    for (const entry of await this.store.listOutbox()) {
+      const entryPath = normalizePath(entry.path);
+      if (entry.repo === repo && entryPath.startsWith(prefix)) {
+        await this.store.updateOutbox(entry.id, {
+          path: `${to}/${entryPath.slice(prefix.length)}`,
+          sha: null
+        });
+      }
+    }
+
+    const connection = await this.gh.connection();
+    if (!connection.ready || !repo) {
+      return { status: "local-only", oldDir: from, newDir: to, moved: [] };
+    }
+
+    try {
+      const result = await this.gh.renameRepoDirectory({ repo, oldDir: from, newDir: to, branch });
+      this.conflictPaused = false;
+      return { ...result, repo };
+    } catch (error) {
+      return { status: "error", error, kind: classifySyncError(error) };
+    }
+  }
+
+  async listWorkspace({ repo, branch = "" }) {
+    const connection = await this.gh.connection();
+    if (!connection.ready || !repo) return { status: "disconnected", files: [], dirs: [] };
+    try {
+      const tree = await this.gh.listRepoTree(repo, branch);
+      return { status: "loaded", ...tree, repo };
+    } catch (error) {
+      return { status: "error", error, kind: classifySyncError(error), files: [], dirs: [] };
+    }
+  }
 }

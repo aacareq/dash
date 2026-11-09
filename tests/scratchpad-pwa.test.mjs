@@ -26,7 +26,10 @@ import {
   parseConnectionInput, parsePrivateKey
 } from "../assets/github-app.js";
 import { SyncEngine } from "../assets/sync-engine.js";
-import { NoteManager, todayNoteFileName, NOTES_INDEX_KEY } from "../assets/notes-manager.js";
+import {
+  NoteManager, todayNoteFileName, todayFolderPath, todayFolderNotePath,
+  normalizeWorkspacePath, parentFolderOf, NOTES_INDEX_KEY, FOLDERS_INDEX_KEY
+} from "../assets/notes-manager.js";
 import { isEmbedded, isIos, isStandaloneDisplay } from "../assets/environment.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -764,3 +767,310 @@ test("markConnectionSaved: remembers the key was downloaded", async () => {
   assert.equal(next.connection_saved_at, 1700000000000);
   assert.equal((await gh.readApp()).connection_saved_at, 1700000000000);
 });
+
+// ---- workspace, folders, file/directory rename & clarity tests ------------------------
+test("MemoryStore + mirror: deleteNote removes note body cleanly and mirrors path keys", async () => {
+  const raw = new MemoryStore();
+  const legacy = { store: {}, getItem(k) { return this.store[k] ?? null; }, setItem(k, v) { this.store[k] = String(v); }, removeItem(k) { delete this.store[k]; } };
+  const store = withLocalStorageMirror(raw, legacy);
+  await store.putNote({ id: "note:notes/a.md", path: "notes/a.md", body: "hello", updatedAt: 1 });
+  await store.putNote({ id: ACTIVE_NOTE_ID, path: "notes/a.md", body: "hello", updatedAt: 1 });
+  await store.kvSet(LEGACY_KEYS.path, "notes/a.md");
+  assert.equal(legacy.getItem(LEGACY_KEYS.path), "notes/a.md");
+
+  await store.deleteNote("note:notes/a.md");
+  assert.equal(await store.getNote("note:notes/a.md"), null);
+  await store.deleteNote(ACTIVE_NOTE_ID);
+  assert.equal(await store.getNote(ACTIVE_NOTE_ID), null);
+});
+
+test("note manager: workspace path helpers, today presets, folders & collision-safe newDatedNote", async () => {
+  const now = new Date(2026, 10, 9, 14, 5, 7);
+  assert.equal(todayFolderPath(now), "notes/2026-11-09");
+  assert.equal(todayFolderNotePath(now), "notes/2026-11-09/notes-2026-11-09-1405.md");
+  assert.equal(normalizeWorkspacePath(" /projects//alpha/plan.md/ "), "projects/alpha/plan.md");
+  assert.throws(() => normalizeWorkspacePath("notes/../secret.md"), /empty segments/i);
+  assert.equal(parentFolderOf("notes/2026-11-09/standup.md"), "notes/2026-11-09");
+  assert.equal(parentFolderOf("root.md"), "");
+
+  const store = new MemoryStore();
+  const mgr = new NoteManager(store, { now: () => now });
+  await mgr.boot();
+  const folder = await mgr.createFolder("work/2026-11-09");
+  assert.equal(folder.path, "work/2026-11-09");
+  assert.ok((await mgr.listFolders()).includes("work/2026-11-09"));
+
+  const first = await mgr.newDatedNote();
+  const second = await mgr.newDatedNote();
+  const third = await mgr.newDatedNote();
+  assert.notEqual(first.path, second.path, "creating a second new dated note inside the same minute yields a unique path");
+  assert.notEqual(second.path, third.path);
+  assert.match(third.path, /-2\.md$/);
+});
+
+test("note manager: renameNote and renameDirectory move local notes, folders, and active path", async () => {
+  const store = new MemoryStore();
+  const mgr = new NoteManager(store);
+  await mgr.boot();
+  await mgr.switchTo("projects/old/spec.md", { initialBody: "# Spec" });
+  await mgr.switchTo("projects/old/sub/deep.md", { initialBody: "deep note" });
+  await mgr.switchTo("projects/old/todo.md", { initialBody: "- [ ] ship" });
+
+  await mgr.renameNote("projects/old/todo.md", "projects/old/checklist.md");
+  assert.equal(await store.getNote("note:projects/old/todo.md"), null);
+  assert.equal((await store.getNote("note:projects/old/checklist.md")).body, "- [ ] ship");
+  assert.equal(mgr.current.path, "projects/old/checklist.md");
+
+  await assert.rejects(() => mgr.renameNote("projects/old/checklist.md", "projects/old/spec.md"), /already exists/i);
+
+  const dirResult = await mgr.renameDirectory("projects/old", "projects/renamed");
+  assert.equal(dirResult.movedNotes.length, 3);
+  assert.equal(dirResult.activePath, "projects/renamed/checklist.md");
+  assert.equal(mgr.current.path, "projects/renamed/checklist.md");
+  assert.equal((await store.getNote("note:projects/renamed/spec.md")).body, "# Spec");
+  assert.equal((await store.getNote("note:projects/renamed/sub/deep.md")).body, "deep note");
+  assert.equal(await store.getNote("note:projects/old/spec.md"), null);
+  assert.ok((await mgr.listFolders()).includes("projects/renamed/sub"));
+  assert.ok(!(await mgr.listFolders()).includes("projects/old"));
+
+  await assert.rejects(() => mgr.renameDirectory("projects/renamed", "projects/renamed/nested"), /inside itself/i);
+});
+
+test("GitHub client: deleteRepoFile, renameRepoFile, listRepoTree, and renameRepoDirectory", async () => {
+  const store = new MemoryStore();
+  await store.kvSet(GH_KEYS.token, JSON.stringify({ access_token: "ghp_test", login: "octocat" }));
+
+  const files = {
+    "notes/a.md": { sha: "sha-a", content: encodeUtf8Base64("alpha") },
+    "folder/one.md": { sha: "sha-1", content: encodeUtf8Base64("one") },
+    "folder/sub/two.md": { sha: "sha-2", content: encodeUtf8Base64("two") }
+  };
+  const requests = [];
+  const fetchImpl = async (url, options = {}) => {
+    const method = (options.method || "GET").toUpperCase();
+    const target = String(url);
+    requests.push({ method, target, body: options.body ? JSON.parse(options.body) : null });
+
+    if (target.endsWith("/repos/octocat/scratch")) {
+      return jsonResponse({ default_branch: "main" });
+    }
+    if (target.includes("/git/ref/heads/main")) {
+      return jsonResponse({ object: { sha: "head-main" } });
+    }
+    if (target.includes("/git/trees/head-main")) {
+      const dirSet = new Set();
+      Object.keys(files).forEach(p => {
+        const parts = p.split("/").slice(0, -1);
+        let cur = "";
+        for (const part of parts) { cur = cur ? `${cur}/${part}` : part; dirSet.add(cur); }
+      });
+      return jsonResponse({
+        sha: "tree-main",
+        truncated: false,
+        tree: [
+          ...[...dirSet].map(d => ({ path: d, type: "tree", sha: `tree-${d}` })),
+          ...Object.entries(files).map(([p, rec]) => ({ path: p, type: "blob", sha: rec.sha }))
+        ]
+      });
+    }
+    if (target.endsWith("/git/trees") && method === "POST") {
+      const body = JSON.parse(options.body);
+      for (const entry of body.tree) {
+        if (entry.sha === null) delete files[entry.path];
+        else files[entry.path] = { sha: entry.sha, content: files[entry.path]?.content || "" };
+      }
+      return jsonResponse({ sha: "new-tree-sha" }, 201);
+    }
+    if (target.endsWith("/git/commits") && method === "POST") {
+      return jsonResponse({ sha: "new-commit-sha" }, 201);
+    }
+    if (target.includes("/git/refs/heads/main") && method === "PATCH") {
+      return jsonResponse({ object: { sha: "new-commit-sha" } });
+    }
+    if (target.includes("/contents/")) {
+      const p = decodeURIComponent(target.split("/contents/")[1].split("?")[0]);
+      if (method === "GET") {
+        const rec = files[p];
+        if (!rec) return jsonResponse({ message: "Not Found" }, 404);
+        return jsonResponse({ type: "file", sha: rec.sha, content: rec.content });
+      }
+      if (method === "PUT") {
+        const body = JSON.parse(options.body);
+        const nextSha = `sha-new-${requests.length}`;
+        files[p] = { sha: nextSha, content: body.content };
+        return jsonResponse({ content: { sha: nextSha } }, 201);
+      }
+      if (method === "DELETE") {
+        delete files[p];
+        return jsonResponse({ commit: { sha: `del-${requests.length}` } });
+      }
+    }
+    return jsonResponse({}, 404);
+  };
+
+  const gh = new GitHubAppClient(store, { fetchImpl });
+  const tree = await gh.listRepoTree("octocat/scratch");
+  assert.ok(tree.dirs.includes("folder/sub"));
+  assert.ok(tree.files.some(f => f.path === "notes/a.md"));
+
+  const missingRename = await gh.renameRepoFile({ repo: "octocat/scratch", oldPath: "notes/missing.md", newPath: "notes/b.md" });
+  assert.equal(missingRename.status, "not-remote");
+
+  const renamed = await gh.renameRepoFile({ repo: "octocat/scratch", oldPath: "notes/a.md", newPath: "notes/b.md" });
+  assert.equal(renamed.status, "renamed");
+  assert.ok(files["notes/b.md"] && !files["notes/a.md"]);
+  assert.ok(await gh.storedSha("octocat/scratch@default:notes/b.md"));
+  assert.equal(await gh.storedSha("octocat/scratch@default:notes/a.md"), null);
+
+  const dirRes = await gh.renameRepoDirectory({ repo: "octocat/scratch", oldDir: "folder", newDir: "archive" });
+  assert.equal(dirRes.status, "renamed");
+  assert.equal(dirRes.moved.length, 2);
+  assert.ok(files["archive/one.md"] && files["archive/sub/two.md"]);
+  assert.ok(!files["folder/one.md"] && !files["folder/sub/two.md"]);
+
+  // Verify Contents API fallback path too when Git Data /git/ref returns 404.
+  const fallbackFetch = async (url, options = {}) => {
+    const method = (options.method || "GET").toUpperCase();
+    const target = String(url);
+    if (target.endsWith("/repos/octocat/scratch")) return jsonResponse({ default_branch: "main" });
+    if (target.includes("/git/ref/")) return jsonResponse({ message: "Not Found" }, 404);
+    if (/\/contents(?:\/|$)/.test(target)) {
+      const rawAfter = target.split("/contents")[1] || "";
+      const p = decodeURIComponent(rawAfter.replace(/^\//, "").split("?")[0]);
+      if (method === "GET") {
+        const rec = p ? files[p] : null;
+        if (rec) return jsonResponse({ type: "file", sha: rec.sha, content: rec.content });
+        const prefix = p ? `${p}/` : "";
+        const children = new Map();
+        Object.entries(files).forEach(([fp, entry]) => {
+          if (prefix && !fp.startsWith(prefix)) return;
+          const rest = prefix ? fp.slice(prefix.length) : fp;
+          const seg = rest.split("/")[0];
+          if (!seg) return;
+          const child = prefix ? `${prefix}${seg}` : seg;
+          if (rest.includes("/")) children.set(child, { type: "dir", path: child, sha: `tree-${child}` });
+          else children.set(child, { type: "file", path: child, sha: entry.sha, size: entry.content.length });
+        });
+        return children.size ? jsonResOr404([...children.values()]) : jsonResponse({ message: "Not Found" }, 404);
+      }
+      if (method === "PUT") {
+        const body = JSON.parse(options.body);
+        const sha = `sha-fb-${Object.keys(files).length + 1}`;
+        files[p] = { sha, content: body.content };
+        return jsonResponse({ content: { sha } }, 201);
+      }
+      if (method === "DELETE") {
+        delete files[p];
+        return jsonResponse({ commit: { sha: "del-fb" } });
+      }
+    }
+    return jsonResponse({}, 404);
+  };
+  function jsonResOr404(val) { return jsonResponse(val); }
+  const ghFallback = new GitHubAppClient(store, { fetchImpl: fallbackFetch });
+  const fbRes = await ghFallback.renameRepoDirectory({ repo: "octocat/scratch", oldDir: "archive", newDir: "vault" });
+  assert.equal(fbRes.status, "renamed");
+  assert.equal(fbRes.moved.length, 2);
+  assert.ok(files["vault/one.md"] && files["vault/sub/two.md"]);
+  assert.ok(!files["archive/one.md"] && !files["archive/sub/two.md"]);
+});
+
+test("SyncEngine: renameFile and renameDirectory migrate outbox entries and local notes", async () => {
+  const store = new MemoryStore();
+  await store.kvSet(GH_KEYS.token, JSON.stringify({ access_token: "ghp_test", login: "octocat" }));
+  await store.kvSet(GH_KEYS.repo, "octocat/scratch");
+  await store.kvSet(GH_KEYS.path, "dir/old.md");
+
+  const files = {
+    "dir/old.md": { sha: "sha-old", content: encodeUtf8Base64("unsynced edit") }
+  };
+  const fetchImpl = async (url, options = {}) => {
+    const method = (options.method || "GET").toUpperCase();
+    const target = String(url);
+    if (target.endsWith("/repos/octocat/scratch")) return jsonResponse({ default_branch: "main" });
+    if (target.includes("/git/ref/heads/main")) return jsonResponse({ object: { sha: "head-main" } });
+    if (target.includes("/git/trees/head-main")) {
+      return jsonResponse({
+        sha: "tree-main",
+        truncated: false,
+        tree: Object.entries(files).map(([p, rec]) => ({ path: p, type: "blob", sha: rec.sha }))
+      });
+    }
+    if (target.endsWith("/git/trees") && method === "POST") {
+      const body = JSON.parse(options.body);
+      for (const entry of body.tree) {
+        if (entry.sha === null) delete files[entry.path];
+        else files[entry.path] = { sha: entry.sha, content: files[entry.path]?.content || "" };
+      }
+      return jsonResponse({ sha: "new-tree-sha" }, 201);
+    }
+    if (target.endsWith("/git/commits") && method === "POST") return jsonResponse({ sha: "new-commit-sha" }, 201);
+    if (target.includes("/git/refs/heads/main") && method === "PATCH") return jsonResponse({ object: { sha: "new-commit-sha" } });
+    if (target.includes("/contents/")) {
+      const p = decodeURIComponent(target.split("/contents/")[1].split("?")[0]);
+      if (method === "GET") {
+        return files[p] ? jsonResponse({ type: "file", sha: files[p].sha, content: files[p].content }) : jsonResponse({}, 404);
+      }
+      if (method === "PUT") {
+        const body = JSON.parse(options.body);
+        const sha = `sha-${Object.keys(files).length + 1}`;
+        files[p] = { sha, content: body.content };
+        return jsonResponse({ content: { sha } }, 201);
+      }
+      if (method === "DELETE") {
+        delete files[p];
+        return jsonResponse({});
+      }
+    }
+    return jsonResponse({}, 404);
+  };
+
+  const gh = new GitHubAppClient(store, { fetchImpl });
+  const mgr = new NoteManager(store);
+  await mgr.boot();
+  await mgr.switchTo("dir/old.md", { initialBody: "offline text" });
+  await mgr.setBody("offline text", { dirty: true });
+  await store.enqueueOutbox(makeOutboxEntry({ repo: "octocat/scratch", path: "dir/old.md", branch: "", content: "offline text" }));
+
+  const engine = new SyncEngine(store, gh);
+  const res = await engine.renameFile({ repo: "octocat/scratch", oldPath: "dir/old.md", newPath: "dir/new.md", content: "offline text" });
+  assert.equal(res.status, "renamed");
+  await mgr.renameNote("dir/old.md", "dir/new.md");
+  assert.equal(mgr.current.path, "dir/new.md");
+  const outboxAfterFile = await store.listOutbox();
+  assert.equal(outboxAfterFile[0].path, "dir/new.md");
+
+  const dirRes = await engine.renameDirectory({ repo: "octocat/scratch", oldDir: "dir", newDir: "moved" });
+  assert.equal(dirRes.status, "renamed");
+  await mgr.renameDirectory("dir", "moved");
+  assert.equal(mgr.current.path, "moved/new.md");
+  const outboxAfterDir = await store.listOutbox();
+  assert.equal(outboxAfterDir[0].path, "moved/new.md");
+});
+
+test("UI contracts: scratchpad.html and index.html expose clarity, quick autosave, workspace, and rename controls", () => {
+  const sharedIds = [
+    "scratchpad-clarity-bar", "scratchpad-local-state", "scratchpad-repo-pill", "scratchpad-repo-summary",
+    "scratchpad-quick-autosave",
+    "scratchpad-files-toggle", "scratchpad-workspace-panel", "scratchpad-ws-filter", "scratchpad-ws-refresh",
+    "scratchpad-ws-list", "scratchpad-ws-today-note", "scratchpad-ws-today-folder", "scratchpad-ws-today-in-folder",
+    "scratchpad-ws-file-dir", "scratchpad-ws-file-name", "scratchpad-ws-file-ext",
+    "scratchpad-ws-create-blank", "scratchpad-ws-create-from-current",
+    "scratchpad-ws-new-dir", "scratchpad-ws-create-dir",
+    "scratchpad-rename-file-input", "scratchpad-rename-file-btn",
+    "scratchpad-rename-dir-from", "scratchpad-rename-dir-to", "scratchpad-rename-dir-btn"
+  ];
+  const pwaHtml = readFileSync(join(ROOT, "scratchpad.html"), "utf8");
+  const dashHtml = readFileSync(join(ROOT, "index.html"), "utf8");
+  for (const id of sharedIds) {
+    assert.ok(new RegExp(`id="${id}"`).test(pwaHtml), `scratchpad.html missing #${id}`);
+    assert.ok(new RegExp(`id="${id}"`).test(dashHtml), `index.html missing #${id}`);
+  }
+  for (const id of ["scratchpad-quick-save", "scratchpad-quick-pull"]) {
+    assert.ok(new RegExp(`id="${id}"`).test(pwaHtml), `scratchpad.html missing #${id}`);
+  }
+  for (const id of ["scratchpad-ws-quick-save", "scratchpad-ws-quick-pull"]) {
+    assert.ok(new RegExp(`id="${id}"`).test(dashHtml), `index.html missing #${id}`);
+  }
+});
+

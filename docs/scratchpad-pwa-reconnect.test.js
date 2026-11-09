@@ -51,10 +51,12 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   globalThis.atob = value => Buffer.from(value, "base64").toString("binary");
 
   const calls = [];
+  const repoFiles = {};
   const issued = { installations: [{ id: 424242, account: { login: "octocat" }, target_type: "User" }] };
   globalThis.fetch = async (url, options = {}) => {
     const target = String(url);
-    calls.push({ target, options, method: (options.method || "GET").toUpperCase() });
+    const method = (options.method || "GET").toUpperCase();
+    calls.push({ target, options, method });
     if (target.endsWith("/app")) {
       return jsonRes({ id: 987654, slug: "dash-notes-example", name: "dash notes", owner: { login: "octocat" }, html_url: "https://github.com/apps/dash-notes-example" });
     }
@@ -64,9 +66,67 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
       return jsonRes({ total_count: 1, repositories: [{ full_name: "octocat/scratch", name: "scratch" }] });
     }
     if (target.includes("/repos/")) {
-      // Nothing exists yet: creation reads first (404) and then PUTs.
-      if ((options.method || "GET").toUpperCase() === "GET") return jsonRes({ message: "Not Found" }, 404);
-      return jsonRes({ content: { sha: `sha-${calls.filter(call => call.method === "PUT").length}` } });
+      if (/\/repos\/[^/]+\/[^/]+$/.test(target) && method === "GET") return jsonRes({ default_branch: "main" });
+      if (target.includes("/git/ref/heads/main") && method === "GET") return jsonRes({ object: { sha: "head-main" } });
+      if (target.includes("/git/trees/head-main") && method === "GET") {
+        const dirSet = new Set();
+        Object.keys(repoFiles).forEach(p => {
+          const parts = p.split("/").slice(0, -1);
+          let cur = "";
+          for (const part of parts) { cur = cur ? `${cur}/${part}` : part; dirSet.add(cur); }
+        });
+        return jsonRes({
+          sha: "tree-main",
+          truncated: false,
+          tree: [
+            ...[...dirSet].map(d => ({ path: d, type: "tree", sha: `tree-${d}` })),
+            ...Object.entries(repoFiles).map(([p, rec]) => ({ path: p, type: "blob", sha: rec.sha }))
+          ]
+        });
+      }
+      if (target.endsWith("/git/trees") && method === "POST") {
+        const body = JSON.parse(options.body || "{}");
+        for (const entry of body.tree) {
+          if (entry.sha === null) delete repoFiles[entry.path];
+          else repoFiles[entry.path] = { sha: entry.sha, content: repoFiles[entry.path]?.content || "" };
+        }
+        return jsonRes({ sha: "new-tree-sha" }, 201);
+      }
+      if (target.endsWith("/git/commits") && method === "POST") return jsonRes({ sha: "new-commit-sha" }, 201);
+      if (target.includes("/git/refs/heads/main") && method === "PATCH") return jsonRes({ object: { sha: "new-commit-sha" } });
+      if (/\/contents(?:\/|$)/.test(target)) {
+        const rawAfter = target.split("/contents")[1] || "";
+        const p = decodeURIComponent(rawAfter.replace(/^\//, "").split("?")[0]);
+        if (method === "GET") {
+          const rec = p ? repoFiles[p] : null;
+          if (rec) return jsonRes({ type: "file", sha: rec.sha, content: rec.content });
+          const dirPrefix = p ? `${p}/` : "";
+          const children = new Map();
+          Object.entries(repoFiles).forEach(([filePath, entry]) => {
+            if (dirPrefix && !filePath.startsWith(dirPrefix)) return;
+            const rest = dirPrefix ? filePath.slice(dirPrefix.length) : filePath;
+            const seg = rest.split("/")[0];
+            if (!seg) return;
+            const childPath = dirPrefix ? `${dirPrefix}${seg}` : seg;
+            if (rest.includes("/")) children.set(childPath, { type: "dir", path: childPath, sha: `tree-${childPath}` });
+            else children.set(childPath, { type: "file", path: childPath, sha: entry.sha, size: (entry.content || "").length });
+          });
+          return children.size
+            ? jsonRes([...children.values()])
+            : jsonRes({ message: "Not Found" }, 404);
+        }
+        if (method === "PUT") {
+          const body = JSON.parse(options.body || "{}");
+          const sha = `sha-${calls.filter(call => call.method === "PUT").length}`;
+          repoFiles[p] = { sha, content: body.content };
+          return jsonRes({ content: { sha } });
+        }
+        if (method === "DELETE") {
+          delete repoFiles[p];
+          return jsonRes({ commit: { sha: "deleted" } });
+        }
+      }
+      return jsonRes({ message: "Not Found" }, 404);
     }
     return jsonRes({});
   };
@@ -168,6 +228,57 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   const folderPut = calls.find(call => call.method === "PUT" && call.target.includes("/contents/projects/launch/assets/.gitkeep"));
   check("a folder is created with a .gitkeep", Boolean(folderPut), calls.map(call => `${call.method} ${call.target}`).join(" | "));
   check("the folder status explains the placeholder", /gitkeep/.test($("scratchpad-gh-status").textContent), $("scratchpad-gh-status").textContent);
+
+  console.log("\n[6] clarity strip, quick autosave, workspace panel, and file/directory renames");
+  $("scratchpad-gh-close").click();
+  check("clarity strip shows local save badge and connected repo summary",
+    /Local/.test($("scratchpad-local-state").textContent) && /octocat\/scratch/.test($("scratchpad-repo-summary").textContent),
+    `${$("scratchpad-local-state").textContent} | ${$("scratchpad-repo-summary").textContent}`);
+  const quickAuto = $("scratchpad-quick-autosave");
+  const modalAuto = $("scratchpad-gh-autosave");
+  const initialAuto = modalAuto.checked;
+  quickAuto.click();
+  await wait(150);
+  check("quick auto-save button toggles the GitHub autosave setting",
+    modalAuto.checked === !initialAuto && quickAuto.getAttribute("aria-pressed") === String(!initialAuto));
+  quickAuto.click();
+  await wait(150);
+
+  $("scratchpad-files-toggle").click();
+  await wait(200);
+  check("workspace panel opens on toggle", $("scratchpad-workspace-panel").hidden === false);
+
+  $("scratchpad-ws-new-dir").value = "notes/rename-me";
+  $("scratchpad-ws-create-dir").click();
+  await wait(500);
+  check("workspace folder creation commits .gitkeep", Boolean(repoFiles["notes/rename-me/.gitkeep"]));
+
+  $("scratchpad-ws-file-dir").value = "notes/rename-me";
+  $("scratchpad-ws-file-name").value = "draft";
+  $("scratchpad-ws-file-ext").value = "md";
+  $("scratchpad-ws-create-from-current").click();
+  await wait(600);
+  check("workspace create from current copies editor text into the new file",
+    $("scratchpad-gh-path").value === "notes/rename-me/draft.md" && Boolean(repoFiles["notes/rename-me/draft.md"]));
+
+  $("scratchpad-rename-file-input").value = "notes/rename-me/final.md";
+  $("scratchpad-rename-file-btn").click();
+  await wait(600);
+  check("renaming active file moves it locally and in GitHub",
+    $("scratchpad-gh-path").value === "notes/rename-me/final.md" &&
+    !repoFiles["notes/rename-me/draft.md"] &&
+    Boolean(repoFiles["notes/rename-me/final.md"]),
+    JSON.stringify(Object.keys(repoFiles)));
+
+  $("scratchpad-rename-dir-from").value = "notes/rename-me";
+  $("scratchpad-rename-dir-to").value = "notes/archive";
+  $("scratchpad-rename-dir-btn").click();
+  await wait(700);
+  check("renaming directory moves active note and .gitkeep cleanly",
+    $("scratchpad-gh-path").value === "notes/archive/final.md" &&
+    !repoFiles["notes/rename-me/final.md"] &&
+    Boolean(repoFiles["notes/archive/final.md"]),
+    JSON.stringify(Object.keys(repoFiles)));
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

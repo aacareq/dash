@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const SITE = "https://aacareq.github.io/dash/index.html";
 const BOOKMARKLET_ID = "bookmarklets:personal-ai-agents-always-on";
 const CLUSTER_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code", "https://ai.meta.com/muse/", "https://chatgpt.com/dots", "https://claude.com/product/claude-duet", "https://chatgpt.com/"];
-const EXPECTED_URLS = CLUSTER_URLS.slice(0, 3);
+const EXPECTED_URLS = ["https://ai.meta.com/muse/", "https://grok.com/bot/", "https://claude.com/product/claude-duet"];
 
 const flush = () => new Promise(r => setTimeout(r, 80));
 
@@ -62,7 +62,7 @@ function makeWindow({ storage = null } = {}) {
 const personalCards = doc => [...doc.querySelectorAll("#group-personalagents .card")];
 const bookmarkletCards = doc => [...doc.querySelectorAll("#group-bookmarklets .card")];
 const newBookmarkletCard = doc => bookmarkletCards(doc).find(c => c.dataset.id === BOOKMARKLET_ID);
-const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m => m[0]);
+const urlsIn = href => [...decodeURIComponent(String(href)).matchAll(/https?:\/\/[^'"]+/g)].map(m => m[0]);
 
 (async () => {
   console.log("\n[1] the Personal AI Agents cluster includes the requested services and the bookmarklet card exists");
@@ -89,19 +89,19 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
     win.close();
   }
 
-  console.log("\n[2] the bookmarklet opens the original three links in order");
+  console.log("\n[2] the bookmarklet opens the requested three links in order");
   {
     const win = makeWindow();
     const doc = win.document;
     await flush();
     const href = newBookmarkletCard(doc).querySelector(".card-main").href;
     check("card link is a javascript: bookmarklet", href.startsWith("javascript:"), href.slice(0, 60));
-    check("bookmarklet lists the original URLs in order",
+    check("bookmarklet lists the requested URLs in order",
       urlsIn(href).join(",") === EXPECTED_URLS.join(","),
       JSON.stringify(urlsIn(href)));
     check("no link is duplicated", new Set(urlsIn(href)).size === urlsIn(href).length, JSON.stringify(urlsIn(href)));
     // Run the bookmarklet the way a browser runs a clicked (or bookmarks-bar) javascript: link.
-    win.eval(href.slice("javascript:".length));
+    win.eval(decodeURIComponent(href.slice("javascript:".length)));
     check("running it opens one tab per personal agent",
       win.__opens.map(o => o.url).join(",") === EXPECTED_URLS.join(","), JSON.stringify(win.__opens));
     check("every tab opens in a new tab (_blank)", win.__opens.every(o => o.target === "_blank"), JSON.stringify(win.__opens));
@@ -149,18 +149,29 @@ const urlsIn = href => [...String(href).matchAll(/https?:\/\/[^'"]+/g)].map(m =>
       ["bookmarklets:proactive-autonomous-cloud-agents", ["https://ai.meta.com/muse/", "https://claude.com/product/claude-duet", "https://grok.com/bot/", "https://chatgpt.com/"]],
       ["bookmarklets:open-source-self-hosted-personal-agents", ["https://github.com/NousResearch/hermes-agent", "https://openclaw.ai/"]]
     ];
-    let alerts = 0;
-    win.alert = () => alerts++;
     for (const [id, expected] of cases) {
       const link = win.document.querySelector(`#group-bookmarklets .card[data-id="${id}"] .card-main`);
+      // Simulate the browser allowing only the first popup. Both invocation paths
+      // must offer precisely the missing links, not repeat the successful one.
+      for (const invoke of [() => link.click(), () => win.eval(decodeURIComponent(link.href.slice("javascript:".length)))]) {
+        win.__opens.length = 0;
+        win.open = (url, target) => {
+          win.__opens.push({ url: String(url), target });
+          return win.__opens.length === 1 ? {} : null;
+        };
+        invoke();
+        check(id + " attempts each requested URL", win.__opens.map(o => o.url).join(",") === expected.join(","));
+        const panel = win.document.querySelector('[aria-label="Blocked agent tabs"]');
+        check(id + " offers only blocked links", !!panel && [...panel.querySelectorAll("a")].map(a => a.href).join(",") === expected.slice(1).join(","));
+        check(id + " fallback links open safely in new tabs", !!panel && [...panel.querySelectorAll("a")].every(a => a.target === "_blank" && a.rel === "noopener noreferrer"));
+        panel?.querySelector("button").click();
+        check(id + " fallback can be dismissed", !win.document.querySelector('[aria-label="Blocked agent tabs"]'));
+      }
+      win.open = (url, target) => { win.__opens.push({ url: String(url), target }); return {}; };
       win.__opens.length = 0;
       link.click();
-      check(id + " click opens all requested URLs", win.__opens.map(o => o.url).join(",") === expected.join(","));
-      win.__opens.length = 0;
-      win.eval(link.href.slice("javascript:".length));
-      check(id + " saved bookmarklet opens all requested URLs", win.__opens.map(o => o.url).join(",") === expected.join(","));
+      check(id + " succeeds without a fallback when popups are allowed", win.__opens.map(o => o.url).join(",") === expected.join(",") && !win.document.querySelector('[aria-label="Blocked agent tabs"]'));
     }
-    check("blocked pop-ups are reported for clicks and saved bookmarklets", alerts === 6, String(alerts));
     win.close();
   }
 

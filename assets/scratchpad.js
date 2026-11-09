@@ -1,11 +1,11 @@
 // Scratchpad PWA — main controller.
 //
-// Standalone-page counterpart of the dashboard's scratchpad dialog, with the
-// upgrades from scratch-pad-app.md:
-//   • notes persist to IndexedDB (async, GB-scale) instead of a localStorage string
-//   • one-time migration of the dialog's localStorage layout (incl. GitHub App creds)
-//   • an offline commit outbox drained on reconnect (Background Sync is Chromium-only,
-//     so the universal path is online/focus events plus a manual Sync now button)
+// Standalone-page counterpart of the dashboard's scratchpad dialog, with:
+//   • clear Local Device vs GitHub Repo storage indicators and quick Repo Auto-save toggle
+//   • multi-note + folder workspace manager (Today's note, Today's folder, create files/dirs,
+//     rename active file, rename directory locally and in GitHub)
+//   • notes persist to IndexedDB (async, GB-scale) with one-time migration from dashboard localStorage
+//   • an offline commit outbox drained on reconnect plus a manual Sync now button
 //   • service worker registration with an update toast, PWA install prompt + iOS hint
 //   • File System Access save/open where the browser supports it, downloads elsewhere
 
@@ -14,7 +14,14 @@ import { createEditor } from "./editor.js";
 import { openStore, migrateLegacyStorage, withLocalStorageMirror, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
 import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO, connectionFileText, connectionFileName, parseConnectionInput, parsePrivateKey } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
-import { NoteManager, todayNoteFileName } from "./notes-manager.js";
+import {
+  NoteManager,
+  todayNoteFileName,
+  todayFolderPath,
+  todayFolderNotePath,
+  normalizeWorkspacePath,
+  parentFolderOf
+} from "./notes-manager.js";
 import { setupPwaInstall } from "./pwa-install.js";
 import { isEmbedded } from "./environment.js";
 
@@ -26,6 +33,14 @@ function setStatus(id, message, tone) {
   el.textContent = message || "";
   el.classList.toggle("is-error", tone === "error");
   el.classList.toggle("is-success", tone === "success");
+}
+
+function pulseElement(el, className = "is-pulsing", ms = 650) {
+  if (!el) return;
+  el.classList.remove(className);
+  void el.offsetWidth;
+  el.classList.add(className);
+  setTimeout(() => el.classList.remove(className), ms);
 }
 
 async function main() {
@@ -59,12 +74,32 @@ async function main() {
   textarea.value = note.body || "";
 
   let localSaveTimer;
+  let localSaving = false;
+  let lastLocalSavedAt = note.updatedAt ? new Date(note.updatedAt) : null;
+  let remoteWorkspace = { files: [], dirs: [], repo: "" };
+
+  async function flushLocalSave() {
+    clearTimeout(localSaveTimer);
+    localSaving = false;
+    note = await notes.setBody(textarea.value, { dirty: true });
+    lastLocalSavedAt = new Date();
+    paintStorageClarity();
+    return note;
+  }
+
   const persistLocal = () => {
+    localSaving = true;
+    note.dirty = true;
+    paintStorageClarity();
     clearTimeout(localSaveTimer);
     localSaveTimer = setTimeout(async () => {
-      note = await notes.setBody(textarea.value);
-      note.dirty = true;
+      localSaving = false;
+      note = await notes.setBody(textarea.value, { dirty: true });
+      lastLocalSavedAt = new Date();
       setStatus("scratchpad-status", "Saved on this device.", "success");
+      paintStorageClarity();
+      pulseElement($("scratchpad-local-state"), "is-pulsing");
+      refreshWorkspaceList();
     }, 400);
   };
 
@@ -173,9 +208,56 @@ async function main() {
     reader.readAsText(file);
   });
 
-  // ---- GitHub sync --------------------------------------------------------------------
-  // The GitHub settings live in their own sheet now (a native <dialog>), opened
-  // from the ⚙ GitHub sync button instead of a disclosure.
+  // ---- DOM references: Clarity strip, Workspace manager, Filebar, GitHub sheet --------
+  const localDot = $("scratchpad-local-dot");
+  const localSummary = $("scratchpad-local-summary");
+  const localStateBadge = $("scratchpad-local-state");
+  const repoPill = $("scratchpad-repo-pill");
+  const repoDot = $("scratchpad-repo-dot");
+  const repoSummary = $("scratchpad-repo-summary");
+  const quickAutosaveBtn = $("scratchpad-quick-autosave");
+  const quickSaveBtn = $("scratchpad-quick-save");
+  const quickPullBtn = $("scratchpad-quick-pull");
+
+  const todayFolderBtn = $("note-today-folder");
+  const filesToggleBtn = $("scratchpad-files-toggle");
+  const filesCountBadge = $("scratchpad-files-count");
+  const renameFileOpenBtn = $("scratchpad-rename-file-open");
+  const renameDirOpenBtn = $("scratchpad-rename-dir-open");
+  const filebarRenameBtn = $("scratchpad-filebar-rename");
+
+  const wsPanel = $("scratchpad-workspace-panel");
+  const wsCloseBtn = $("scratchpad-workspace-close");
+  const wsExplorer = $("scratchpad-ws-explorer");
+  const wsCreateCard = $("scratchpad-ws-create");
+  const wsRenameCard = $("scratchpad-ws-rename");
+  const wsRefreshBtn = $("scratchpad-ws-refresh");
+  const wsFilterInput = $("scratchpad-ws-filter");
+  const wsListEl = $("scratchpad-ws-list");
+  const wsDirsList = $("scratchpad-ws-dirs-list");
+  const wsTodayNoteBtn = $("scratchpad-ws-today-note");
+  const wsTodayFolderBtn = $("scratchpad-ws-today-folder");
+  const wsTodayInFolderBtn = $("scratchpad-ws-today-in-folder");
+  const wsFileDirInput = $("scratchpad-ws-file-dir");
+  const wsFillTodayDirBtn = $("scratchpad-ws-fill-today-dir");
+  const wsFileNameInput = $("scratchpad-ws-file-name");
+  const wsFileExtSelect = $("scratchpad-ws-file-ext");
+  const wsFilePreview = $("scratchpad-ws-file-preview");
+  const wsCreateBlankBtn = $("scratchpad-ws-create-blank");
+  const wsCreateFromCurrentBtn = $("scratchpad-ws-create-from-current");
+  const wsNewDirInput = $("scratchpad-ws-new-dir");
+  const wsFillTodayFolderBtn = $("scratchpad-ws-fill-today-folder");
+  const wsDirPreview = $("scratchpad-ws-dir-preview");
+  const wsCreateDirBtn = $("scratchpad-ws-create-dir");
+  const renameFileCurrent = $("scratchpad-rename-file-current");
+  const renameFileInput = $("scratchpad-rename-file-input");
+  const renameFilePreview = $("scratchpad-rename-file-preview");
+  const renameFileBtn = $("scratchpad-rename-file-btn");
+  const renameDirFromInput = $("scratchpad-rename-dir-from");
+  const renameDirToInput = $("scratchpad-rename-dir-to");
+  const renameDirPreview = $("scratchpad-rename-dir-preview");
+  const renameDirBtn = $("scratchpad-rename-dir-btn");
+
   const panel = $("scratchpad-gh-panel");
   const ghOpenBtn = $("scratchpad-gh-open");
   const ghCloseBtn = $("scratchpad-gh-close");
@@ -226,27 +308,27 @@ async function main() {
   let reposLoaded = false;
   let scratchAttempted = false;
   let barState = { text: "Saved on this device", tone: "" };
+  let lastConnectionState = { kind: "none", ready: false };
+  let pendingOutboxTotal = 0;
 
   const setGhStatus = (message, tone) => setStatus("scratchpad-gh-status", message, tone);
   const setFileStatus = (message, tone) => setStatus("scratchpad-gh-file-status", message, tone);
   const setRestoreStatus = (message, tone) => setStatus("scratchpad-gh-restore-status", message, tone);
-  // A dialog needs showModal() to land in the top layer; the attribute fallback
-  // keeps locked-down browsers and jsdom usable.
+  const setWsStatus = (message, tone) => setStatus("scratchpad-ws-status", message, tone);
+
   function openGhModal() {
     if (!panel || panel.open) return;
     if (typeof panel.showModal === "function") panel.showModal();
     else panel.setAttribute("open", "");
   }
-  const ghModalOpen = () => Boolean(panel && (panel.open || panel.hasAttribute("open")));
 
-  // Text of the file picked in the Reconnect panel, kept so the App ID field can
-  // stay optional when the file already carries it.
   let restoreFileText = "";
 
   function setBarState(text, tone = "") {
     barState = { text, tone };
     paintFileBar();
   }
+
   function paintFileBar() {
     if (!filebarRepo) return;
     const repo = repoSelect?.value || "";
@@ -260,10 +342,151 @@ async function main() {
       filebarState.classList.toggle("is-saved", barState.tone === "success");
       filebarState.classList.toggle("is-error", barState.tone === "error");
     }
+    if (renameFileCurrent) renameFileCurrent.textContent = note?.path || path || "—";
+  }
+
+  function paintStorageClarity() {
+    const timeLabel = lastLocalSavedAt
+      ? lastLocalSavedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : "";
+
+    if (localSaving) {
+      if (localDot) {
+        localDot.classList.remove("is-local-ok");
+        localDot.classList.add("is-saving");
+      }
+      if (localSummary) localSummary.textContent = "Saving on this device…";
+      if (localStateBadge) {
+        localStateBadge.textContent = "💾 Local: Saving…";
+        localStateBadge.classList.add("is-saving");
+      }
+    } else {
+      if (localDot) {
+        localDot.classList.remove("is-saving");
+        localDot.classList.add("is-local-ok");
+      }
+      if (localSummary) {
+        localSummary.textContent = timeLabel ? `Autosaved locally · ${timeLabel}` : "Autosaves locally";
+      }
+      if (localStateBadge) {
+        localStateBadge.textContent = "💾 Local: Saved";
+        localStateBadge.classList.remove("is-saving");
+      }
+    }
+
+    const repo = repoSelect?.value || "";
+    const connected = Boolean(lastConnectionState.ready && repo);
+    if (quickSaveBtn) quickSaveBtn.hidden = !connected;
+    if (quickPullBtn) quickPullBtn.hidden = !connected;
+
+    if (repoPill && repoDot && repoSummary) {
+      repoPill.classList.remove("is-connected", "is-warning");
+      repoDot.classList.remove("is-connected", "is-warning", "is-error");
+      if (!connected) {
+        repoSummary.textContent = lastConnectionState.kind === "app" && !lastConnectionState.installationId
+          ? "Finish installing GitHub App to sync"
+          : "Local only (not connected)";
+      } else if (pendingOutboxTotal > 0) {
+        repoPill.classList.add("is-warning");
+        repoDot.classList.add("is-warning");
+        repoSummary.textContent = `${repo} · ${pendingOutboxTotal} commit${pendingOutboxTotal === 1 ? "" : "s"} queued offline`;
+      } else if (note?.dirty) {
+        repoPill.classList.add("is-warning");
+        repoDot.classList.add("is-warning");
+        repoSummary.textContent = `${repo} · Local edits not synced yet`;
+      } else {
+        repoPill.classList.add("is-connected");
+        repoDot.classList.add("is-connected");
+        repoSummary.textContent = `${repo} · Synced`;
+      }
+    }
+
+    if (quickAutosaveBtn && autosaveCheckbox) {
+      const enabled = autosaveCheckbox.checked;
+      quickAutosaveBtn.setAttribute("aria-pressed", String(enabled));
+      quickAutosaveBtn.classList.toggle("is-on", enabled);
+      quickAutosaveBtn.textContent = enabled
+        ? (connected ? "⚡ Repo auto-save: ON" : "⚡ Repo auto-save: ON (when connected)")
+        : "⏸ Repo auto-save: OFF";
+    }
   }
 
   const showOverwrite = visible => { if (overwriteBtn) overwriteBtn.hidden = !visible; };
   const showRepoHelp = html => { if (!repoHelp) return; repoHelp.hidden = !html; repoHelp.innerHTML = html || ""; };
+
+  const HAS_EXTENSION = /\.[a-z0-9]{1,8}$/i;
+  function pathWithExtension(value, extension) {
+    const path = normalizePath(value);
+    if (!path) return "";
+    if (!extension || HAS_EXTENSION.test(path.split("/").pop())) return path;
+    return `${path}.${extension}`;
+  }
+
+  function computeWorkspaceTargetPath() {
+    const dirRaw = wsFileDirInput?.value.trim() || "";
+    const nameRaw = wsFileNameInput?.value.trim() || "";
+    const ext = wsFileExtSelect?.value ?? "md";
+    if (!nameRaw) return "";
+    const combined = dirRaw ? `${dirRaw}/${nameRaw}` : nameRaw;
+    const clean = normalizeWorkspacePath(combined);
+    return pathWithExtension(clean, ext);
+  }
+
+  function updateWorkspacePreviews() {
+    if (wsFilePreview) {
+      try {
+        const preview = computeWorkspaceTargetPath();
+        wsFilePreview.innerHTML = preview
+          ? `Will create: <strong></strong>`
+          : `Enter a file name (e.g. <strong>standup</strong> or <strong>${todayNoteFileName()}</strong>)`;
+        if (preview) wsFilePreview.querySelector("strong").textContent = preview;
+      } catch (err) {
+        wsFilePreview.textContent = err.message;
+      }
+    }
+    if (wsDirPreview) {
+      try {
+        const cleanDir = wsNewDirInput?.value.trim() ? normalizeWorkspacePath(wsNewDirInput.value) : "";
+        wsDirPreview.innerHTML = cleanDir
+          ? `Folder path: <strong></strong>`
+          : `Today's folder: <strong>${todayFolderPath()}</strong>`;
+        if (cleanDir) wsDirPreview.querySelector("strong").textContent = cleanDir;
+      } catch (err) {
+        wsDirPreview.textContent = err.message;
+      }
+    }
+    if (renameFilePreview) {
+      try {
+        const targetName = renameFileInput?.value.trim() ? normalizeWorkspacePath(renameFileInput.value) : "";
+        if (!targetName) {
+          renameFilePreview.textContent = "Enter a new name or path to preview rename";
+        } else {
+          renameFilePreview.innerHTML = `<strong></strong> → <strong></strong>`;
+          const strongs = renameFilePreview.querySelectorAll("strong");
+          strongs[0].textContent = note?.path || "—";
+          strongs[1].textContent = targetName;
+        }
+      } catch (err) {
+        renameFilePreview.textContent = err.message;
+      }
+    }
+    if (renameDirPreview) {
+      try {
+        const fromDir = renameDirFromInput?.value.trim() ? normalizeWorkspacePath(renameDirFromInput.value) : "";
+        const toDir = renameDirToInput?.value.trim() ? normalizeWorkspacePath(renameDirToInput.value) : "";
+        if (!fromDir || !toDir) {
+          renameDirPreview.textContent = "Choose an existing folder and enter its new name";
+        } else {
+          renameDirPreview.innerHTML = `📁 <strong></strong> → 📁 <strong></strong>`;
+          const strongs = renameDirPreview.querySelectorAll("strong");
+          strongs[0].textContent = fromDir;
+          strongs[1].textContent = toDir;
+        }
+      } catch (err) {
+        renameDirPreview.textContent = err.message;
+      }
+    }
+  }
 
   // Puts a NoteManager record in front of the user: editor, target path, file
   // bar and preview all follow the active note, so every save targets its file.
@@ -277,15 +500,276 @@ async function main() {
     engine.conflictPaused = false;
     showOverwrite(false);
     paintFileBar();
+    paintStorageClarity();
     editor.renderPreview();
     if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
+    if (renameFileInput && document.activeElement !== renameFileInput) {
+      renameFileInput.value = note.path;
+    }
+    updateWorkspacePreviews();
+    await refreshWorkspaceList();
     if (message) setStatus("scratchpad-status", message, "success");
     textarea.focus();
   }
   if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
 
+  async function refreshWorkspaceList() {
+    if (!wsListEl) return;
+    const localNotes = await notes.list();
+    const localFolders = await notes.listFolders();
+    const activeRepo = repoSelect?.value || "";
+    const hasRemote = Boolean(lastConnectionState.ready && activeRepo && remoteWorkspace.repo === activeRepo);
+
+    const allDirs = new Set(localFolders);
+    if (hasRemote) {
+      remoteWorkspace.dirs.forEach(d => allDirs.add(d));
+    }
+
+    const noteMap = new Map();
+    for (const item of localNotes) {
+      noteMap.set(item.path, {
+        path: item.path,
+        local: true,
+        dirty: Boolean(item.dirty),
+        syncedAt: item.syncedAt || 0,
+        remote: hasRemote && remoteWorkspace.files.some(f => f.path === item.path),
+        updatedAt: item.updatedAt || 0
+      });
+    }
+    if (hasRemote) {
+      for (const file of remoteWorkspace.files) {
+        if (file.path.endsWith("/.gitkeep") || file.path === ".gitkeep") continue;
+        if (!noteMap.has(file.path)) {
+          noteMap.set(file.path, {
+            path: file.path,
+            local: false,
+            dirty: false,
+            syncedAt: 1,
+            remote: true,
+            updatedAt: 0
+          });
+        }
+      }
+    }
+
+    const totalNotes = noteMap.size;
+    if (filesCountBadge) filesCountBadge.textContent = String(totalNotes || 1);
+
+    if (wsDirsList) {
+      wsDirsList.replaceChildren();
+      [...allDirs].sort().forEach(dir => {
+        const option = document.createElement("option");
+        option.value = dir;
+        wsDirsList.appendChild(option);
+      });
+    }
+
+    const query = (wsFilterInput?.value || "").trim().toLowerCase();
+    const sortedDirs = [...allDirs].sort().filter(d => !query || d.toLowerCase().includes(query));
+    const sortedNotes = [...noteMap.values()]
+      .filter(n => !query || n.path.toLowerCase().includes(query))
+      .sort((a, b) => {
+        if (a.path === note?.path) return -1;
+        if (b.path === note?.path) return 1;
+        if (b.updatedAt !== a.updatedAt) return b.updatedAt - a.updatedAt;
+        return a.path.localeCompare(b.path);
+      });
+
+    wsListEl.replaceChildren();
+
+    if (sortedDirs.length) {
+      const folderHeading = document.createElement("div");
+      folderHeading.className = "ws-mini-label";
+      folderHeading.textContent = `Folders (${sortedDirs.length})`;
+      wsListEl.appendChild(folderHeading);
+
+      for (const dir of sortedDirs) {
+        const row = document.createElement("div");
+        row.className = "ws-item ws-item-folder";
+        row.setAttribute("role", "listitem");
+
+        const icon = document.createElement("span");
+        icon.textContent = "📁";
+        icon.setAttribute("aria-hidden", "true");
+
+        const label = document.createElement("span");
+        label.className = "ws-item-path";
+        label.textContent = dir;
+        label.title = dir;
+
+        const addBtn = document.createElement("button");
+        addBtn.type = "button";
+        addBtn.className = "ws-chip-btn";
+        addBtn.textContent = "+ File";
+        addBtn.title = `Prepare a new file inside ${dir}`;
+        addBtn.addEventListener("click", () => {
+          if (wsFileDirInput) wsFileDirInput.value = dir;
+          updateWorkspacePreviews();
+          wsFileNameInput?.focus();
+        });
+
+        const renameBtn = document.createElement("button");
+        renameBtn.type = "button";
+        renameBtn.className = "ws-chip-btn";
+        renameBtn.textContent = "Rename";
+        renameBtn.title = `Rename folder ${dir}`;
+        renameBtn.addEventListener("click", () => {
+          if (renameDirFromInput) renameDirFromInput.value = dir;
+          updateWorkspacePreviews();
+          renameDirToInput?.focus();
+          pulseElement(wsRenameCard, "is-pulsing");
+        });
+
+        row.append(icon, label, addBtn, renameBtn);
+        wsListEl.appendChild(row);
+      }
+    }
+
+    const notesHeading = document.createElement("div");
+    notesHeading.className = "ws-mini-label";
+    notesHeading.style.marginTop = sortedDirs.length ? ".35rem" : "0";
+    notesHeading.textContent = `Files (${sortedNotes.length})`;
+    wsListEl.appendChild(notesHeading);
+
+    if (!sortedNotes.length) {
+      const empty = document.createElement("p");
+      empty.className = "modal-hint";
+      empty.textContent = query ? `No files or folders match "${query}".` : "No files yet.";
+      wsListEl.appendChild(empty);
+      return;
+    }
+
+    for (const entry of sortedNotes) {
+      const isActive = entry.path === note?.path;
+      const row = document.createElement("div");
+      row.className = `ws-item${isActive ? " is-active" : ""}`;
+      row.setAttribute("role", "listitem");
+
+      const openBtn = document.createElement("button");
+      openBtn.type = "button";
+      openBtn.className = "ws-item-open";
+      openBtn.title = isActive ? `Active file: ${entry.path}` : `Open ${entry.path}`;
+      const fileIcon = document.createElement("span");
+      fileIcon.textContent = isActive ? "📝" : "📄";
+      fileIcon.setAttribute("aria-hidden", "true");
+      const fileLabel = document.createElement("span");
+      fileLabel.className = "ws-item-path";
+      fileLabel.textContent = entry.path;
+      openBtn.append(fileIcon, fileLabel);
+      openBtn.addEventListener("click", async () => {
+        if (isActive) { textarea.focus(); return; }
+        await flushLocalSave();
+        if (entry.local) {
+          const next = await notes.switchTo(entry.path);
+          await switchNote(next, `Switched to ${entry.path}.`);
+          return;
+        }
+        // Remote-only note discovered via GitHub tree refresh: pull it locally and open it.
+        const repo = repoSelect?.value || "";
+        const branch = branchInput?.value.trim() || "";
+        setWsStatus(`Loading ${entry.path} from ${repo}…`);
+        try {
+          const remote = await gh.readRepoFile(repo, entry.path, branch);
+          if (!remote) {
+            setWsStatus(`${entry.path} was not found in ${repo}.`, "error");
+            return;
+          }
+          await gh.rememberSha(engine.fileKey(repo, entry.path, branch), remote.sha);
+          const next = await notes.switchTo(entry.path, { repo, branch, initialBody: remote.content });
+          await notes.markSynced(entry.path);
+          await switchNote(next, `Opened ${entry.path} from ${repo}.`);
+          setWsStatus(`Opened ${entry.path}.`, "success");
+        } catch (error) {
+          setWsStatus(error.message, "error");
+        }
+      });
+
+      const badge = document.createElement("span");
+      badge.className = "ws-badge";
+      if (isActive) {
+        badge.classList.add("is-active");
+        badge.textContent = "Active";
+      } else if (entry.remote && !entry.local) {
+        badge.classList.add("is-repo");
+        badge.textContent = "Repo";
+      } else if (entry.local && lastConnectionState.ready && entry.dirty) {
+        badge.classList.add("is-local");
+        badge.textContent = "Unsynced";
+      } else if (entry.local && entry.syncedAt && !entry.dirty) {
+        badge.classList.add("is-repo");
+        badge.textContent = "Synced";
+      } else {
+        badge.classList.add("is-local");
+        badge.textContent = "Device";
+      }
+
+      row.append(openBtn, badge);
+      if (isActive) {
+        const renameBtn = document.createElement("button");
+        renameBtn.type = "button";
+        renameBtn.className = "ws-chip-btn";
+        renameBtn.textContent = "Rename";
+        renameBtn.addEventListener("click", () => {
+          if (renameFileInput) renameFileInput.value = entry.path;
+          updateWorkspacePreviews();
+          renameFileInput?.focus();
+          renameFileInput?.select();
+          pulseElement(wsRenameCard, "is-pulsing");
+        });
+        row.appendChild(renameBtn);
+      }
+      wsListEl.appendChild(row);
+    }
+  }
+
+  async function refreshRemoteWorkspace({ announce = false } = {}) {
+    const repo = repoSelect?.value || "";
+    if (!lastConnectionState.ready || !repo) {
+      remoteWorkspace = { files: [], dirs: [], repo: "" };
+      await refreshWorkspaceList();
+      if (announce) setWsStatus("Showing files saved on this device. Connect a GitHub repo to load remote files too.");
+      return;
+    }
+    if (announce) setWsStatus(`Refreshing files and folders from ${repo}…`);
+    const branch = branchInput?.value.trim() || "";
+    const tree = await engine.listWorkspace({ repo, branch });
+    if (tree.status === "loaded") {
+      remoteWorkspace = { files: tree.files || [], dirs: tree.dirs || [], repo };
+      await refreshWorkspaceList();
+      if (announce) {
+        setWsStatus(`Loaded ${remoteWorkspace.files.length} file${remoteWorkspace.files.length === 1 ? "" : "s"} and ${remoteWorkspace.dirs.length} folder${remoteWorkspace.dirs.length === 1 ? "" : "s"} from ${repo}.`, "success");
+      }
+    } else if (announce && tree.error) {
+      setWsStatus(`Could not load repo tree: ${tree.error.message}`, "error");
+    }
+  }
+
+  function openWorkspacePanel({ focusTarget = null, sectionCard = null } = {}) {
+    if (!wsPanel) return;
+    wsPanel.hidden = false;
+    filesToggleBtn?.setAttribute("aria-expanded", "true");
+    filesToggleBtn?.classList.add("is-open");
+    if (renameFileCurrent) renameFileCurrent.textContent = note?.path || "—";
+    if (renameFileInput && !renameFileInput.value) renameFileInput.value = note?.path || "";
+    updateWorkspacePreviews();
+    refreshWorkspaceList();
+    if (sectionCard) pulseElement(sectionCard, "is-pulsing");
+    if (focusTarget) {
+      focusTarget.focus();
+      if (typeof focusTarget.select === "function") focusTarget.select();
+    }
+  }
+
+  function closeWorkspacePanel() {
+    if (!wsPanel) return;
+    wsPanel.hidden = true;
+    filesToggleBtn?.setAttribute("aria-expanded", "false");
+    filesToggleBtn?.classList.remove("is-open");
+  }
+
   async function render() {
     const connection = await gh.connection();
+    lastConnectionState = connection;
     const secure = gh.cryptoReady();
     setupBtn.hidden = connection.kind !== "none";
     installBtn.hidden = !(connection.kind === "app" && !connection.installationId);
@@ -294,11 +778,9 @@ async function main() {
     tokenClearBtn.hidden = connection.kind !== "token";
     target.hidden = !connection.ready;
     scratchBtn.hidden = !connection.ready;
-    // The reconnect kit: saving a copy is only meaningful for an app connection,
-    // and the nudge disappears once one has been downloaded.
     if (exportBtn) exportBtn.hidden = connection.kind !== "app";
     if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
-    // The launcher carries the connection state, so the pad itself stays clean.
+
     if (ghLaunchBadge) {
       ghLaunchBadge.textContent = connection.kind === "app"
         ? (connection.installationId ? "connected" : "install")
@@ -331,8 +813,10 @@ async function main() {
       }
     }
     paintFileBar();
-    if (connection.ready && !reposLoaded) loadRepos();
-    refreshOutboxBadge();
+    paintStorageClarity();
+    if (connection.ready && !reposLoaded) await loadRepos();
+    await refreshOutboxBadge();
+    await refreshWorkspaceList();
   }
 
   async function scratchRepoFullName() {
@@ -380,6 +864,7 @@ async function main() {
       hasScratch = Boolean(result && result.scratch);
       reposLoaded = true;
       paintFileBar();
+      paintStorageClarity();
       if (hasScratch) showRepoHelp("");
       if (announce) setGhStatus(`${repos.length} repositor${repos.length === 1 ? "y" : "ies"} available to this app.`, "success");
       else if (!repos.length) setGhStatus("No repositories are available yet — the app can create one for you.", "");
@@ -388,6 +873,7 @@ async function main() {
       return;
     }
     if (!hasScratch && createScratch) await ensureScratchRepo({ automatic: true });
+    if (repoSelect?.value) refreshRemoteWorkspace().catch(() => {});
   }
 
   async function ensureScratchRepo({ automatic = false } = {}) {
@@ -433,6 +919,7 @@ async function main() {
     }
     repoSelect.value = fullName;
     paintFileBar();
+    paintStorageClarity();
     setGhStatus(`Ready — notes are saved to the private “${SCRATCH_REPO}” repo (${fullName}).`, "success");
     showRepoHelp("");
   }
@@ -449,14 +936,16 @@ async function main() {
 
   // ---- outbox: commits attempted while offline ----------------------------------------
   async function refreshOutboxBadge() {
-    if (!outboxCount) return;
     const entries = await store.listOutbox();
-    outboxCount.textContent = entries.length ? `${entries.length} pending` : "";
-    outboxCount.classList.toggle("hidden", !entries.length);
+    pendingOutboxTotal = entries.length;
+    if (outboxCount) {
+      outboxCount.textContent = entries.length ? `${entries.length} pending` : "";
+      outboxCount.classList.toggle("hidden", !entries.length);
+    }
     syncNowBtn?.classList.toggle("has-pending", entries.length > 0);
+    paintStorageClarity();
   }
 
-  // Thin DOM wrappers over the DOM-free SyncEngine (assets/sync-engine.js).
   async function flushOutbox({ announce = false } = {}) {
     const result = await engine.flush();
     await refreshOutboxBadge();
@@ -482,18 +971,26 @@ async function main() {
       setFileStatus(`Pending commit failed: ${result.error.message}`, "error");
       return;
     }
+    if (note) await notes.markSynced(note.path);
     setBarState(`Synced to GitHub · ${now()}`, "success");
     setFileStatus(`Delivered ${result.delivered} pending commit${result.delivered === 1 ? "" : "s"}.`, "success");
+    paintStorageClarity();
+    await refreshWorkspaceList();
   }
 
   async function saveNotes({ forced = false, auto = false } = {}) {
     if (engine.saving) return;
     if (!targetIsValid()) { openGhModal(); return; }
+    await flushLocalSave();
     const repo = repoSelect.value;
     const path = normalizePath(pathInput.value);
     const branch = branchInput.value.trim();
-    if (!auto) setFileStatus("Checking the file hasn't changed on GitHub…");
+    if (!auto) {
+      setFileStatus("Checking the file hasn't changed on GitHub…");
+      setStatus("scratchpad-status", `Saving ${path} to ${repo}…`);
+    }
     saveBtn.disabled = true;
+    if (quickSaveBtn) quickSaveBtn.disabled = true;
     try {
       const result = await engine.saveNote({ repo, path, branch, content: textarea.value, forced, auto });
       const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -515,20 +1012,25 @@ async function main() {
               : `${path} already exists in ${repo}. Pull latest to load it, or Overwrite anyway to replace it.`,
             "error"
           );
+          setStatus("scratchpad-status", `${path} changed on GitHub — open GitHub sync to Pull latest or Overwrite.`, "error");
           break;
         case "queued":
           await refreshOutboxBadge();
           setFileStatus("No connection right now — the commit is queued and will send when you're back online.", "");
+          setStatus("scratchpad-status", "Saved on this device; queued for GitHub when online.");
           setBarState("Offline — saved here, queued for GitHub", "error");
           break;
         case "created":
         case "updated":
           showOverwrite(false);
           note.dirty = false;
-          await store.putNote(note);
+          await notes.markSynced(path);
           await refreshOutboxBadge();
           setFileStatus(`${result.status === "updated" ? "Updated" : "Created"} ${path} in ${repo} at ${new Date().toLocaleTimeString()}${auto ? " (autosave)" : ""}.`, "success");
+          setStatus("scratchpad-status", `${result.status === "updated" ? "Synced" : "Created"} ${path} in ${repo}.`, "success");
           setBarState(`Synced to GitHub · ${now()}`, "success");
+          pulseElement(repoPill, "is-pulsing");
+          await refreshWorkspaceList();
           break;
         case "error":
           if (result.kind === "auth" && repo) {
@@ -541,12 +1043,15 @@ async function main() {
             );
           } else {
             setFileStatus(result.error.message, "error");
+            setStatus("scratchpad-status", result.error.message, "error");
             setBarState(result.error.message, "error");
           }
           break;
       }
     } finally {
       saveBtn.disabled = false;
+      if (quickSaveBtn) quickSaveBtn.disabled = false;
+      paintStorageClarity();
     }
   }
 
@@ -563,6 +1068,7 @@ async function main() {
         engine.conflictPaused = false;
         showOverwrite(false);
         setFileStatus(`Nothing is saved at ${path} in ${repo} yet — Save now will create it.`);
+        setStatus("scratchpad-status", `${path} is only on this device so far — Save to repo will upload it.`);
         return;
       }
       if (result.status !== "loaded") return;
@@ -572,25 +1078,26 @@ async function main() {
         return;
       }
       textarea.value = result.content;
-      await notes.setBody(result.content);
+      await notes.setBody(result.content, { dirty: false, syncedAt: Date.now() });
       note = notes.current;
+      lastLocalSavedAt = new Date();
       engine.conflictPaused = false;
       showOverwrite(false);
       editor.renderPreview();
       setFileStatus(`Pulled ${path} from ${repo} at ${new Date().toLocaleTimeString()}.`, "success");
+      setStatus("scratchpad-status", `Pulled latest ${path} from ${repo}.`, "success");
       setBarState(`Loaded from GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+      paintStorageClarity();
+      await refreshWorkspaceList();
     } catch (error) {
       setFileStatus(error.message, "error");
+      setStatus("scratchpad-status", error.message, "error");
     }
   }
-
 
   // ---- registration: manifest form → code exchange → install → resolve ----------------
   function startSetup() {
     if (!gh.cryptoReady()) { setGhStatus("GitHub setup needs the page served over https:// or http://localhost.", "error"); return; }
-    // GitHub's app-registration screens refuse to render inside an iframe. The
-    // one-time setup therefore has to run in a top-level tab; once the app is
-    // registered and installed, sync works fine embedded.
     if (embedded) {
       setGhStatus("Open the Scratchpad in its own tab to finish the one-time GitHub setup — GitHub blocks its install screen inside an embedded frame.", "error");
       window.open(gh.pageUrl(), "_blank", "noopener");
@@ -658,8 +1165,6 @@ async function main() {
     return true;
   }
 
-  // `lead` tucks a caller's sentence in front of the outcome — the reconnect kit uses
-  // it to say "no new app was created" even once the repository list has loaded.
   async function resolveInstallation(installationIdHint = null, { quiet = false, lead = "" } = {}) {
     try {
       if (!quiet) setGhStatus("Checking which repository you installed the app on…");
@@ -695,6 +1200,7 @@ async function main() {
     await gh.forgetApp();
     try { await store.kvDelete(GH_KEYS.token); } catch (error) {}
     reposLoaded = false;
+    remoteWorkspace = { files: [], dirs: [], repo: "" };
     engine.conflictPaused = false;
     showOverwrite(false);
     await render();
@@ -702,10 +1208,6 @@ async function main() {
     setFileStatus("");
   });
 
-  // ---- reconnect kit: save a copy of the key, drop it back in anywhere ----------
-  // The app's private key is the credential and it lives only in this browser's
-  // storage at this address. Downloading it once means a new device, browser or
-  // preview link can adopt the same app instead of registering another one.
   async function downloadConnectionFile() {
     const app = await gh.readApp();
     if (!app) { setGhStatus("Nothing to download yet — set up GitHub saving first.", "error"); return; }
@@ -728,15 +1230,11 @@ async function main() {
   }
   exportBtn?.addEventListener("click", downloadConnectionFile);
 
-  // Picking a connection file only fills the fields in; the Reconnect button is
-  // what actually verifies the key with GitHub.
   restoreFileInput?.addEventListener("change", async () => {
     const file = restoreFileInput.files && restoreFileInput.files[0];
     if (!file) return;
     try {
       restoreFileText = await file.text();
-      // A bare .pem carries the key but not the App ID, so fill in whatever the file has and let the
-      // field supply the rest.
       const parsed = restoreFileText.trim().startsWith("{")
         ? parseConnectionInput(restoreFileText, { appId: restoreAppIdInput.value })
         : { app_id: null, pem: parsePrivateKey(restoreFileText), slug: "" };
@@ -782,27 +1280,441 @@ async function main() {
   });
 
   saveBtn.addEventListener("click", () => saveNotes());
+  quickSaveBtn?.addEventListener("click", () => saveNotes());
   pullBtn.addEventListener("click", pullNotes);
+  quickPullBtn?.addEventListener("click", pullNotes);
   overwriteBtn.addEventListener("click", () => saveNotes({ forced: true }));
   syncNowBtn?.addEventListener("click", () => flushOutbox({ announce: true }));
 
   newFileBtn.addEventListener("click", async () => {
+    await flushLocalSave();
     const next = await notes.newDatedNote();
     await switchNote(next, `New note — ${next.path} is created on the first save.`);
     pathInput.select();
   });
 
-  // Note switcher: one reusable note per day, or a separate timestamped note.
-  $("note-open-today")?.addEventListener("click", async () => {
+  // ---- Note, File & Directory actions (Quick Bar + Workspace Panel) ------------------
+  async function handleOpenTodayNote() {
+    await flushLocalSave();
     const next = await notes.openToday();
     await switchNote(next, next.body
       ? `Reopened today's note (${next.path}) — anything you add goes into it.`
       : `Today's note is ${next.path} — it reopens all day so you can keep adding to it.`);
-  });
-  $("note-new-dated")?.addEventListener("click", async () => {
+  }
+
+  async function handleNewDatedNote() {
+    await flushLocalSave();
     const next = await notes.newDatedNote();
     await switchNote(next, `Started a separate note: ${next.path}.`);
+  }
+
+  async function createDirectoryEverywhere(rawDir) {
+    let dirPath;
+    try {
+      dirPath = normalizeWorkspacePath(rawDir);
+    } catch (err) {
+      setWsStatus(err.message, "error");
+      setStatus("scratchpad-status", err.message, "error");
+      return { ok: false };
+    }
+    if (!dirPath) {
+      setWsStatus("Type a folder path — notes/2026-11-09, for example.", "error");
+      return { ok: false };
+    }
+    const localResult = await notes.createFolder(dirPath);
+    if (wsFileDirInput) wsFileDirInput.value = dirPath;
+    if (renameDirFromInput && !renameDirFromInput.value) renameDirFromInput.value = dirPath;
+    updateWorkspacePreviews();
+    await refreshWorkspaceList();
+
+    const repo = repoSelect?.value || "";
+    const branch = branchInput?.value.trim() || "";
+    if (lastConnectionState.ready && repo) {
+      const keepPath = `${dirPath}/.gitkeep`;
+      try {
+        const existing = await gh.readRepoFile(repo, keepPath, branch);
+        if (!existing) {
+          const res = await engine.saveNote({ repo, path: keepPath, branch, content: "", forced: true });
+          if (res.status === "queued") {
+            const msg = `Created folder "${dirPath}" on this device; queued .gitkeep for ${repo} when online.`;
+            setWsStatus(msg, "success");
+            setStatus("scratchpad-status", msg, "success");
+            await refreshOutboxBadge();
+            return { ok: true, dirPath };
+          }
+          if (res.status !== "created" && res.status !== "updated") {
+            const msg = `Created folder "${dirPath}" locally (GitHub returned: ${res.error?.message || res.status}).`;
+            setWsStatus(msg, "error");
+            return { ok: false, dirPath };
+          }
+        }
+        if (!remoteWorkspace.dirs.includes(dirPath)) remoteWorkspace.dirs.push(dirPath);
+        await refreshWorkspaceList();
+        const msg = localResult.existed && existing
+          ? `Folder "${dirPath}" is ready locally and in ${repo}.`
+          : `Created folder "${dirPath}" locally and in ${repo}.`;
+        setWsStatus(msg, "success");
+        setStatus("scratchpad-status", msg, "success");
+        return { ok: true, dirPath };
+      } catch (err) {
+        const msg = `Created folder "${dirPath}" on this device (${err.message}).`;
+        setWsStatus(msg, "error");
+        return { ok: true, dirPath };
+      }
+    }
+
+    const localMsg = localResult.existed
+      ? `Folder "${dirPath}" is ready on this device.`
+      : `Created folder "${dirPath}" on this device (connect GitHub to sync folders to a repo).`;
+    setWsStatus(localMsg, "success");
+    setStatus("scratchpad-status", localMsg, "success");
+    return { ok: true, dirPath };
+  }
+
+  async function handleTodayFolder() {
+    const dirPath = todayFolderPath();
+    await createDirectoryEverywhere(dirPath);
+  }
+
+  async function handleTodayNoteInFolder() {
+    await flushLocalSave();
+    const dirPath = todayFolderPath();
+    await notes.createFolder(dirPath);
+    const next = await notes.newDatedNote({ folder: dirPath });
+    await switchNote(next, `Created ${next.path} inside today's folder.`);
+    setWsStatus(`Opened ${next.path} inside today's folder (${dirPath}).`, "success");
+  }
+
+  async function handleCreateWorkspaceFile({ copyCurrent = false } = {}) {
+    let targetPath;
+    try {
+      targetPath = computeWorkspaceTargetPath();
+    } catch (err) {
+      setWsStatus(err.message, "error");
+      return;
+    }
+    if (!targetPath) {
+      setWsStatus("Enter a file name first (e.g. standup or meeting-notes).", "error");
+      wsFileNameInput?.focus();
+      return;
+    }
+    const existingLocal = (await notes.list()).some(item => item.path === targetPath);
+    if (existingLocal) {
+      setWsStatus(`A file already exists at "${targetPath}" on this device — pick it from the list or choose another name.`, "error");
+      return;
+    }
+
+    await flushLocalSave();
+    const content = copyCurrent ? textarea.value : "";
+    const repo = repoSelect?.value || "";
+    const branch = branchInput?.value.trim() || "";
+
+    if (lastConnectionState.ready && repo) {
+      try {
+        const remoteExisting = await gh.readRepoFile(repo, targetPath, branch);
+        if (remoteExisting) {
+          setWsStatus(`${repo} already has "${targetPath}" — refresh the explorer to open it or pick a new name.`, "error");
+          return;
+        }
+      } catch (err) {
+        // Proceed locally if transient check fails; saveNote handles queuing.
+      }
+    }
+
+    const createdNote = await notes.switchTo(targetPath, { repo, branch, initialBody: content });
+    note = await notes.setBody(content, { dirty: true });
+    if (wsFileNameInput) wsFileNameInput.value = "";
+    await switchNote(createdNote);
+
+    if (lastConnectionState.ready && repo) {
+      const syncRes = await engine.saveNote({ repo, path: targetPath, branch, content, forced: true });
+      if (syncRes.status === "created" || syncRes.status === "updated") {
+        await notes.markSynced(targetPath);
+        await refreshOutboxBadge();
+        await refreshWorkspaceList();
+        const msg = `Created ${targetPath} locally and in ${repo}.`;
+        setWsStatus(msg, "success");
+        setStatus("scratchpad-status", msg, "success");
+        setBarState(`Synced to GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+        paintStorageClarity();
+        return;
+      }
+      if (syncRes.status === "queued") {
+        await refreshOutboxBadge();
+        const msg = `Created ${targetPath} on this device — queued for ${repo} when online.`;
+        setWsStatus(msg, "success");
+        setStatus("scratchpad-status", msg, "success");
+        paintStorageClarity();
+        return;
+      }
+      if (syncRes.error) {
+        setWsStatus(`Created ${targetPath} locally, but GitHub returned: ${syncRes.error.message}`, "error");
+        return;
+      }
+    }
+
+    const localMsg = `Created ${targetPath} on this device.`;
+    setWsStatus(localMsg, "success");
+    setStatus("scratchpad-status", localMsg, "success");
+  }
+
+  async function handleRenameActiveFile() {
+    await flushLocalSave();
+    const oldPath = note?.path || normalizePath(pathInput.value);
+    let newPath;
+    try {
+      newPath = normalizeWorkspacePath(renameFileInput?.value || "");
+    } catch (err) {
+      setWsStatus(err.message, "error");
+      return;
+    }
+    if (!oldPath) {
+      setWsStatus("No active file selected to rename.", "error");
+      return;
+    }
+    if (!newPath) {
+      setWsStatus("Enter the new file name or path.", "error");
+      renameFileInput?.focus();
+      return;
+    }
+    if (oldPath === newPath) {
+      setWsStatus("Choose a different file name or path to rename.", "error");
+      renameFileInput?.focus();
+      return;
+    }
+    const existingLocal = (await notes.list()).some(item => item.path === newPath);
+    if (existingLocal) {
+      setWsStatus(`A note already exists at "${newPath}" — open it or pick a different name.`, "error");
+      return;
+    }
+
+    const repo = repoSelect?.value || "";
+    const branch = branchInput?.value.trim() || "";
+    setWsStatus(`Renaming ${oldPath} → ${newPath}…`);
+    if (renameFileBtn) renameFileBtn.disabled = true;
+
+    try {
+      const syncRes = await engine.renameFile({
+        repo,
+        oldPath,
+        newPath,
+        branch,
+        content: textarea.value
+      });
+      if (syncRes.status === "error") {
+        setWsStatus(syncRes.error?.message || "Could not rename file on GitHub.", "error");
+        return;
+      }
+
+      const moved = await notes.renameNote(oldPath, newPath, { body: textarea.value });
+      note = moved.note;
+      if (syncRes.status === "renamed") {
+        await notes.markSynced(newPath);
+      }
+      pathInput.value = newPath;
+      await store.kvSet(GH_KEYS.path, newPath);
+      if (noteCurrentLabel) noteCurrentLabel.textContent = newPath;
+      if (renameFileCurrent) renameFileCurrent.textContent = newPath;
+
+      if (remoteWorkspace.repo === repo && remoteWorkspace.files.length) {
+        remoteWorkspace.files = remoteWorkspace.files.map(f => (f.path === oldPath ? { ...f, path: newPath } : f));
+      }
+      await refreshOutboxBadge();
+      paintFileBar();
+      paintStorageClarity();
+      updateWorkspacePreviews();
+      await refreshWorkspaceList();
+
+      let msg;
+      if (syncRes.status === "renamed") {
+        msg = `Renamed "${oldPath}" to "${newPath}" locally and in ${repo}.`;
+        setBarState(`Synced to GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+      } else if (syncRes.status === "partial") {
+        msg = `Renamed "${oldPath}" to "${newPath}" locally and created the new file in ${repo}, though deleting the old file returned: ${syncRes.deleteError?.message || "an error"}.`;
+      } else if (syncRes.status === "not-remote") {
+        msg = `Renamed "${oldPath}" to "${newPath}" on this device (the old file wasn't on GitHub yet).`;
+      } else {
+        msg = `Renamed "${oldPath}" to "${newPath}" on this device.`;
+      }
+      setWsStatus(msg, syncRes.status === "partial" ? "error" : "success");
+      setStatus("scratchpad-status", msg, syncRes.status === "partial" ? "error" : "success");
+      pulseElement($("scratchpad-filebar"), "is-pulsing");
+    } catch (err) {
+      setWsStatus(err.message, "error");
+    } finally {
+      if (renameFileBtn) renameFileBtn.disabled = false;
+    }
+  }
+
+  async function handleRenameDirectory() {
+    await flushLocalSave();
+    let oldDir;
+    let newDir;
+    try {
+      oldDir = normalizeWorkspacePath(renameDirFromInput?.value || "");
+      newDir = normalizeWorkspacePath(renameDirToInput?.value || "");
+    } catch (err) {
+      setWsStatus(err.message, "error");
+      return;
+    }
+    if (!oldDir) {
+      setWsStatus("Choose or enter the folder you want to rename.", "error");
+      renameDirFromInput?.focus();
+      return;
+    }
+    if (!newDir) {
+      setWsStatus("Enter the new folder name or path.", "error");
+      renameDirToInput?.focus();
+      return;
+    }
+    if (oldDir === newDir) {
+      setWsStatus("The new folder name must be different from the current folder.", "error");
+      return;
+    }
+    if (newDir.startsWith(`${oldDir}/`)) {
+      setWsStatus("Cannot move a folder inside itself.", "error");
+      return;
+    }
+
+    const repo = repoSelect?.value || "";
+    const branch = branchInput?.value.trim() || "";
+    setWsStatus(`Renaming folder "${oldDir}" → "${newDir}"…`);
+    if (renameDirBtn) renameDirBtn.disabled = true;
+
+    try {
+      const syncRes = await engine.renameDirectory({ repo, oldDir, newDir, branch });
+      if (syncRes.status === "error") {
+        setWsStatus(syncRes.error?.message || "Could not rename folder on GitHub.", "error");
+        return;
+      }
+
+      const localMoved = await notes.renameDirectory(oldDir, newDir);
+      note = notes.current;
+      if (note?.path) {
+        pathInput.value = note.path;
+        await store.kvSet(GH_KEYS.path, note.path);
+        if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
+      }
+
+      const prefix = `${oldDir}/`;
+      if (remoteWorkspace.repo === repo) {
+        remoteWorkspace.files = remoteWorkspace.files.map(f => (
+          f.path.startsWith(prefix) ? { ...f, path: `${newDir}/${f.path.slice(prefix.length)}` } : f
+        ));
+        remoteWorkspace.dirs = remoteWorkspace.dirs.map(d => {
+          if (d === oldDir) return newDir;
+          if (d.startsWith(prefix)) return `${newDir}/${d.slice(prefix.length)}`;
+          return d;
+        });
+      }
+
+      if (renameDirFromInput) renameDirFromInput.value = newDir;
+      if (renameDirToInput) renameDirToInput.value = "";
+      await refreshOutboxBadge();
+      paintFileBar();
+      paintStorageClarity();
+      updateWorkspacePreviews();
+      await refreshWorkspaceList();
+
+      const localCount = localMoved.movedNotes.length;
+      const remoteCount = (syncRes.moved || []).length;
+      let msg;
+      if (syncRes.status === "renamed") {
+        msg = `Renamed folder "${oldDir}" → "${newDir}" (${remoteCount} file${remoteCount === 1 ? "" : "s"} moved in ${repo}, ${localCount} updated locally).`;
+        setBarState(`Synced to GitHub · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, "success");
+      } else if (syncRes.status === "partial") {
+        msg = `Renamed folder "${oldDir}" → "${newDir}" locally; some old GitHub files could not be deleted automatically.`;
+      } else {
+        msg = `Renamed folder "${oldDir}" → "${newDir}" on this device (${localCount} note${localCount === 1 ? "" : "s"} updated).`;
+      }
+      setWsStatus(msg, syncRes.status === "partial" ? "error" : "success");
+      setStatus("scratchpad-status", msg, syncRes.status === "partial" ? "error" : "success");
+      pulseElement(wsExplorer, "is-pulsing");
+    } catch (err) {
+      setWsStatus(err.message, "error");
+    } finally {
+      if (renameDirBtn) renameDirBtn.disabled = false;
+    }
+  }
+
+  $("note-open-today")?.addEventListener("click", handleOpenTodayNote);
+  wsTodayNoteBtn?.addEventListener("click", handleOpenTodayNote);
+  $("note-new-dated")?.addEventListener("click", handleNewDatedNote);
+  todayFolderBtn?.addEventListener("click", handleTodayFolder);
+  wsTodayFolderBtn?.addEventListener("click", handleTodayFolder);
+  wsTodayInFolderBtn?.addEventListener("click", handleTodayNoteInFolder);
+
+  filesToggleBtn?.addEventListener("click", () => {
+    if (wsPanel?.hidden) openWorkspacePanel({ sectionCard: wsExplorer });
+    else closeWorkspacePanel();
   });
+  wsCloseBtn?.addEventListener("click", closeWorkspacePanel);
+  wsRefreshBtn?.addEventListener("click", () => refreshRemoteWorkspace({ announce: true }));
+  wsFilterInput?.addEventListener("input", () => refreshWorkspaceList());
+
+  wsFillTodayDirBtn?.addEventListener("click", () => {
+    if (wsFileDirInput) wsFileDirInput.value = todayFolderPath();
+    updateWorkspacePreviews();
+    wsFileNameInput?.focus();
+  });
+  wsFillTodayFolderBtn?.addEventListener("click", () => {
+    if (wsNewDirInput) wsNewDirInput.value = todayFolderPath();
+    updateWorkspacePreviews();
+    wsNewDirInput?.focus();
+  });
+
+  [wsFileDirInput, wsFileNameInput, wsFileExtSelect, wsNewDirInput, renameFileInput, renameDirFromInput, renameDirToInput].forEach(el => {
+    el?.addEventListener("input", updateWorkspacePreviews);
+    el?.addEventListener("change", updateWorkspacePreviews);
+  });
+
+  wsCreateBlankBtn?.addEventListener("click", () => handleCreateWorkspaceFile({ copyCurrent: false }));
+  wsCreateFromCurrentBtn?.addEventListener("click", () => handleCreateWorkspaceFile({ copyCurrent: true }));
+  wsFileNameInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); handleCreateWorkspaceFile({ copyCurrent: false }); }
+  });
+
+  wsCreateDirBtn?.addEventListener("click", async () => {
+    const res = await createDirectoryEverywhere(wsNewDirInput?.value || "");
+    if (res.ok && wsNewDirInput) wsNewDirInput.value = "";
+    updateWorkspacePreviews();
+  });
+  wsNewDirInput?.addEventListener("keydown", async event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const res = await createDirectoryEverywhere(wsNewDirInput.value);
+      if (res.ok) wsNewDirInput.value = "";
+      updateWorkspacePreviews();
+    }
+  });
+
+  const openRenameFileFlow = () => {
+    if (renameFileInput) renameFileInput.value = note?.path || "";
+    openWorkspacePanel({ focusTarget: renameFileInput, sectionCard: wsRenameCard });
+  };
+  renameFileOpenBtn?.addEventListener("click", openRenameFileFlow);
+  filebarRenameBtn?.addEventListener("click", openRenameFileFlow);
+
+  renameDirOpenBtn?.addEventListener("click", async () => {
+    const parent = parentFolderOf(note?.path || "");
+    const folders = await notes.listFolders();
+    const initialDir = parent || folders[0] || todayFolderPath();
+    if (renameDirFromInput) renameDirFromInput.value = initialDir;
+    openWorkspacePanel({
+      focusTarget: renameDirFromInput?.value ? renameDirToInput : renameDirFromInput,
+      sectionCard: wsRenameCard
+    });
+  });
+
+  renameFileBtn?.addEventListener("click", handleRenameActiveFile);
+  renameFileInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); handleRenameActiveFile(); }
+  });
+  renameDirBtn?.addEventListener("click", handleRenameDirectory);
+  renameDirToInput?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); handleRenameDirectory(); }
+  });
+
   scratchBtn.addEventListener("click", () => { scratchAttempted = false; ensureScratchRepo(); });
 
   repoSelect.addEventListener("change", async () => {
@@ -811,30 +1723,41 @@ async function main() {
     showOverwrite(false);
     setFileStatus("");
     setBarState("Not saved to this repo yet");
+    paintStorageClarity();
+    refreshRemoteWorkspace().catch(() => {});
   });
   pathInput.addEventListener("change", async () => {
     const cleanPath = normalizePath(pathInput.value);
     await store.kvSet(GH_KEYS.path, cleanPath);
-    // A manually typed target moves the active note record with it.
     notes.current.path = cleanPath;
     await store.putNote(notes.current);
     if (noteCurrentLabel) noteCurrentLabel.textContent = cleanPath;
     engine.conflictPaused = false;
     showOverwrite(false);
     setBarState("Not saved to this file yet");
+    paintStorageClarity();
+    refreshWorkspaceList();
   });
   pathInput.addEventListener("input", paintFileBar);
   branchInput.addEventListener("change", async () => {
     await store.kvSet(GH_KEYS.branch, branchInput.value.trim());
     engine.conflictPaused = false;
     showOverwrite(false);
+    refreshRemoteWorkspace().catch(() => {});
   });
-  autosaveCheckbox.addEventListener("change", async () => {
-    await store.kvSet(GH_KEYS.autosave, String(autosaveCheckbox.checked));
-    setFileStatus(autosaveCheckbox.checked
-      ? "Autosave is on — notes are committed a few seconds after you stop typing."
-      : "Autosave is off — use Save now when you want to commit.");
-  });
+
+  const applyAutosaveChange = async enabled => {
+    autosaveCheckbox.checked = enabled;
+    await store.kvSet(GH_KEYS.autosave, String(enabled));
+    const msg = enabled
+      ? "Repo autosave is ON — edits also commit to GitHub a few seconds after you stop typing."
+      : "Repo autosave is OFF — edits still save on this device immediately; use Save to repo when you want to commit.";
+    setFileStatus(msg);
+    setStatus("scratchpad-status", msg);
+    paintStorageClarity();
+  };
+  autosaveCheckbox.addEventListener("change", () => applyAutosaveChange(autosaveCheckbox.checked));
+  quickAutosaveBtn?.addEventListener("click", () => applyAutosaveChange(!autosaveCheckbox.checked));
 
   tokenSaveBtn.addEventListener("click", async () => {
     const value = tokenInput.value.trim();
@@ -859,6 +1782,7 @@ async function main() {
   tokenClearBtn.addEventListener("click", async () => {
     await store.kvDelete(GH_KEYS.token);
     reposLoaded = false;
+    remoteWorkspace = { files: [], dirs: [], repo: "" };
     await render();
     setGhStatus("Pasted token removed.", "success");
   });
@@ -871,7 +1795,6 @@ async function main() {
     }
   };
 
-  // Reconnect triggers: universal path (Background Sync is not cross-browser).
   window.addEventListener("online", () => flushOutbox());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") flushOutbox();
@@ -879,8 +1802,6 @@ async function main() {
   window.addEventListener("appinstalled", refreshOutboxBadge);
 
   // ---- the ⚙ sheet and the ⋯ menu -----------------------------------------------------
-  // Everything that used to hide behind a disclosure arrow now has a real surface, and the
-  // row of buttons collapsed into one menu.
   ghOpenBtn?.addEventListener("click", openGhModal);
   ghCloseBtn?.addEventListener("click", () => panel?.close?.());
   panel?.addEventListener("click", event => { if (event.target === panel) panel.close?.(); });
@@ -890,7 +1811,6 @@ async function main() {
     actionMenu.hidden = true;
     menuBtn?.setAttribute("aria-expanded", "false");
   }
-  // Fixed-position and measured, so the menu is never clipped by a scrolling card.
   function positionMenu() {
     if (!actionMenu || !menuBtn) return;
     const rect = menuBtn.getBoundingClientRect();
@@ -921,7 +1841,6 @@ async function main() {
   document.addEventListener("keydown", event => { if (event.key === "Escape") closeMenu(); });
 
   // ---- day, date and time -------------------------------------------------------------
-  // A quietly ticking stamp: the day and date, then the time, in the visitor's locale.
   function paintClock() {
     if (!clockEl) return;
     const now = new Date();
@@ -934,18 +1853,7 @@ async function main() {
   setInterval(paintClock, 15000);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") paintClock(); });
 
-  // ---- creating files and folders in the repository -------------------------------------
-  // GitHub has no "mkdir": a folder exists because a file inside it does. So a folder is
-  // created with a `.gitkeep`, and a path with slashes creates the directories on the way.
-  const HAS_EXTENSION = /\.[a-z0-9]{1,8}$/i;
-
-  function pathWithExtension(value, extension) {
-    const path = normalizePath(value);
-    if (!path) return "";
-    if (!extension || HAS_EXTENSION.test(path.split("/").pop())) return path;
-    return `${path}.${extension}`;
-  }
-
+  // ---- creating files and folders inside the GitHub dialog ----------------------------
   async function createRepoPath({ path, content, folder = false }) {
     const connection = await gh.connection();
     if (!connection.ready) { openGhModal(); setGhStatus("Connect GitHub first — the ⚙ GitHub sync button sets it up.", "error"); return; }
@@ -969,18 +1877,23 @@ async function main() {
         return;
       }
       if (folder) {
+        const dirPath = path.replace(/\/\.gitkeep$/, "");
+        await notes.createFolder(dirPath);
+        await refreshWorkspaceList();
         setGhStatus(`Created the folder “${path}” in ${repo} — a .gitkeep file is what keeps an empty folder in git.`, "success");
         return;
       }
-      // A new note file becomes this pad's target, so what you type next lands there.
       pathInput.value = path;
       await store.kvSet(GH_KEYS.path, path);
-      notes.current.path = path;
-      await store.putNote(notes.current);
+      await notes.switchTo(path, { repo, branch, initialBody: content });
+      await notes.markSynced(path);
+      note = notes.current;
       if (noteCurrentLabel) noteCurrentLabel.textContent = path;
       engine.conflictPaused = false;
       showOverwrite(false);
       paintFileBar();
+      paintStorageClarity();
+      await refreshWorkspaceList();
       setGhStatus(`Created ${repo}/${path} with the notes in this pad — it now saves there.`, "success");
       setFileStatus(`Created ${path}.`);
     } catch (error) {
@@ -1037,7 +1950,10 @@ async function main() {
   })();
 
   paintFileBar();
-  refreshOutboxBadge();
+  paintStorageClarity();
+  updateWorkspacePreviews();
+  await refreshOutboxBadge();
+  await refreshWorkspaceList();
 
   // Ask the browser not to evict the note database under disk pressure.
   try { if (navigator.storage?.persist) await navigator.storage.persist(); } catch (error) {}
@@ -1050,11 +1966,9 @@ async function main() {
   if (embedded) {
     document.body.classList.add("is-embedded");
     embedBanner?.classList.remove("hidden");
-    // Installation is owned by the outer dashboard page.
     $("install-app")?.classList.add("hidden");
   }
 
-  // Shared SW registration, update toast and install prompt live in pwa-install.js.
   await setupPwaInstall({ embedded });
 }
 

@@ -28,7 +28,7 @@ export const GH_KEYS = {
 const API_HEADERS = { Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" };
 
 export function normalizePath(value) {
-  return String(value || "").trim().replace(/^\/+/, "").replace(/\/+$/, "");
+  return String(value || "").trim().replace(/\\/g, "/").replace(/^\/+|\/+$/g, "").replace(/\/{2,}/g, "/");
 }
 
 // ---- the reconnect kit -------------------------------------------------------------------------------
@@ -304,7 +304,10 @@ export class GitHubAppClient {
   }
 
   contentsPath(repo, path) {
-    return `/repos/${repo}/contents/${normalizePath(path).split("/").map(encodeURIComponent).join("/")}`;
+    const clean = normalizePath(path);
+    return clean
+      ? `/repos/${repo}/contents/${clean.split("/").map(encodeURIComponent).join("/")}`
+      : `/repos/${repo}/contents`;
   }
 
   async readRepoFile(repo, path, branch) {
@@ -330,6 +333,246 @@ export class GitHubAppClient {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
     return data;
+  }
+
+  async deleteRepoFile({ repo, path, sha, message, branch }) {
+    const body = { message: message || `Delete ${path} via scratchpad`, sha };
+    if (branch) body.branch = branch;
+    const res = await this.authorizedFetch(this.contentsPath(repo, path), {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
+    return data;
+  }
+
+  async renameRepoFile({ repo, oldPath, newPath, content, message, branch = "" }) {
+    const from = normalizePath(oldPath);
+    const to = normalizePath(newPath);
+    if (!repo || !from || !to) throw new Error("Repository, old path, and new path are required.");
+    if (from === to) throw new Error("The new path must be different from the current file path.");
+
+    const destination = await this.readRepoFile(repo, to, branch);
+    if (destination) {
+      throw Object.assign(new Error(`Cannot rename: "${to}" already exists in ${repo}.`), { status: 409 });
+    }
+    const existing = await this.readRepoFile(repo, from, branch);
+    const branchKey = branch || "default";
+    if (!existing) {
+      await this.rememberSha(`${repo}@${branchKey}:${from}`, null);
+      return { status: "not-remote", oldPath: from, newPath: to };
+    }
+
+    const bodyText = typeof content === "string" ? content : existing.content;
+    const created = await this.writeRepoFile({
+      repo,
+      path: to,
+      content: bodyText,
+      message: message || `Rename ${from} to ${to} via scratchpad`,
+      branch
+    });
+    const newSha = created.content?.sha || null;
+    await this.rememberSha(`${repo}@${branchKey}:${to}`, newSha);
+    await this.rememberSha(`${repo}@${branchKey}:${from}`, null);
+
+    try {
+      await this.deleteRepoFile({
+        repo,
+        path: from,
+        sha: existing.sha,
+        message: message || `Remove ${from} after rename to ${to}`,
+        branch
+      });
+    } catch (deleteError) {
+      return { status: "partial", oldPath: from, newPath: to, sha: newSha, deleteError };
+    }
+    return { status: "renamed", oldPath: from, newPath: to, sha: newSha };
+  }
+
+  async _resolveBranchName(repo, branch = "") {
+    if (branch) return branch;
+    const res = await this.authorizedFetch(`/repos/${repo}`);
+    if (!res.ok) return "main";
+    const info = await res.json().catch(() => ({}));
+    return info.default_branch || "main";
+  }
+
+  async _listDirContentsRecursive(repo, dirPath = "", branch = "", limit = 200) {
+    const files = [];
+    const dirs = new Set();
+    const queue = [normalizePath(dirPath)];
+    while (queue.length && files.length < limit) {
+      const current = queue.shift();
+      const query = branch ? `?ref=${encodeURIComponent(branch)}` : "";
+      const res = await this.authorizedFetch(`${this.contentsPath(repo, current)}${query}`);
+      if (res.status === 404) {
+        if (current === normalizePath(dirPath)) return { files: [], dirs: [], missing: true };
+        continue;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status });
+      const entries = Array.isArray(data) ? data : [data];
+      for (const entry of entries) {
+        if (entry.type === "dir") {
+          dirs.add(entry.path);
+          queue.push(entry.path);
+        } else if (entry.type === "file") {
+          files.push({ path: entry.path, sha: entry.sha, mode: "100644", size: entry.size || 0 });
+        }
+      }
+    }
+    return { files, dirs: [...dirs].sort(), missing: false };
+  }
+
+  async listRepoTree(repo, branch = "") {
+    const targetBranch = await this._resolveBranchName(repo, branch);
+    try {
+      const refRes = await this.authorizedFetch(`/repos/${repo}/git/ref/heads/${targetBranch.split("/").map(encodeURIComponent).join("/")}`);
+      if (refRes.ok) {
+        const refData = await refRes.json().catch(() => ({}));
+        const headSha = refData.object?.sha;
+        if (headSha) {
+          const treeRes = await this.authorizedFetch(`/repos/${repo}/git/trees/${encodeURIComponent(headSha)}?recursive=1`);
+          if (treeRes.ok) {
+            const treeData = await treeRes.json().catch(() => ({}));
+            if (Array.isArray(treeData.tree) && !treeData.truncated) {
+              const files = treeData.tree
+                .filter(entry => entry.type === "blob")
+                .map(entry => ({ path: entry.path, sha: entry.sha, mode: entry.mode || "100644", size: entry.size || 0 }));
+              const dirs = treeData.tree
+                .filter(entry => entry.type === "tree")
+                .map(entry => entry.path)
+                .sort();
+              return { files, dirs, branch: targetBranch, headSha, treeSha: treeData.sha || headSha, mode: "git-tree" };
+            }
+          }
+        }
+      } else if (refRes.status === 409) {
+        return { files: [], dirs: [], branch: targetBranch, mode: "empty" };
+      }
+    } catch (error) {
+      // Fall back to Contents API when Git Data endpoints are unavailable.
+    }
+    const fallback = await this._listDirContentsRecursive(repo, "", branch);
+    return { files: fallback.files, dirs: fallback.dirs, branch: targetBranch, mode: "contents" };
+  }
+
+  async renameRepoDirectory({ repo, oldDir, newDir, branch = "", message }) {
+    const from = normalizePath(oldDir);
+    const to = normalizePath(newDir);
+    if (!repo || !from || !to) throw new Error("Repository, old folder, and new folder are required.");
+    if (from === to) throw new Error("The new folder name must be different from the current folder.");
+    if (to.startsWith(`${from}/`)) throw new Error("Cannot move a folder inside itself.");
+
+    const prefix = `${from}/`;
+    const branchKey = branch || "default";
+    const treeInfo = await this.listRepoTree(repo, branch);
+
+    if (treeInfo.mode === "git-tree") {
+      const matching = treeInfo.files.filter(item => item.path.startsWith(prefix));
+      if (!matching.length) return { status: "not-remote", oldDir: from, newDir: to, moved: [] };
+
+      const collisions = matching
+        .map(item => `${to}/${item.path.slice(prefix.length)}`)
+        .filter(dest => treeInfo.files.some(existing => existing.path === dest && !existing.path.startsWith(prefix)));
+      if (collisions.length) {
+        throw Object.assign(new Error(`Cannot rename folder: "${collisions[0]}" already exists in ${repo}.`), { status: 409 });
+      }
+
+      const treeEntries = [];
+      const moved = [];
+      for (const item of matching) {
+        const dest = `${to}/${item.path.slice(prefix.length)}`;
+        treeEntries.push({ path: dest, mode: item.mode || "100644", type: "blob", sha: item.sha });
+        treeEntries.push({ path: item.path, mode: item.mode || "100644", type: "blob", sha: null });
+        moved.push({ from: item.path, to: dest, sha: item.sha });
+      }
+
+      const treeRes = await this.authorizedFetch(`/repos/${repo}/git/trees`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base_tree: treeInfo.treeSha, tree: treeEntries })
+      });
+      const newTree = await treeRes.json().catch(() => ({}));
+      if (!treeRes.ok || !newTree.sha) {
+        throw Object.assign(new Error(newTree.message || `GitHub API error (${treeRes.status})`), { status: treeRes.status });
+      }
+
+      const commitRes = await this.authorizedFetch(`/repos/${repo}/git/commits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: message || `Rename folder ${from} to ${to} via scratchpad`,
+          tree: newTree.sha,
+          parents: [treeInfo.headSha]
+        })
+      });
+      const newCommit = await commitRes.json().catch(() => ({}));
+      if (!commitRes.ok || !newCommit.sha) {
+        throw Object.assign(new Error(newCommit.message || `GitHub API error (${commitRes.status})`), { status: commitRes.status });
+      }
+
+      const refPath = `/repos/${repo}/git/refs/heads/${treeInfo.branch.split("/").map(encodeURIComponent).join("/")}`;
+      const patchRes = await this.authorizedFetch(refPath, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sha: newCommit.sha })
+      });
+      const patched = await patchRes.json().catch(() => ({}));
+      if (!patchRes.ok) {
+        throw Object.assign(new Error(patched.message || `GitHub API error (${patchRes.status})`), { status: patchRes.status });
+      }
+
+      for (const pair of moved) {
+        await this.rememberSha(`${repo}@${branchKey}:${pair.from}`, null);
+        await this.rememberSha(`${repo}@${branchKey}:${pair.to}`, pair.sha);
+      }
+      return { status: "renamed", oldDir: from, newDir: to, moved, commitSha: newCommit.sha, mode: "git-tree" };
+    }
+
+    // Contents API fallback for empty/restricted/simple stubs
+    const listing = await this._listDirContentsRecursive(repo, from, branch);
+    if (listing.missing || !listing.files.length) {
+      return { status: "not-remote", oldDir: from, newDir: to, moved: [] };
+    }
+    const moves = listing.files.map(item => ({
+      from: item.path,
+      to: `${to}/${item.path.slice(prefix.length)}`
+    }));
+    for (const pair of moves) {
+      if (!pair.to.startsWith(prefix)) {
+        const collision = await this.readRepoFile(repo, pair.to, branch);
+        if (collision) {
+          throw Object.assign(new Error(`Cannot rename folder: "${pair.to}" already exists in ${repo}.`), { status: 409 });
+        }
+      }
+    }
+    const moved = [];
+    for (const pair of moves) {
+      const fileData = await this.readRepoFile(repo, pair.from, branch);
+      if (!fileData) continue;
+      const created = await this.writeRepoFile({
+        repo,
+        path: pair.to,
+        content: fileData.content,
+        message: message || `Move ${pair.from} to ${pair.to} via scratchpad`,
+        branch
+      });
+      const newSha = created.content?.sha || null;
+      await this.deleteRepoFile({
+        repo,
+        path: pair.from,
+        sha: fileData.sha,
+        message: message || `Remove ${pair.from} after folder rename`,
+        branch
+      });
+      await this.rememberSha(`${repo}@${branchKey}:${pair.from}`, null);
+      await this.rememberSha(`${repo}@${branchKey}:${pair.to}`, newSha);
+      moved.push({ from: pair.from, to: pair.to, sha: newSha });
+    }
+    return { status: "renamed", oldDir: from, newDir: to, moved, mode: "contents" };
   }
 
   async listRepositories() {

@@ -113,9 +113,10 @@ const ORG_INSTALL = { id: 424242, account: { login: "octocat" }, target_type: "O
 const REPOS = { total_count: 2, repositories: [{ full_name: "octocat/notes" }, { full_name: "octocat/private-notes" }] };
 
 // A tiny stateful GitHub: manifest conversion, installations, installation tokens, repo creation, contents.
-function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false, listOmitsScratch = false, denyWrites = false, tokenMode = false, rejectKey = false, forgetApp = false } = {}) {
+function makeGithub({ existing = null, treeFiles = null, reposWithoutScratch = false, reposWithScratch = false, denyCreate = false, orgAccount = false, listOmitsScratch = false, denyWrites = false, tokenMode = false, rejectKey = false, forgetApp = false } = {}) {
   const state = {
-    conversions: 0, tokenMints: 0, puts: [], file: existing, lastJwt: null, lastInstallJwt: null, issuedTokens: [],
+    conversions: 0, tokenMints: 0, puts: [], deletes: [], file: existing, treeFiles: treeFiles ? { ...treeFiles } : null,
+    lastJwt: null, lastInstallJwt: null, issuedTokens: [],
     createdRepos: [], createAttempts: 0, installationCalls: 0, lastRepoList: null
   };
   const repoList = () => {
@@ -185,6 +186,82 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
     if (target.includes("/repos/")) {
       if (denyWrites) {
         return { ok: false, status: 404, json: async () => ({ message: "Not Found" }) };
+      }
+      if (state.treeFiles) {
+        if (/\/repos\/[^/]+\/[^/]+$/.test(target) && method === "GET") {
+          return jsonRes({ default_branch: "main" });
+        }
+        if (target.includes("/git/ref/heads/main") && method === "GET") {
+          return jsonRes({ object: { sha: "head-main" } });
+        }
+        if (target.includes("/git/trees/head-main") && method === "GET") {
+          const dirSet = new Set();
+          Object.keys(state.treeFiles).forEach(p => {
+            const parts = p.split("/").slice(0, -1);
+            let cur = "";
+            for (const part of parts) {
+              cur = cur ? `${cur}/${part}` : part;
+              dirSet.add(cur);
+            }
+          });
+          return jsonRes({
+            sha: "tree-main",
+            truncated: false,
+            tree: [
+              ...[...dirSet].map(d => ({ path: d, type: "tree", sha: `tree-${d}` })),
+              ...Object.entries(state.treeFiles).map(([p, rec]) => ({ path: p, type: "blob", sha: rec.sha }))
+            ]
+          });
+        }
+        if (target.endsWith("/git/trees") && method === "POST") {
+          const body = JSON.parse(options.body);
+          for (const entry of body.tree) {
+            if (entry.sha === null) delete state.treeFiles[entry.path];
+            else state.treeFiles[entry.path] = { sha: entry.sha, content: state.treeFiles[entry.path]?.content || "" };
+          }
+          return jsonRes({ sha: "new-tree-sha" }, true, 201);
+        }
+        if (target.endsWith("/git/commits") && method === "POST") {
+          return jsonRes({ sha: "new-commit-sha" }, true, 201);
+        }
+        if (target.includes("/git/refs/heads/main") && method === "PATCH") {
+          return jsonRes({ object: { sha: "new-commit-sha" } });
+        }
+        if (/\/contents(?:\/|$)/.test(target)) {
+          const rawAfter = target.split("/contents")[1] || "";
+          const p = decodeURIComponent(rawAfter.replace(/^\//, "").split("?")[0]);
+          if (method === "GET") {
+            const rec = p ? state.treeFiles[p] : null;
+            if (rec) return jsonRes({ type: "file", sha: rec.sha, content: rec.content });
+            const dirPrefix = p ? `${p}/` : "";
+            const children = new Map();
+            Object.entries(state.treeFiles).forEach(([filePath, entry]) => {
+              if (dirPrefix && !filePath.startsWith(dirPrefix)) return;
+              const rest = dirPrefix ? filePath.slice(dirPrefix.length) : filePath;
+              const seg = rest.split("/")[0];
+              if (!seg) return;
+              const childPath = dirPrefix ? `${dirPrefix}${seg}` : seg;
+              if (rest.includes("/")) children.set(childPath, { type: "dir", path: childPath, sha: `tree-${childPath}` });
+              else children.set(childPath, { type: "file", path: childPath, sha: entry.sha, size: entry.content.length });
+            });
+            return children.size
+              ? jsonRes([...children.values()])
+              : { ok: false, status: 404, json: async () => ({ message: "Not Found" }) };
+          }
+          if (method === "PUT") {
+            const body = JSON.parse(options.body);
+            state.puts.push({ target, body, auth: options.headers?.Authorization });
+            const nextSha = "sha-" + state.puts.length;
+            state.treeFiles[p] = { sha: nextSha, content: body.content };
+            return jsonRes({ content: { sha: nextSha } });
+          }
+          if (method === "DELETE") {
+            const body = JSON.parse(options.body || "{}");
+            state.deletes.push({ target, body });
+            delete state.treeFiles[p];
+            return jsonRes({ commit: { sha: "del-" + state.deletes.length } });
+          }
+        }
       }
       if (method === "PUT") {
         const body = JSON.parse(options.body);
@@ -1008,6 +1085,105 @@ function makeGithub({ existing = null, reposWithoutScratch = false, reposWithScr
   const clock = win.document.getElementById("scratchpad-clock");
   check("a clock is rendered", Boolean(clock) && clock.textContent.length > 6, clock && clock.textContent);
   check("it reads as a weekday plus a time", /[A-Za-z]/.test(clock.textContent) && /\d/.test(clock.textContent), clock.textContent);
+
+  console.log("\n[33] storage clarity strip & quick repo auto-save toggle");
+  github = makeGithub();
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d34 = win.document;
+  const localBadge = d34.getElementById("scratchpad-local-state");
+  const repoSummary = d34.getElementById("scratchpad-repo-summary");
+  const quickAuto = d34.getElementById("scratchpad-quick-autosave");
+  const ghAuto = d34.getElementById("scratchpad-gh-autosave");
+  check("clarity strip shows local browser save status", /Saved/.test(localBadge.textContent), localBadge.textContent);
+  check("clarity strip shows connected repo status", /octocat\/scratch/.test(repoSummary.textContent), repoSummary.textContent);
+  check("quick auto-save toggle starts ON matching modal checkbox", quickAuto.getAttribute("aria-pressed") === "true" && ghAuto.checked === true);
+  quickAuto.click();
+  await flush();
+  check("toggling quick auto-save turns repo auto-save OFF and persists",
+    quickAuto.getAttribute("aria-pressed") === "false" && ghAuto.checked === false && win.localStorage.getItem("dash-scratchpad-gh-autosave") === "false");
+  check("quick Save and Pull buttons appear when connected",
+    d34.getElementById("scratchpad-ws-quick-save").hidden === false && d34.getElementById("scratchpad-ws-quick-pull").hidden === false);
+
+  console.log("\n[34] collapsible workspace: Today presets, folders, and multi-note switching");
+  github = makeGithub({ treeFiles: {} });
+  win = makeWindow({ storage: { "dash-scratchpad-gh-app-v2": APP_RECORD }, fetchImpl: github.handle });
+  await flush(); await flush();
+  const d35 = win.document;
+  const wsPanel = d35.getElementById("scratchpad-workspace-panel");
+  check("workspace panel starts collapsed", wsPanel.hidden === true);
+  d35.getElementById("scratchpad-files-toggle").click();
+  await flush();
+  check("Files toggle opens the workspace panel", wsPanel.hidden === false);
+
+  d35.getElementById("scratchpad-ws-new-dir").value = "projects/sprint";
+  d35.getElementById("scratchpad-ws-create-dir").click();
+  await flush(); await flush();
+  check("create folder persists locally and creates .gitkeep in repo",
+    JSON.parse(win.localStorage.getItem("dash-scratchpad-folders-v1") || "[]").includes("projects/sprint") &&
+    Boolean(github.state.treeFiles["projects/sprint/.gitkeep"]));
+
+  d35.getElementById("scratchpad-text").value = "note alpha";
+  d35.getElementById("scratchpad-ws-file-dir").value = "projects/sprint";
+  d35.getElementById("scratchpad-ws-file-name").value = "retro";
+  d35.getElementById("scratchpad-ws-file-ext").value = "md";
+  d35.getElementById("scratchpad-ws-create-blank").click();
+  await flush(); await flush();
+  check("creating a blank file inside the folder switches active note and writes empty file",
+    d35.getElementById("scratchpad-gh-path").value === "projects/sprint/retro.md" &&
+    d35.getElementById("scratchpad-text").value === "" &&
+    Boolean(github.state.treeFiles["projects/sprint/retro.md"]));
+
+  d35.getElementById("scratchpad-ws-today-btn").click();
+  await flush();
+  const todayFile = d35.getElementById("scratchpad-gh-path").value;
+  check("Today's note preset targets notes-YYYY-MM-DD.md", /^notes-\d{4}-\d{2}-\d{2}\.md$/.test(todayFile), todayFile);
+
+  d35.getElementById("scratchpad-ws-new-btn").click();
+  await flush();
+  const secondDated = d35.getElementById("scratchpad-gh-path").value;
+  check("New dated note picks a distinct timestamped name", secondDated !== todayFile && /^notes-\d{4}-\d{2}-\d{2}-\d{4}/.test(secondDated), secondDated);
+
+  console.log("\n[35] renaming an active file and renaming a directory sync locally and to GitHub");
+  github = makeGithub({
+    treeFiles: {
+      "team/old-name.md": { sha: "sha-orig", content: Buffer.from("meeting notes").toString("base64") },
+      "team/sub/item.md": { sha: "sha-sub", content: Buffer.from("sub notes").toString("base64") }
+    }
+  });
+  win = makeWindow({
+    storage: {
+      "dash-scratchpad-gh-app-v2": APP_RECORD,
+      "dash-scratchpad-gh-path": "team/old-name.md",
+      "dash-scratchpad": "meeting notes"
+    },
+    fetchImpl: github.handle
+  });
+  await flush(); await flush();
+  const d36 = win.document;
+  d36.getElementById("scratchpad-rename-file-open").click();
+  await flush();
+  check("rename action opens workspace panel with active file prefilled",
+    d36.getElementById("scratchpad-workspace-panel").hidden === false &&
+    d36.getElementById("scratchpad-rename-file-input").value === "team/old-name.md");
+  d36.getElementById("scratchpad-rename-file-input").value = "team/renamed-note.md";
+  d36.getElementById("scratchpad-rename-file-btn").click();
+  await flush(); await flush();
+  check("file rename updates active path, removes old GitHub file, and writes new file",
+    d36.getElementById("scratchpad-gh-path").value === "team/renamed-note.md" &&
+    !github.state.treeFiles["team/old-name.md"] &&
+    Boolean(github.state.treeFiles["team/renamed-note.md"]));
+
+  d36.getElementById("scratchpad-rename-dir-from").value = "team";
+  d36.getElementById("scratchpad-rename-dir-to").value = "squad";
+  d36.getElementById("scratchpad-rename-dir-btn").click();
+  await flush(); await flush();
+  check("directory rename moves active note and descendant files locally and in GitHub",
+    d36.getElementById("scratchpad-gh-path").value === "squad/renamed-note.md" &&
+    !github.state.treeFiles["team/renamed-note.md"] &&
+    Boolean(github.state.treeFiles["squad/renamed-note.md"]) &&
+    Boolean(github.state.treeFiles["squad/sub/item.md"]),
+    JSON.stringify(Object.keys(github.state.treeFiles)));
 
   console.log(failures === 0 ? "\nALL CHECKS PASSED\n" : `\n${failures} CHECK(S) FAILED\n`);
   process.exit(failures === 0 ? 0 : 1);

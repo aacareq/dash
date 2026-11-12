@@ -36,7 +36,7 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   sessions you keep checking back into (Muse.ai, Grok Bot, Claude Code, Meta Muse,
   OpenAI dots, Claude Duet, and ChatGPT Work). Some services require an eligible
   plan or waitlist; ChatGPT Work links to the general ChatGPT entry point. Its
-  matching bookmarklet opens Meta Muse, Grok Bot, and Claude Duet.
+  matching bookmarklet opens Meta Muse, Grok Bot, Claude Duet, and Gemini.
   Separate bookmarklets open the proactive cloud agents and self-hosted agents.
   Allow pop-ups for the dashboard or the page where a saved bookmarklet is run;
   browsers can otherwise block additional tabs. If blocked, use the displayed links

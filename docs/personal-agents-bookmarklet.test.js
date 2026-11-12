@@ -9,7 +9,7 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 const SITE = "https://aacareq.github.io/dash/index.html";
 const BOOKMARKLET_ID = "bookmarklets:personal-ai-agents-always-on";
 const CLUSTER_URLS = ["https://muse.ai/", "https://grok.com/bot/", "https://claude.ai/code", "https://ai.meta.com/muse/", "https://chatgpt.com/dots", "https://claude.com/product/claude-duet", "https://chatgpt.com/"];
-const EXPECTED_URLS = ["https://ai.meta.com/muse/", "https://grok.com/bot/", "https://claude.com/product/claude-duet"];
+const EXPECTED_URLS = ["https://ai.meta.com/muse/", "https://grok.com/bot/", "https://claude.com/product/claude-duet", "https://gemini.google.com/app"];
 
 const flush = () => new Promise(r => setTimeout(r, 80));
 
@@ -89,7 +89,7 @@ const urlsIn = href => [...decodeURIComponent(String(href)).matchAll(/https?:\/\
     win.close();
   }
 
-  console.log("\n[2] the bookmarklet opens the requested three links in order");
+  console.log("\n[2] the bookmarklet opens the requested four links in order");
   {
     const win = makeWindow();
     const doc = win.document;
@@ -136,6 +136,10 @@ const urlsIn = href => [...decodeURIComponent(String(href)).matchAll(/https?:\/\
     check("bookmarklet survives an alias search", !newBookmarkletCard(doc).classList.contains("is-filtered"));
     check("other bookmarklets are filtered out",
       bookmarkletCards(doc).filter(c => c.dataset.id !== BOOKMARKLET_ID).every(c => c.classList.contains("is-filtered")));
+    search.value = "gemini";
+    search.dispatchEvent(new win.Event("input", { bubbles: true }));
+    await flush();
+    check("bookmarklet survives a Gemini search", !newBookmarkletCard(doc).classList.contains("is-filtered"));
     check("no page errors", win.__errors.length === 0, win.__errors.join("; "));
     win.close();
   }
@@ -163,6 +167,9 @@ const urlsIn = href => [...decodeURIComponent(String(href)).matchAll(/https?:\/\
         check(id + " attempts each requested URL", win.__opens.map(o => o.url).join(",") === expected.join(","));
         const panel = win.document.querySelector('[aria-label="Blocked agent tabs"]');
         check(id + " offers only blocked links", !!panel && [...panel.querySelectorAll("a")].map(a => a.href).join(",") === expected.slice(1).join(","));
+        if (id === BOOKMARKLET_ID) {
+          check(id + " fallback labels include Gemini", !!panel && [...panel.querySelectorAll("a")].map(a => a.textContent).join(",") === "Grok Bot,Claude Duet,Gemini");
+        }
         check(id + " fallback links open safely in new tabs", !!panel && [...panel.querySelectorAll("a")].every(a => a.target === "_blank" && a.rel === "noopener noreferrer"));
         panel?.querySelector("button").click();
         check(id + " fallback can be dismissed", !win.document.querySelector('[aria-label="Blocked agent tabs"]'));

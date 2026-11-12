@@ -915,7 +915,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.6.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.6.1</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1655,7 +1655,12 @@
       { name: "Claude Duet", url: "https://claude.com/product/claude-duet", desc: "Anthropic's agent for background work and personal productivity; access may require a waitlist.", best: "Background productivity", tags: ["agents", "always-on", "anthropic"] },
       { name: "ChatGPT Work", url: "https://chatgpt.com/", desc: "OpenAI's ChatGPT entry point for delegated research and work.", best: "Delegated research", tags: ["agents", "research", "openai"] }
     ];
-    const alwaysOnLinks = [personalAgentItems[3], personalAgentItems[1], personalAgentItems[5]];
+    const alwaysOnLinks = [
+      personalAgentItems[3],
+      personalAgentItems[1],
+      personalAgentItems[5],
+      { name: "Gemini", url: "https://gemini.google.com/app" }
+    ];
     const proactiveLinks = [
       { name: "Meta Muse", url: "https://ai.meta.com/muse/" },
       { name: "Claude Duet", url: "https://claude.com/product/claude-duet" },
@@ -1757,11 +1762,11 @@
         name: "Personal AI Agents — Always-On",
         url: bookmarkletFor(alwaysOnLinks),
         launchUrls: alwaysOnLinks,
-        desc: "Opens Meta Muse, Grok Bot, and Claude Duet.",
+        desc: "Opens Meta Muse, Grok Bot, Claude Duet, and Gemini.",
         best: "Checking in on standing agents",
         tags: ["bookmarklet", "agents", "always-on", "personal"],
-        aliases: ["personal ai agents bookmarklet", "always-on agents bookmarklet", "open all personal agents", "open Meta Muse Grok Bot and Claude Duet"],
-        detail: "Opens Meta Muse, Grok Bot, and Claude Duet. If pop-ups are blocked, use the fallback links or allow pop-ups. Drag this link to your bookmarks bar to run it elsewhere.",
+        aliases: ["personal ai agents bookmarklet", "always-on agents bookmarklet", "open all personal agents", "open Meta Muse Grok Bot Claude Duet and Gemini"],
+        detail: "Opens Meta Muse, Grok Bot, Claude Duet, and Gemini. If pop-ups are blocked, use the fallback links or allow pop-ups. Drag this link to your bookmarks bar to run it elsewhere.",
         bookmarklet: true
       },
       {
@@ -1790,7 +1795,7 @@
       personalagents: {
         title: "Personal AI Agents — Always-On",
         summary: "Standing agent sessions that keep working in the background, ready whenever you check in.",
-        // The Always-On bookmarklet selects its three agents from this directory.
+        // The Always-On bookmarklet launches Meta Muse, Grok Bot, Claude Duet (from this directory), and Gemini.
         items: personalAgentItems
       },
       daily: {

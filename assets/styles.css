@@ -821,3 +821,13 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
   .sheet-card { max-height: 92dvh; width: 96vw; overflow-y: auto; }
   body { padding-bottom: env(safe-area-inset-bottom); }
 }
+
+#smart-review { scroll-margin-top: 5rem; }
+#smart-review h2 { margin-top: 0; font-size: 1.2rem; }
+#smart-review label { display: block; margin-top: 1rem; font-weight: 700; }
+#review-capture { display: block; width: 100%; box-sizing: border-box; min-width: 0; padding: .75rem; margin: .5rem 0; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font: inherit; resize: vertical; }
+.review-start { line-height: 1.6; }
+.review-start summary { cursor: pointer; min-height: 44px; padding-top: .6rem; color: var(--accent); }
+.review-start ol { padding-inline-start: 1.4rem; }
+.review-count { color: var(--text-muted); }
+#smart-review:focus { outline: 2px solid var(--accent); outline-offset: 3px; }

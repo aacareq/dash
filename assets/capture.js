@@ -18,7 +18,7 @@ export function initCapture({ root, textarea, target = () => 'the active note' }
     <label>Content<textarea data-capture="text" rows="3" placeholder="Paste a quote, URL, idea, or prompt fragment…"></textarea></label>
     <div class="capture-row">
       <label>Source / origin (optional)<input data-capture="source" type="text" placeholder="URL, book and author, or where this came from"></label>
-      <label>Intent (optional)<select data-capture="intent"><option value="">Plain note</option><option>Task</option><option>Inspiration</option><option>Reference</option><option>Prompt Seed</option></select></label>
+      <label>Intent (optional)<select data-capture="intent"><option value="">Plain Note</option><option>Task</option><option>Inspiration</option><option>Reference</option><option>Prompt Seed</option></select></label>
     </div>
     <label class="capture-check"><input data-capture="time" type="checkbox"> Include capture time</label>
     <div class="capture-row"><button type="button" class="modal-btn cancel" data-paste>Paste clipboard into draft</button><button type="button" class="modal-btn submit" data-add>Add to note</button></div>
@@ -50,18 +50,23 @@ export function initCapture({ root, textarea, target = () => 'the active note' }
   root.querySelector('[data-add]').addEventListener('click', () => {
     const content = formatCapture({ text: field('text').value, source: field('source').value, intent: field('intent').value, timestamp: field('time').checked });
     if (!content) { status('Enter some content first. Nothing was added.'); field('text').focus(); return; }
-    const end = textarea.value.length;
-    const separator = end ? (textarea.value.endsWith('\n\n') ? '' : textarea.value.endsWith('\n') ? '\n' : '\n\n') : '';
-    const insertion = `${separator}${content}\n`;
-    textarea.focus(); textarea.setSelectionRange(end, end);
-    let inserted = false;
-    try { inserted = doc.execCommand?.('insertText', false, insertion); } catch { /* Use portable fallback. */ }
-    if (!inserted) {
-      textarea.setRangeText(insertion, end, end, 'end');
-      textarea.dispatchEvent(new doc.defaultView.Event('input', { bubbles: true }));
-    }
+    appendToNote(textarea, content);
     field('text').value = ''; field('source').value = '';
     field('intent').value = ''; field('time').checked = false;
     showTarget(); status(`Added to ${target()}. Use this note's normal save/export controls; no separate copy or inbox was created.`);
   });
+}
+
+export function appendToNote(textarea, content) {
+  const doc = textarea.ownerDocument;
+  const end = textarea.value.length;
+  const separator = end ? (textarea.value.endsWith('\n\n') ? '' : textarea.value.endsWith('\n') ? '\n' : '\n\n') : '';
+  const insertion = `${separator}${content}\n`;
+  textarea.focus(); textarea.setSelectionRange(end, end);
+  let inserted = false;
+  try { inserted = doc.execCommand?.('insertText', false, insertion); } catch { /* Use portable fallback. */ }
+  if (!inserted) {
+    textarea.setRangeText(insertion, end, end, 'end');
+    textarea.dispatchEvent(new doc.defaultView.Event('input', { bubbles: true }));
+  }
 }

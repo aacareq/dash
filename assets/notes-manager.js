@@ -1,3 +1,4 @@
+import { createNoteOutline } from "./note-template.js";
 // Multi-note and workspace folder management for the Scratchpad PWA.
 //
 // Keeps notes and folder metadata in IndexedDB (via notes-store.js), remembers
@@ -152,7 +153,7 @@ export class NoteManager {
   }
 
   // Switches the active note, persisting whatever was open first. A missing
-  // note is created on demand as an empty record saved on first edit.
+  // note is created on demand; new Markdown files receive the editable outline.
   async switchTo(path, { repo = "", branch = "", initialBody } = {}) {
     const cleanPath = normalizeWorkspacePath(path);
     if (!cleanPath) throw new Error("A note file path is required.");
@@ -169,7 +170,7 @@ export class NoteManager {
         id,
         title: titleForPath(cleanPath),
         path: cleanPath,
-        body: typeof initialBody === "string" ? initialBody : "",
+        body: typeof initialBody === "string" ? initialBody : createNoteOutline(cleanPath, this.now()),
         repo,
         branch,
         dirty: false,
@@ -369,9 +370,10 @@ export class NoteManager {
 
   // First launch: most recent note from the index, else a provided fallback,
   // else today's note.
-  async boot({ fallbackPath = "", repo = "", branch = "" } = {}) {
+  async boot({ fallbackPath = "", repo = "", branch = "", initialBody } = {}) {
     const index = await this._readIndex();
     const path = index[0]?.path || fallbackPath || todayNoteFileName(this.now());
-    return this.switchTo(path, { repo, branch });
+    const existing = await this.store.getNote(noteIdForPath(path));
+    return this.switchTo(path, { repo, branch, ...(index.length === 0 && !existing && typeof initialBody === "string" ? { initialBody } : {}) });
   }
 }

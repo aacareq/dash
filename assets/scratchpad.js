@@ -1,3 +1,5 @@
+import { createNoteOutline } from "./note-template.js";
+import { initPromptCreator } from "./prompt-creator.js";
 import { initCapture } from "./capture.js";
 // Scratchpad PWA — main controller.
 //
@@ -61,12 +63,7 @@ async function main() {
 
   // ---- load the last note, today's note, or the body migrated from the dialog --------
   const migrated = await store.getNote(ACTIVE_NOTE_ID);
-  await notes.boot({ fallbackPath: todayNoteFileName() });
-  if (!notes.current.body && migrated?.body) {
-    // First PWA launch after migration: carry the dialog's unsaved notes into today's note.
-    notes.current.body = migrated.body;
-    await notes.setBody(migrated.body);
-  }
+  await notes.boot({ fallbackPath: todayNoteFileName(), initialBody: migrated?.body || undefined });
   let note = notes.current;
   // Manifest shortcut ("New note") lands with ?new=1 — start a fresh dated note.
   if (new URL(window.location.href).searchParams.get("new")) {
@@ -74,6 +71,7 @@ async function main() {
   }
   textarea.value = note.body || "";
   initCapture({ root: $("scratchpad-capture"), textarea, target: () => notes.current?.path || notes.current?.title || "active note" });
+  initPromptCreator({ root: $("scratchpad-prompt-creator"), textarea, target: () => notes.current?.path || "active note" });
 
   let localSaveTimer;
   let localSaving = false;
@@ -1407,7 +1405,7 @@ async function main() {
     }
 
     await flushLocalSave();
-    const content = copyCurrent ? textarea.value : "";
+    const content = copyCurrent ? textarea.value : createNoteOutline(targetPath);
     const repo = repoSelect?.value || "";
     const branch = branchInput?.value.trim() || "";
 

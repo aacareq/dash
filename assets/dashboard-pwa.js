@@ -1,3 +1,4 @@
+import { initPromptCreator } from "./prompt-creator.js";
 // Dashboard-side PWA integration (loaded as an ES module from index.html; the
 // dashboard's classic inline script is untouched, so its jsdom behavior tests
 // stay green — jsdom does not execute module scripts).
@@ -52,3 +53,5 @@ setupPwaInstall({
 initScratchpadEmbed();
 
 initCapture({ root: document.getElementById("scratchpad-capture"), textarea: document.getElementById("scratchpad-text"), target: () => `Quick notes on this page — ${document.getElementById("scratchpad-filebar-file")?.textContent || "active file"}` });
+
+initPromptCreator({ root: document.getElementById("scratchpad-prompt-creator"), textarea: document.getElementById("scratchpad-text"), target: () => `Quick notes — ${document.getElementById("scratchpad-filebar-file")?.textContent || "active file"}` });

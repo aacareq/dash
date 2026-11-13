@@ -943,7 +943,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.10.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.11.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1029,7 +1029,11 @@
         <h3>Capture text with context</h3>
         <p>Scratchpad is a plain Markdown notepad again: one active note, no review queue or parallel inbox. Open the optional Capture text with context panel below the editor. Type or explicitly paste clipboard content, add a source URL/book/author and optional intent or timestamp, then click Add to note. It appends ordinary Markdown to the end of the active note without replacing existing text. The draft is not saved until added; after adding, the normal local autosave, file export, and optional GitHub sync apply.</p>
         <p>Clipboard reading only happens after you click Paste clipboard into draft. If permission is unavailable, paste manually. There is no clipboard monitoring or automatic source detection. Recheck the active file before adding content. Optional metadata stays visible in your note, not in a hidden database.</p>
-        <p><strong>Future direction (proposal only):</strong> selected-text prompt wrappers, an optional temporary context basket, source-aware research exports, keyword search launchers, and open-question templates. Keep the default editor unchanged; require explicit actions and preview compiled output before copying. Any token count should be labeled an estimate, not an exact model token count.</p>
+        <p><strong>New Markdown notes:</strong> Fresh notes start with an editable filename-based title, creation date/time (UTC), and Plain Note, Task, Inspiration, Reference, and Prompt Seed sections. Existing notes, copied content, remote files, cleared notes, and non-Markdown files are not rewritten.</p>
+        <h3>Basic prompt creator</h3>
+        <p>Expand Basic prompt creator below Capture. Enter a task, optional role/persona, context, audience, tone, constraints, length, scope, and output format. Choose Role–Task–Context–Format, CARE (Context–Action–Result–Examples), or RISE (Role–Input–Steps–Expectation), then Markdown or XML delimiters. Add examples or steps if useful.</p>
+        <p>Load a summarization, code review, extraction, or drafting starter; replacing populated fields asks for confirmation. Use {{variable}} or [name] placeholders, optionally supplying name=value bindings. Unbound placeholders remain reusable. Generate an editable preview, then Copy prompt or Add prompt to note. The preview does not auto-update after input changes: regenerate explicitly. Overwriting a preview requires confirmation. XML values are escaped. A model may still ignore prompt instructions; no format or model behavior is guaranteed.</p>
+        <p>Everything runs locally; no AI service is called. Draft fields are temporary. Copying leaves notes unchanged; adding appends to the active note using its normal save/export/sync. Token counts are approximate (characters ÷ 4), not exact model counts.</p>
         <h3>Ideas for new capabilities (not implemented)</h3>
         <ul><li>Cross-note full-text search and backlinks for connecting ideas.</li><li>Optional recurring tasks and a weekly digest with opt-in notifications.</li><li>A selection-to-prompt compiler with source-aware Markdown exports.</li><li>Accessible drag-and-drop attachments, with storage quotas and explicit upload consent.</li></ul>
         <h3>Ideas for performance (not implemented)</h3>
@@ -1318,7 +1322,7 @@
                 </div>
                 <div class="ws-path-preview" id="scratchpad-ws-file-preview">Enter a file name to preview path</div>
                 <div class="ws-btn-row">
-                  <button type="button" class="modal-btn submit" id="scratchpad-ws-create-blank">📄 Create blank file</button>
+                  <button type="button" class="modal-btn submit" id="scratchpad-ws-create-blank">📄 Create file with outline</button>
                   <button type="button" class="modal-btn cancel" id="scratchpad-ws-create-from-current">💾 Save current text to new file</button>
                 </div>
               </div>
@@ -1415,6 +1419,7 @@
           <div class="md-preview" id="scratchpad-preview" hidden></div>
         </div>
         <details class="scratch-capture" id="scratchpad-capture"></details>
+        <details class="scratch-capture" id="scratchpad-prompt-creator"></details>
         <p class="status-msg" id="scratchpad-status"></p>
         <!-- GitHub settings (connection, repo + file target, file and folder creation) live in their own
              sheet — ⚙ GitHub sync opens it. Keeping workspace quick-actions calm above and primary actions big below. -->
@@ -4765,10 +4770,21 @@
       return { renderPreview, setPreviewVisible, insertEmoji, emoji };
     }
 
+const NOTE_INTENTS = ['Plain Note', 'Task', 'Inspiration', 'Reference', 'Prompt Seed'];
+function createNoteOutline(path = 'Untitled.md', now = new Date()) {
+  if (!/\.md$/i.test(path)) return '';
+  const title = path.split('/').pop().replace(/\.md$/i, '').replace(/[\r\n]+/g, ' ') || 'Untitled';
+  return `# ${title} — Note created on ${now.toISOString()}\n\n${NOTE_INTENTS.map(intent => `## ${intent}\n\n`).join('')}`;
+}
+
     function initScratchpadTool() {
       const textarea = document.getElementById("scratchpad-text");
       if (!textarea) return;
-      try { textarea.value = localStorage.getItem("dash-scratchpad") || ""; } catch (e) {}
+      try {
+        const saved = localStorage.getItem("dash-scratchpad");
+        textarea.value = saved !== null ? saved : createNoteOutline(scratchpadDatedFileName());
+        if (saved === null) localStorage.setItem("dash-scratchpad", textarea.value);
+      } catch (e) {}
 
       // Initialised below — the debounce handler calls into it once it exists, so local notes keep working
       // even if the GitHub panel is unavailable.
@@ -5127,7 +5143,7 @@
         persistActiveNoteToMap();
         const map = readNotesMap();
         const existing = map[clean];
-        const nextBody = typeof body === "string" ? body : (existing?.body ?? "");
+        const nextBody = typeof body === "string" ? body : (existing?.body ?? createNoteOutline(clean));
         const nextRec = {
           path: clean,
           body: nextBody,
@@ -6133,7 +6149,7 @@
         }
 
         persistActiveNoteToMap();
-        const content = copyCurrent ? textarea.value : "";
+        const content = copyCurrent ? textarea.value : createNoteOutline(targetPath);
         const connection = ghConnection();
         const repo = repoSelect?.value || "";
         const branch = branchInput?.value.trim() || "";
@@ -6360,7 +6376,7 @@
           while (map[`${stem}-${n}.md`]) n += 1;
           nextPath = `${stem}-${n}.md`;
         }
-        switchActiveNote(nextPath, { body: "", dirty: false, message: `Started a separate note: ${nextPath}.` });
+        switchActiveNote(nextPath, { body: createNoteOutline(nextPath), dirty: false, message: `Started a separate note: ${nextPath}.` });
       };
 
       const handleTodayNoteInFolder = () => {
@@ -6374,7 +6390,7 @@
           while (map[`${stem}-${n}.md`]) n += 1;
           nextPath = `${stem}-${n}.md`;
         }
-        switchActiveNote(nextPath, { body: "", dirty: false, message: `Created ${nextPath} inside today's folder.` });
+        switchActiveNote(nextPath, { body: createNoteOutline(nextPath), dirty: false, message: `Created ${nextPath} inside today's folder.` });
         setWsStatus(`Opened ${nextPath} inside today's folder (${dirPath}).`, "success");
       };
 

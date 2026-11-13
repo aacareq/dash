@@ -1129,10 +1129,10 @@ function makeGithub({ existing = null, treeFiles = null, reposWithoutScratch = f
   d35.getElementById("scratchpad-ws-file-ext").value = "md";
   d35.getElementById("scratchpad-ws-create-blank").click();
   await flush(); await flush();
-  check("creating a blank file inside the folder switches active note and writes empty file",
+  check("creating a Markdown file inside the folder switches active note and writes its outline",
     d35.getElementById("scratchpad-gh-path").value === "projects/sprint/retro.md" &&
-    d35.getElementById("scratchpad-text").value === "" &&
-    Boolean(github.state.treeFiles["projects/sprint/retro.md"]));
+    /## Plain Note[\s\S]*## Task[\s\S]*## Inspiration[\s\S]*## Reference[\s\S]*## Prompt Seed/.test(d35.getElementById("scratchpad-text").value) &&
+    Buffer.from(github.state.treeFiles["projects/sprint/retro.md"]?.content || "", "base64").toString("utf8") === d35.getElementById("scratchpad-text").value);
 
   d35.getElementById("scratchpad-ws-today-btn").click();
   await flush();

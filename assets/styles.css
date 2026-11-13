@@ -803,13 +803,6 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
   .emoji-scroll { max-height: 32dvh; }
 }
 
-/* Review content is always plain text, scrollable and thumb-friendly. */
-#smart-review { min-width: 0; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); }
-#smart-review p, .review-card { white-space: pre-wrap; overflow-wrap: anywhere; }
-#smart-review button { margin: .25rem; min-height: 44px; }
-.review-card { padding: 1rem; background: var(--card-bg); border-radius: var(--radius); touch-action: pan-y; }
-.review-serendipity { max-height: 9rem; overflow: auto; color: var(--text-muted); }
-.review-archive { max-height: 24rem; overflow-y: auto; }
 .shell, .shell > *, .editor-row, .md-preview { min-width: 0; }
 @media (max-width: 720px) {
   .app-header, .workspace-bar, .path-row, .token-row, .md-toolbar, .storage-clarity-bar { flex-wrap: wrap; }
@@ -821,22 +814,3 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
   .sheet-card { max-height: 92dvh; width: 96vw; overflow-y: auto; }
   body { padding-bottom: env(safe-area-inset-bottom); }
 }
-
-#smart-review { scroll-margin-top: 5rem; }
-#smart-review h2 { margin-top: 0; font-size: 1.2rem; }
-#smart-review label { display: block; margin-top: 1rem; font-weight: 700; }
-#review-capture { display: block; width: 100%; box-sizing: border-box; min-width: 0; padding: .75rem; margin: .5rem 0; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font: inherit; resize: vertical; }
-.review-start { line-height: 1.6; }
-.review-start summary { cursor: pointer; min-height: 44px; padding-top: .6rem; color: var(--accent); }
-.review-start ol { padding-inline-start: 1.4rem; }
-.review-count { color: var(--text-muted); }
-#smart-review:focus { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-/* Notes first; explicit selection and review immediately underneath. */
-.notes-heading { font-size: 1.2rem; margin-bottom: 0; }
-.review-items { max-height: 22rem; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin: .75rem 0; padding: .5rem; }
-#smart-review .review-item { display: flex; align-items: flex-start; gap: .75rem; padding: .65rem; margin: 0; font-weight: normal; white-space: pre-wrap; overflow-wrap: anywhere; cursor: pointer; }
-.review-item input[type=checkbox] { flex: 0 0 auto; width: 22px; height: 22px; margin-top: .15rem; }
-.review-item span { min-width: 0; }
-#review-start { display: block; }
-#review-start:disabled { opacity: .55; cursor: not-allowed; }

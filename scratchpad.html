@@ -195,6 +195,7 @@
         <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
         <button type="button" class="md-btn" data-md="hr" title="Horizontal divider" aria-label="Divider">― Divider</button>
         <button type="button" class="md-btn" data-md="table" title="Insert a markdown table (header row + as many rows as you need)" aria-label="Insert table">▦ Table</button>
+        <button type="button" class="md-btn" data-md="link" title="Insert a markdown link" aria-label="Insert link">🔗 Link</button>
         <span class="emoji-anchor">
           <button type="button" class="md-btn" id="scratchpad-emoji-btn" aria-haspopup="dialog" aria-expanded="false"
                   aria-controls="scratchpad-emoji-picker" title="Add an emoji" aria-label="Add an emoji">😊 Emoji</button>
@@ -229,6 +230,45 @@
                 placeholder="Jot anything here… it autosaves on this device. Markdown works — use the buttons above or just type."
                 aria-label="Scratchpad notes"></textarea>
       <div class="md-preview" id="scratchpad-preview" hidden></div>
+    </div>
+
+    <div class="scratch-help-modal sheet-modal" id="scratchpad-help-modal" aria-labelledby="scratchpad-help-title">
+      <div class="sheet-card">
+        <header class="sheet-head">
+          <h2 class="sheet-title" id="scratchpad-help-title">❓ Help & How-to</h2>
+          <button type="button" class="modal-btn cancel" id="scratchpad-help-close" data-close-sheet>Close</button>
+        </header>
+        <div class="gh-sync-body">
+          <section class="gh-section">
+            <h3 class="gh-section-title">What the Dashboard Does</h3>
+            <p class="modal-hint">
+              Dash is an offline-first workspace that lets you take fast, exportable, GitHub-backed notes.
+              It includes a Scratchpad for quick markdown notes, a Feeds view, and an Inference panel,
+              all synced to your GitHub repository.
+            </p>
+          </section>
+
+          <section class="gh-section">
+            <h3 class="gh-section-title">How to Use It</h3>
+            <ol class="gh-restore-steps">
+              <li><strong>Scratchpad:</strong> Type notes, use the toolbar (Bold, Italic, Link, etc.) and export them.</li>
+              <li><strong>GitHub Sync:</strong> Click the ⚙ GitHub sync button to connect your repo and save/pull notes.</li>
+              <li><strong>Workspace:</strong> Use the Files &amp; folders panel to create, rename, or browse files.</li>
+              <li><strong>Live Preview:</strong> Toggle the 👁 Preview button to see markdown rendered in real-time.</li>
+            </ol>
+          </section>
+
+          <section class="gh-section">
+            <h3 class="gh-section-title">Ideas for Improving the Dashboard</h3>
+            <ul class="gh-restore-steps">
+              <li>Add collaborative editing with live sync between multiple users.</li>
+              <li>Support for image drag-and-drop and inline preview.</li>
+              <li>Enhanced search across all notes and folders.</li>
+              <li>Integration with Notion or other task managers.</li>
+            </ul>
+          </section>
+        </div>
+      </div>
     </div>
 
     <p class="status-msg" id="scratchpad-status" role="status" aria-live="polite"></p>

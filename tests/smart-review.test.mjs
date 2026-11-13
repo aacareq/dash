@@ -81,13 +81,15 @@ test('review UI renders a focused queue, snoozes, archives safely and searches s
     const root = window.document.querySelector('#root');
     initReview({ root, textarea: window.document.querySelector('textarea'), source: () => 'test.md' });
     assert.equal(root.querySelector('#review-pill').textContent, 'Needs Attention (2)');
-    root.querySelector('#review-pill').click(); assert.equal(root.querySelector('#review-panel').hidden, false);
+    root.querySelector('#review-pill').click();
+    assert.equal(root.querySelector('#review-panel').hidden, true);
+    root.querySelector('#review-start').click(); assert.equal(root.querySelector('#review-panel').hidden, false);
     [...root.querySelectorAll('button')].find(b => b.textContent === 'Defer / Snooze 1 week').click();
     assert.equal(root.querySelector('#review-pill').textContent, 'Needs Attention (1)');
     [...root.querySelectorAll('button')].find(b => b.textContent === 'Compost').click();
     assert.equal(root.querySelector('#review-pill').textContent, 'Needs Attention (0)');
     assert.match(root.querySelector('.review-archive').textContent, /https:\/\/example.com/);
-    const search = root.querySelector('input'); search.value = 'missing'; search.dispatchEvent(new window.Event('input'));
+    const search = root.querySelector('input[type=search]'); search.value = 'missing'; search.dispatchEvent(new window.Event('input'));
     assert.equal(root.querySelector('.review-archive').textContent, '');
     assert.equal(root.querySelector('img'), null);
     const saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
@@ -116,47 +118,79 @@ test('help content fits its dialog rather than requesting an independent viewpor
   dom.window.close();
 });
 
-test('deep link opens review immediately; quick capture preserves notes and active items can be triaged before due', async () => {
+test('explicit note copies, new inputs, selection and Start Smart Review preserve original notes', async () => {
   const { initReview } = await import('../assets/review.js');
-  const dom = new JSDOM('<section id="root" tabindex="-1"></section><textarea id="note">Existing note text</textarea>', { url: 'https://example.com/dash/scratchpad.html#smart-review' });
+  const dom = new JSDOM('<section id="root" tabindex="-1"></section><textarea id="note">Call Alex\n\nExisting idea</textarea>', { url: 'https://example.com/dash/scratchpad.html#smart-review' });
   const { window } = dom;
   const old = { document: globalThis.document, window: globalThis.window, localStorage: globalThis.localStorage };
   Object.assign(globalThis, { document: window.document, window, localStorage: window.localStorage });
   try {
     const root = window.document.querySelector('#root');
-    const note = window.document.querySelector('#note');
+    const note = window.document.querySelector('#note'); const original = note.value;
     initReview({ root, textarea: note, source: () => 'original.md' });
     const click = label => { const button = [...root.querySelectorAll('button')].find(b => b.textContent === label); assert.ok(button, `button ${label} exists`); button.click(); };
-    assert.equal(root.querySelector('#review-panel').hidden, false);
+    const saved = () => JSON.parse(localStorage.getItem('dash-smart-review-v1'));
+    assert.equal(root.querySelector('#review-panel').hidden, true);
     assert.equal(window.document.activeElement, root);
-    assert.equal(root.querySelector('#review-pill').textContent, 'Needs Attention (0)');
-    assert.match(root.querySelector('article').textContent, /Existing note text/);
-    click('Next item');
+    assert.equal(saved().length, 0); // Opening an existing note does not capture it.
+    assert.equal(root.querySelector('#review-start').disabled, true);
+    note.dispatchEvent(new window.Event('input')); note.dispatchEvent(new window.Event('blur'));
+    await new Promise(resolve => setTimeout(resolve, 1600));
+    assert.equal(saved().length, 0); // Neither blur nor a typing pause copies notes.
+    note.setSelectionRange(0, 9); click('Add selected note text');
+    assert.equal(saved().length, 1); assert.equal(saved()[0].text, 'Call Alex');
+    assert.equal(saved()[0].source, 'original.md');
+    assert.equal(note.value, original); assert.equal(root.querySelector('#review-panel').hidden, true);
+    click('Add selected note text'); assert.equal(saved().length, 1); // deduplicated
+    note.setSelectionRange(11, note.value.length); click('Add selected note text');
+    assert.equal(saved().length, 2); assert.equal(saved()[0].text, 'Call Alex'); // no slot replacement
     root.querySelector('#review-capture').value = 'https://example.com/useful';
     click('Add to review');
-    assert.equal(note.value, 'Existing note text');
-    assert.equal(root.querySelector('#review-capture').value, '');
-    let saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
-    assert.equal(saved.length, 2); assert.equal(saved[1].type, 'Follow-Up');
-    // New items are available immediately, without faking old timestamps.
+    assert.equal(note.value, original); assert.equal(root.querySelector('#review-capture').value, '');
+    assert.equal(saved().length, 3); assert.equal(saved()[2].type, 'Follow-Up');
+    assert.equal(root.querySelector('#review-panel').hidden, true); // Add never starts a session.
+    click('Clear selection'); assert.equal(root.querySelector('#review-start').disabled, true);
+    const boxes = root.querySelectorAll('.review-items input[type=checkbox]');
+    boxes[2].click(); assert.equal(root.querySelector('#review-start').textContent, 'Start Smart Review (1)');
+    click('Start Smart Review (1)');
     assert.match(root.querySelector('article').textContent, /https:\/\/example.com\/useful/);
-    click('Promote');
-    saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
-    assert.equal(saved[1].type, 'Task'); assert.equal(due(saved[1]), false);
-    click('Review all active items'); click('Next item');
-    click('Defer / Snooze 1 week');
-    saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
-    assert.equal(saved[1].snoozeCount, 1);
-    click('Review all active items'); click('Next item'); click('Compost');
+    assert.doesNotMatch(root.querySelector('article').textContent, /Call Alex/);
+    click('Promote'); assert.equal(saved()[2].type, 'Task'); assert.equal(due(saved()[2]), false);
+    assert.match(root.querySelector('article').textContent, /Review complete/);
+    click('Start Smart Review (1)'); click('Defer / Snooze 1 week'); assert.equal(saved()[2].snoozeCount, 1);
+    click('Start Smart Review (1)'); click('Compost');
     assert.match(root.querySelector('.review-archive').textContent, /https:\/\/example.com\/useful/);
-    click('Restore');
-    assert.equal(JSON.parse(localStorage.getItem('dash-smart-review-v1'))[1].archived, false);
-    click('Needs Attention (0)');
-    assert.match(root.querySelector('article').textContent, /Nothing is due yet/);
-    assert.equal(note.value, 'Existing note text');
-    const count = JSON.parse(localStorage.getItem('dash-smart-review-v1')).length;
-    root.querySelector('#review-capture').value = '   '; click('Add to review');
-    assert.equal(JSON.parse(localStorage.getItem('dash-smart-review-v1')).length, count);
+    click('Restore'); assert.equal(saved()[2].archived, false);
+    click('Needs Attention (0)'); assert.equal(root.querySelector('#review-start').disabled, true);
+    assert.equal(note.value, original);
+    root.querySelector('#review-capture').value = '   '; click('Add to review'); assert.equal(saved().length, 3);
     assert.equal(window.document.activeElement, root.querySelector('#review-capture'));
+    note.setSelectionRange(0, 0); click('Add selected note text'); assert.equal(saved().length, 3);
+    assert.match(root.querySelector('[role=status]').textContent, /Highlight/);
+  } finally { Object.assign(globalThis, old); dom.window.close(); }
+});
+
+test('review follows notes editor directly and existing review data remains selectable', async () => {
+  const html = readFileSync(new URL('../scratchpad.html', import.meta.url), 'utf8');
+  const dom = new JSDOM(html, { url: 'https://example.com/dash/scratchpad.html' });
+  const { window } = dom;
+  const note = window.document.querySelector('#scratchpad-text');
+  const root = window.document.querySelector('#smart-review');
+  assert.equal(window.document.querySelector('#scratchpad-editor').nextElementSibling, root);
+  const old = { document: globalThis.document, window: globalThis.window, localStorage: globalThis.localStorage };
+  Object.assign(globalThis, { document: window.document, window, localStorage: window.localStorage });
+  try {
+    const legacy = capture([], 'Call old friend\n\nA saved spark', 'old.md');
+    localStorage.setItem('dash-smart-review-v1', JSON.stringify(legacy));
+    const { initReview } = await import('../assets/review.js');
+    initReview({ root, textarea: note, source: () => 'new.md' });
+    assert.equal(root.querySelectorAll('.review-item').length, 2);
+    assert.equal(root.querySelector('#review-start').disabled, true);
+    root.querySelector('#review-all').click();
+    assert.equal(root.querySelector('#review-panel').hidden, true);
+    root.querySelector('#review-start').click();
+    assert.match(root.querySelector('article').textContent, /Call old friend/);
+    assert.deepEqual(JSON.parse(localStorage.getItem('dash-smart-review-v1')), legacy);
+    assert.match(root.textContent, /not in your note file or on GitHub/);
   } finally { Object.assign(globalThis, old); dom.window.close(); }
 });

@@ -831,3 +831,12 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
 .review-start ol { padding-inline-start: 1.4rem; }
 .review-count { color: var(--text-muted); }
 #smart-review:focus { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* Notes first; explicit selection and review immediately underneath. */
+.notes-heading { font-size: 1.2rem; margin-bottom: 0; }
+.review-items { max-height: 22rem; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; margin: .75rem 0; padding: .5rem; }
+#smart-review .review-item { display: flex; align-items: flex-start; gap: .75rem; padding: .65rem; margin: 0; font-weight: normal; white-space: pre-wrap; overflow-wrap: anywhere; cursor: pointer; }
+.review-item input[type=checkbox] { flex: 0 0 auto; width: 22px; height: 22px; margin-top: .15rem; }
+.review-item span { min-width: 0; }
+#review-start { display: block; }
+#review-start:disabled { opacity: .55; cursor: not-allowed; }

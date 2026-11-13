@@ -47,25 +47,32 @@ export function initReview({ root, textarea, source }) {
   let items;
   try { items = JSON.parse(localStorage.getItem(KEY) || '[]'); if (!Array.isArray(items) || items.some(i => !i || typeof i.text !== 'string' || typeof i.source !== 'string' || typeof i.lastTouchedAt !== 'number' || !['Task', 'Follow-Up', 'Spark'].includes(i.type))) throw Error(); }
   catch { root.textContent = 'Review storage could not be read. Original notes are safe; review is disabled to avoid overwriting data.'; return; }
-  const save = () => { try { const json = JSON.stringify(items); if (localStorage.getItem(KEY) !== json) localStorage.setItem(KEY, json); } catch { root.querySelector('[role=status]').textContent = 'Review changes could not be saved. Export or free device storage.'; } };
-  let reviewAll = false;
+  const save = () => { try { const json = JSON.stringify(items); if (localStorage.getItem(KEY) !== json) localStorage.setItem(KEY, json); return true; } catch { root.querySelector('[role=status]').textContent = 'Review changes could not be saved. Export or free device storage. Keep your input until storage is available.'; return false; } };
+  const selected = new Set();
+  let session = new Set();
   const reviewed = new Set();
-  const currentQueue = () => items.filter(i => reviewAll ? !i.archived && !reviewed.has(i.id) : due(i));
+  const currentQueue = () => items.filter(i => !i.archived && session.has(i.id) && !reviewed.has(i.id));
   root.innerHTML = `<h2>✨ Smart Review Queue</h2>
-    <p>Turn saved tasks, links, and ideas into next steps — without deleting your original notes.</p>
-    <details class="review-start"><summary>New here? How to use Smart Review</summary>
-      <ol><li>Quick capture below adds a review-only item. Try “Call Alex”, a URL, or an inspiring thought. Or write paragraphs separated by blank lines in the note editor; they are captured after a pause.</li>
-      <li>Choose <strong>Review all active items</strong> to use the actions right away. Needs Attention shows only items whose timers have expired.</li>
-      <li><strong>Promote</strong> makes a task; <strong>Snooze</strong> defers one week; <strong>Mutate</strong> saves your own offline Markdown summary; <strong>Compost</strong> archives the review copy. Do / Done archives completed work. Next item skips without changing it.</li>
-      <li>Tasks resurface after 72 hours, links after 7 days (auto-archive after 30 days untouched). After three snoozes, consider Keep as reference. Sparks appear in daily Serendipity. Search the archive to Restore; Export backs up the queue.</li></ol>
-      <p>Review data stays on this device, separate from GitHub-synced notes.</p>
+    <p><strong>Your notes above → explicitly add copies here → select items → Start Smart Review.</strong></p>
+    <p>Notes autosave separately and can sync to GitHub. Review items and their timers are saved only in this browser (<code>dash-smart-review-v1</code>), not in your note file or on GitHub. Adding, editing, or reviewing a copy never changes the original note. Previously captured items are still listed below.</p>
+    <details class="review-start"><summary>How this works and where data goes</summary>
+      <ol><li>Enter a new item below, or highlight text in the note editor above and click <strong>Add selected note text</strong>. Nothing is copied automatically when you type or open a note.</li>
+      <li>Tick the saved review items you want to work on, then click <strong>Start Smart Review</strong>. Select all active or Needs Attention only selects items; you still choose when to start.</li>
+      <li><strong>Promote</strong> makes a review item a task; <strong>Snooze</strong> defers it a week; <strong>Mutate</strong> saves your own offline Markdown summary; <strong>Compost</strong> archives the copy. None of these actions edits your notes. Next item skips without changing a timer.</li>
+      <li>Tasks are due after 72 hours; links after 7 days and archived after 30 untouched days. Sparks are evergreen. After three snoozes, consider Keep as reference. Archive search, Restore, and Export review JSON apply only to review data.</li></ol>
+      <p>Clearing browser storage removes local review data. Export it for a backup; note exports and GitHub saves do not include this queue.</p>
     </details>
-    <label for="review-capture">Quick capture — task, link, or spark</label>
+    <label for="review-capture">1. Add a new review item (not added to your note)</label>
     <textarea id="review-capture" rows="2" placeholder="Call Alex, https://example.com, or an idea…"></textarea>
     <button type="button" class="modal-btn" id="review-add">Add to review</button>
+    <button type="button" class="modal-btn" id="review-from-note">Add selected note text</button>
+    <h3>2. Select saved review items</h3>
     <p class="review-count" aria-live="polite"></p>
-    <button type="button" class="modal-btn" id="review-all" aria-controls="review-panel">Review all active items</button>
-    <button type="button" class="modal-btn" id="review-pill" aria-controls="review-panel" aria-expanded="false">Needs Attention (0)</button>
+    <button type="button" class="modal-btn" id="review-all">Select all active</button>
+    <button type="button" class="modal-btn" id="review-pill">Needs Attention (0)</button>
+    <button type="button" class="modal-btn" id="review-clear-selection">Clear selection</button>
+    <div class="review-items" role="group" aria-label="Saved review items"></div>
+    <button type="button" class="modal-btn submit" id="review-start" aria-controls="review-panel" aria-expanded="false" disabled>Start Smart Review (0)</button>
     <p class="review-serendipity"></p><div id="review-panel" hidden>
     <p>Local review copies only; original notes stay unchanged. Tasks: 72 hours · Links: 7 days, archived after 30 · Sparks: evergreen. Swipe left to compost, right to snooze, or use buttons.</p>
     <article class="review-card" aria-live="polite"></article>
@@ -83,20 +90,24 @@ export function initReview({ root, textarea, source }) {
       if (!summary?.trim()) return;
     }
     const extra = act(item, action, Date.now(), summary);
-    if (reviewAll) reviewed.add(item.id);
+    reviewed.add(item.id);
+    if (item.archived) selected.delete(item.id);
     if (extra) items.push(extra);
     save(); render();
   }
   function render() {
-    expire(items); save();
+    expire(items);
+    for (const id of selected) { if (!items.some(i => i.id === id && !i.archived)) selected.delete(id); }
+    save();
     const queue = currentQueue();
     pill.textContent = `Needs Attention (${items.filter(i => due(i)).length})`;
-    root.querySelector('.review-count').textContent = `${items.filter(i => !i.archived).length} active · ${items.filter(i => i.archived).length} archived · ${reviewAll ? 'Reviewing all active items' : 'Showing due items'}`;
+    root.querySelector('.review-count').textContent = `${items.filter(i => !i.archived).length} active · ${items.filter(i => i.archived).length} archived · ${selected.size} selected`;
+    renderItems();
     card.replaceChildren();
     const item = queue[0];
-    const text = document.createElement('p'); text.textContent = item ? `${item.type} · ${item.source}\n${item.text}` : (reviewAll ? 'No more items in this session. Choose Review all active items to start again, or add a new capture.' : 'Nothing is due yet. Choose Review all active items to try the actions now, or add a quick capture above.'); card.append(text);
+    const text = document.createElement('p'); text.textContent = item ? `${item.type} · ${item.source}\n${item.text}` : 'Review complete. Your notes above are unchanged. Select items and click Start Smart Review for another session.'; card.append(text);
     if (item) {
-      actionButton('Next item', () => { reviewAll = true; reviewed.add(item.id); render(); });
+      actionButton('Next item', () => { reviewed.add(item.id); render(); });
       if (item.snoozeCount >= 3) { const hint = document.createElement('p'); hint.textContent = 'Snoozed three times. Consider keeping this as a passive reference instead.'; card.append(hint); actionButton('Keep as reference', () => commit(item, 'reference')); }
       for (const [label, action] of [['Do / Done','done'],['Promote','promote'],['Defer / Snooze 1 week','snooze'],['Mutate to summary','mutate'],['Compost','compost']]) actionButton(label, () => commit(item, action));
     }
@@ -106,32 +117,79 @@ export function initReview({ root, textarea, source }) {
     const seed = ((Math.imul(day ^ 0x9e3779b9, 1664525) + 1013904223) >>> 0);
     root.querySelector('.review-serendipity').textContent = sparks.length ? 'Serendipity: ' + [sparks[seed % sparks.length], ...(sparks.length > 1 ? [sparks[(seed + 1) % sparks.length]] : [])].map(i => i.text).join(' • ') : '';
     const archive = root.querySelector('.review-archive'); archive.replaceChildren();
-    const query = root.querySelector('input').value.toLowerCase();
+    const query = root.querySelector('input[type=search]').value.toLowerCase();
     items.filter(i => i.archived && `${i.text} ${i.source}`.toLowerCase().includes(query)).forEach(i => {
       const row = document.createElement('p'); row.textContent = `${i.source}: ${i.text}`; actionButton('Restore', () => commit(i, 'restore'), row); archive.append(row);
     });
   }
-  function openPanel() {
-    root.querySelector('#review-panel').hidden = false;
-    pill.setAttribute('aria-expanded', 'true');
+  function resetSession() {
+    session.clear(); reviewed.clear();
+    root.querySelector('#review-panel').hidden = true;
+    root.querySelector('#review-start').setAttribute('aria-expanded', 'false');
   }
-  pill.onclick = () => { reviewAll = false; openPanel(); render(); };
-  root.querySelector('#review-all').onclick = () => { reviewAll = true; reviewed.clear(); openPanel(); render(); };
+  function updateSelection() {
+    const start = root.querySelector('#review-start');
+    start.textContent = `Start Smart Review (${selected.size})`;
+    start.disabled = selected.size === 0;
+    root.querySelector('.review-count').textContent = `${items.filter(i => !i.archived).length} active · ${items.filter(i => i.archived).length} archived · ${selected.size} selected`;
+  }
+  function renderItems() {
+    const list = root.querySelector('.review-items'); list.replaceChildren();
+    const active = items.filter(i => !i.archived);
+    if (!active.length) list.textContent = 'No saved review items yet. Add a new item or select some note text above.';
+    active.forEach(item => {
+      const label = document.createElement('label'); label.className = 'review-item';
+      const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.value = item.id;
+      checkbox.checked = selected.has(item.id);
+      checkbox.onchange = () => { if (checkbox.checked) selected.add(item.id); else selected.delete(item.id); resetSession(); updateSelection(); };
+      const text = document.createElement('span');
+      text.textContent = `${item.type}${due(item) ? ' · Needs attention' : ''} · From: ${item.source}\n${item.text}`;
+      label.append(checkbox, text); list.append(label);
+    });
+    updateSelection();
+  }
+  pill.onclick = () => { resetSession(); selected.clear(); items.filter(i => due(i)).forEach(i => selected.add(i.id)); render(); };
+  root.querySelector('#review-all').onclick = () => { resetSession(); selected.clear(); items.filter(i => !i.archived).forEach(i => selected.add(i.id)); render(); };
+  root.querySelector('#review-clear-selection').onclick = () => { resetSession(); selected.clear(); render(); };
+  root.querySelector('#review-start').onclick = () => {
+    if (!selected.size) return;
+    session = new Set(selected); reviewed.clear();
+    root.querySelector('#review-panel').hidden = false;
+    root.querySelector('#review-start').setAttribute('aria-expanded', 'true');
+    render(); card.tabIndex = -1; card.focus();
+  };
+  function addCopies(text, origin) {
+    resetSession();
+    const before = new Set(items.map(i => i.id));
+    const copies = [];
+    capture(copies, text, origin);
+    copies.forEach(copy => { if (!items.some(i => i.source === origin && i.original === copy.original)) items.push(copy); });
+    const added = items.filter(i => !before.has(i.id));
+    added.filter(i => !i.archived).forEach(i => selected.add(i.id));
+    const status = root.querySelector('[role=status]');
+    if (added.length) {
+      if (!save()) return false;
+      status.textContent = `Saved ${added.length} review item(s) on this device only. Selected below — click Start Smart Review when ready. Original notes are unchanged.`;
+    } else status.textContent = 'This text already has a review copy. Find it in the saved list or archive; no duplicate was added.';
+    render(); return true;
+  }
   root.querySelector('#review-add').onclick = () => {
     const field = root.querySelector('#review-capture');
     if (!field.value.trim()) { field.focus(); root.querySelector('[role=status]').textContent = 'Enter a task, URL, or idea first.'; return; }
-    reviewed.clear(); items.forEach(i => reviewed.add(i.id));
-    capture(items, field.value, `Quick capture ${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`);
-    field.value = ''; reviewAll = true; openPanel(); render();
-    root.querySelector('[role=status]').textContent = 'Added to your local review queue. Use the card actions below; original notes are unchanged.';
+    if (addCopies(field.value, `New review item ${new Date().toISOString()}-${Math.random().toString(36).slice(2, 8)}`)) field.value = '';
+  };
+  root.querySelector('#review-from-note').addEventListener('mousedown', e => e.preventDefault());
+  root.querySelector('#review-from-note').onclick = () => {
+    const text = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd).trim();
+    if (!text) { root.querySelector('[role=status]').textContent = 'Highlight the text you want in the note editor above, then click Add selected note text.'; textarea.focus(); return; }
+    addCopies(text, source());
   };
   function openFromLink() {
     if (window.location.hash !== '#smart-review') return;
-    reviewAll = true; reviewed.clear(); openPanel(); render();
     root.scrollIntoView?.({ block: 'start' }); root.focus();
   }
   window.addEventListener('hashchange', openFromLink);
-  root.querySelector('input').oninput = render;
+  root.querySelector('input[type=search]').oninput = render;
   root.querySelector('#review-export').onclick = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' }));
     const a = document.createElement('a'); a.href = url; a.download = 'smart-review.json'; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -144,13 +202,9 @@ export function initReview({ root, textarea, source }) {
     } catch { /* Keep this tab's last valid view. */ }
   });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
-  let timer;
-  function collect() { capture(items, textarea.value, source()); render(); }
-  textarea.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(collect, 1500); });
-  textarea.addEventListener('blur', () => { clearTimeout(timer); collect(); });
   let x;
   card.addEventListener('touchstart', e => { x = e.changedTouches[0].clientX; }, { passive: true });
   card.addEventListener('touchend', e => { const dx = e.changedTouches[0].clientX - x; const item = currentQueue()[0]; if (item && Math.abs(dx) > 90) commit(item, dx > 0 ? 'snooze' : 'compost'); }, { passive: true });
-  collect();
+  render();
   openFromLink();
 }

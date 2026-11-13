@@ -907,7 +907,13 @@
       .scratch-view-toggle .modal-btn { flex: 1 1 auto; }
     }
 
-    .help-guide { width: min(850px, 94vw); max-height: 85dvh; overflow-y: auto; line-height: 1.65; overflow-wrap: anywhere; }
+    /* Size the dialog, not just its child: the generic modal is only 560px wide. */
+    #dashboard-help { width: min(850px, calc(100vw - 2rem)); max-width: calc(100vw - 2rem); overflow: hidden; }
+    #dashboard-help .help-guide { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; max-height: 85vh; max-height: 85dvh; overflow-y: auto; overflow-x: hidden; line-height: 1.65; overflow-wrap: anywhere; }
+    #dashboard-help .help-guide > * { min-width: 0; max-width: 100%; }
+    #dashboard-help ul, #dashboard-help ol { padding-inline-start: 1.4rem; }
+    #dashboard-help a { white-space: normal; overflow-wrap: anywhere; }
+    .review-launch { display: inline-flex; align-items: center; text-decoration: none; }
     .help-guide h3 { margin-top: 1.4rem; }
     .help-guide li { margin-bottom: .65rem; }
     .help-guide form { position: sticky; top: 0; text-align: right; }
@@ -937,7 +943,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.7.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.8.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -984,6 +990,7 @@
         <button class="clear-search" id="clear-search" type="button" aria-label="Clear search">Clear</button>
         <span class="search-shortcut">/</span>
       </div>
+      <a class="btn-add-custom review-launch" href="scratchpad.html#smart-review">✨ Smart Review Queue</a>
       <button class="btn-add-custom" id="dashboard-help-open" type="button">❓ Help &amp; How to use</button>
       <button class="btn-add-custom season-toggle" id="btn-toggle-season" type="button" aria-pressed="true" title="Toggle the seasonal effects layer (shortcut: S)">🍂 Season</button>
       <button class="btn-add-custom hidden" id="install-app" type="button" title="Install the offline Scratchpad as a standalone app">📲 Install Scratchpad</button>
@@ -1021,6 +1028,8 @@
           <li>Install Scratchpad using Install app when available (iOS: Share → Add to Home Screen). After a successful online visit, the cached shell works offline; remote tools, feeds, and GitHub still need connectivity. Private browsing or cleared site data can erase local notes.</li>
         </ol>
         <h3>Smart Review Queue</h3>
+        <p><a class="modal-btn submit review-launch" href="scratchpad.html#smart-review">Open Smart Review Queue →</a></p>
+        <p><strong>Try it now:</strong> Open the queue, type “Call Alex” in Quick capture, and choose Add to review. Review all active items lets you Promote, Snooze, Mutate, or Compost immediately, even when Needs Attention is zero. Next item moves on without changing a timer. Quick capture stores review-only items; it never replaces your editor text.</p>
         <p>In the full Scratchpad app, paragraphs separated by blank lines become local review copies after a typing pause. Checkboxes/action verbs become Tasks (72 hours); URLs become Follow-Up (7 days); other prose becomes Spark / Inspiration (evergreen). Task intent takes precedence over a URL. Editing a captured paragraph refreshes its timer.</p>
         <p>Open Needs Attention to review one card at a time: Do / Done archives a completed copy; Promote makes a task; Defer / Snooze delays a week; Mutate asks you to write an offline Markdown summary and archives the original link; Compost moves a copy to searchable cold storage. Swipe right to snooze or left to compost, or use the buttons. After three snoozes, Keep as reference is suggested. Links untouched for 30 days auto-archive. Daily Serendipity shows up to two evergreen sparks. Search the archive to Restore items; Export review JSON backs up this local queue. Original note files are never deleted or rewritten by triage. Review metadata is local-only, not GitHub-synced.</p>
         <h3>Ideas for new capabilities (not implemented)</h3>
@@ -1220,6 +1229,7 @@
           <button type="button" class="modal-btn cancel" id="btn-scratchpad-view-app"
                   aria-pressed="false" title="The offline installable app, embedded in this dialog">📲 App view (offline)</button>
         </div>
+        <p class="modal-hint">✨ <a href="scratchpad.html#smart-review">Open Smart Review Queue →</a> — capture a task, link, or idea; review it now or let it resurface later. Your quick notes stay here.</p>
         <div id="scratchpad-inline-view">
         <!-- Section 1: Dual Storage Clarity Strip — Local Device vs GitHub Repo -->
         <section class="storage-clarity-bar" id="scratchpad-clarity-bar" aria-label="Storage and sync status">

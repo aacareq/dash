@@ -94,3 +94,69 @@ test('review UI renders a focused queue, snoozes, archives safely and searches s
     assert.equal(saved[0].snoozeCount, 1); assert.equal(saved[1].archived, true);
   } finally { Object.assign(globalThis, old); dom.window.close(); }
 });
+
+test('help content fits its dialog rather than requesting an independent viewport width', () => {
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const dom = new JSDOM(html);
+  const { window } = dom;
+  const dialog = window.document.querySelector('#dashboard-help');
+  const guide = dialog.querySelector('.help-guide');
+  const style = window.getComputedStyle(guide);
+  assert.equal(style.width, '100%');
+  assert.equal(style.maxWidth, '100%');
+  assert.equal(style.boxSizing, 'border-box');
+  assert.equal(style.overflowY, 'auto');
+  assert.equal(style.overflowWrap, 'anywhere');
+  assert.match(window.getComputedStyle(dialog).width, /850px/);
+  assert.equal(window.getComputedStyle(dialog).maxWidth, '992px'); // 1024px viewport minus 2rem
+  assert.equal(window.getComputedStyle(dialog.querySelector('ul')).paddingInlineStart, '22.4px');
+  assert.equal(window.document.querySelector('header a[href="scratchpad.html#smart-review"]').textContent, '✨ Smart Review Queue');
+  assert.ok(dialog.querySelector('a[href="scratchpad.html#smart-review"]'));
+  assert.ok(window.document.querySelector('#modal-scratchpad a[href="scratchpad.html#smart-review"]'));
+  dom.window.close();
+});
+
+test('deep link opens review immediately; quick capture preserves notes and active items can be triaged before due', async () => {
+  const { initReview } = await import('../assets/review.js');
+  const dom = new JSDOM('<section id="root" tabindex="-1"></section><textarea id="note">Existing note text</textarea>', { url: 'https://example.com/dash/scratchpad.html#smart-review' });
+  const { window } = dom;
+  const old = { document: globalThis.document, window: globalThis.window, localStorage: globalThis.localStorage };
+  Object.assign(globalThis, { document: window.document, window, localStorage: window.localStorage });
+  try {
+    const root = window.document.querySelector('#root');
+    const note = window.document.querySelector('#note');
+    initReview({ root, textarea: note, source: () => 'original.md' });
+    const click = label => { const button = [...root.querySelectorAll('button')].find(b => b.textContent === label); assert.ok(button, `button ${label} exists`); button.click(); };
+    assert.equal(root.querySelector('#review-panel').hidden, false);
+    assert.equal(window.document.activeElement, root);
+    assert.equal(root.querySelector('#review-pill').textContent, 'Needs Attention (0)');
+    assert.match(root.querySelector('article').textContent, /Existing note text/);
+    click('Next item');
+    root.querySelector('#review-capture').value = 'https://example.com/useful';
+    click('Add to review');
+    assert.equal(note.value, 'Existing note text');
+    assert.equal(root.querySelector('#review-capture').value, '');
+    let saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
+    assert.equal(saved.length, 2); assert.equal(saved[1].type, 'Follow-Up');
+    // New items are available immediately, without faking old timestamps.
+    assert.match(root.querySelector('article').textContent, /https:\/\/example.com\/useful/);
+    click('Promote');
+    saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
+    assert.equal(saved[1].type, 'Task'); assert.equal(due(saved[1]), false);
+    click('Review all active items'); click('Next item');
+    click('Defer / Snooze 1 week');
+    saved = JSON.parse(localStorage.getItem('dash-smart-review-v1'));
+    assert.equal(saved[1].snoozeCount, 1);
+    click('Review all active items'); click('Next item'); click('Compost');
+    assert.match(root.querySelector('.review-archive').textContent, /https:\/\/example.com\/useful/);
+    click('Restore');
+    assert.equal(JSON.parse(localStorage.getItem('dash-smart-review-v1'))[1].archived, false);
+    click('Needs Attention (0)');
+    assert.match(root.querySelector('article').textContent, /Nothing is due yet/);
+    assert.equal(note.value, 'Existing note text');
+    const count = JSON.parse(localStorage.getItem('dash-smart-review-v1')).length;
+    root.querySelector('#review-capture').value = '   '; click('Add to review');
+    assert.equal(JSON.parse(localStorage.getItem('dash-smart-review-v1')).length, count);
+    assert.equal(window.document.activeElement, root.querySelector('#review-capture'));
+  } finally { Object.assign(globalThis, old); dom.window.close(); }
+});

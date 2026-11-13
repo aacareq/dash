@@ -7,6 +7,7 @@
 //   2. switch the Scratchpad dialog between the inline notes pad and the
 //      full Scratchpad PWA embedded in a lazy-loaded same-origin iframe
 
+import { initCapture } from "./capture.js";
 import { setupPwaInstall } from "./pwa-install.js";
 
 const PWA_EMBED_URL = "scratchpad.html?embed=1";
@@ -49,3 +50,5 @@ setupPwaInstall({
   reloadButtonId: "sw-reload"
 });
 initScratchpadEmbed();
+
+initCapture({ root: document.getElementById("scratchpad-capture"), textarea: document.getElementById("scratchpad-text"), target: () => `Quick notes on this page — ${document.getElementById("scratchpad-filebar-file")?.textContent || "active file"}` });

@@ -13,6 +13,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Scratchpad" />
   <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/capture.css" />
 </head>
 <body>
   <header class="app-header">
@@ -21,7 +22,6 @@
     <span id="outbox-count" class="hidden" role="status" aria-live="polite"></span>
     <button type="button" class="modal-btn cancel" id="scratchpad-sync-now" title="Send commits queued while offline">Sync now</button>
     <button type="button" class="modal-btn hidden" id="install-app">Install app</button>
-    <a class="header-link" href="#smart-review">✨ Smart Review</a>
     <a class="header-link" href="index.html">Dashboard</a>
   </header>
 
@@ -226,8 +226,6 @@
       <span class="scratch-clock" id="scratchpad-clock" role="timer" aria-live="off" title="Right now">—</span>
     </div>
 
-    <h2 class="notes-heading">Your notes</h2>
-    <p class="subtitle">This is your active note file. Edits autosave on this device; GitHub sync applies to this file only. Smart Review below is separate and only receives text you explicitly add.</p>
     <div class="scratch-editor" id="scratchpad-editor">
       <textarea id="scratchpad-text" class="form-input scratch-textarea" rows="16"
                 placeholder="Jot anything here… it autosaves on this device. Markdown works — use the buttons above or just type."
@@ -235,7 +233,7 @@
       <div class="md-preview" id="scratchpad-preview" hidden></div>
     </div>
 
-    <section id="smart-review" aria-label="Smart review queue" tabindex="-1"></section>
+    <details class="scratch-capture" id="scratchpad-capture"></details>
 
     <p class="status-msg" id="scratchpad-status" role="status" aria-live="polite"></p>
 

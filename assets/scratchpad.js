@@ -1,4 +1,4 @@
-import { initReview } from "./review.js";
+import { initCapture } from "./capture.js";
 // Scratchpad PWA — main controller.
 //
 // Standalone-page counterpart of the dashboard's scratchpad dialog, with:
@@ -73,7 +73,7 @@ async function main() {
     note = await notes.newDatedNote();
   }
   textarea.value = note.body || "";
-  initReview({ root: $("smart-review"), textarea, source: () => notes.current?.path || notes.current?.title || "Scratchpad" });
+  initCapture({ root: $("scratchpad-capture"), textarea, target: () => notes.current?.path || notes.current?.title || "active note" });
 
   let localSaveTimer;
   let localSaving = false;

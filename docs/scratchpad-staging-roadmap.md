@@ -15,6 +15,10 @@ Draft fields are not persisted before Add. After Add, the normal editor input/au
 
 Existing notes, credentials, sync settings, storage keys, and conflict protections remain unchanged. Prior review data is deliberately **not erased**: `dash-smart-review-v1` is left untouched in localStorage, but is no longer read or modified by the app. If you need to recover it, use browser developer tools → Application/Storage → Local Storage → the current site → `dash-smart-review-v1`, and copy its JSON value to a private backup file. Do not clear site data before recovering it. This legacy record is not included in ordinary note exports or GitHub saves.
 
+## Update: v1.11.0
+
+New-note Markdown outlines and a local, optional field-based Basic prompt creator are now shipped. See [Note outlines and prompts](note-outlines-and-prompts.md). Selection-to-prompt, a cross-note basket, and research launchers below remain proposals.
+
 ## Design principle for future work
 
 **The note is the source of truth. Capture → optionally select → explicitly compile → preview → copy/export.** No hidden copying, timer queues, automatic organization, or extra inbox. Every feature must answer “where is this saved?” on-screen. Ship each stage separately and validate it with users before adding the next one.

@@ -76,6 +76,7 @@ for (const page of ['index.html', 'scratchpad.html']) {
       let destination = 'notes/one.md';
       initCapture({ root, textarea: note, target: () => destination });
       const field = key => root.querySelector(`[data-capture="${key}"]`);
+      assert.deepEqual([...field('intent').options].map(o => o.textContent), ['Plain Note', 'Task', 'Inspiration', 'Reference', 'Prompt Seed']);
       assert.equal(changes, 0);
       root.querySelector('[data-add]').click(); assert.equal(changes, 0); assert.match(root.textContent, /Enter some content first/);
       field('text').value = '<script>alert(1)</script> captured idea';

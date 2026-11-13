@@ -175,6 +175,8 @@
       <p class="status-msg" id="scratchpad-ws-status" role="status" aria-live="polite"></p>
     </section>
 
+    <section id="smart-review" aria-label="Smart review queue"></section>
+
     <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
       <div class="md-toolbar-group" role="group" aria-label="Text styling">
         <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B" aria-label="Bold"><strong>B</strong></button>
@@ -230,45 +232,6 @@
                 placeholder="Jot anything here… it autosaves on this device. Markdown works — use the buttons above or just type."
                 aria-label="Scratchpad notes"></textarea>
       <div class="md-preview" id="scratchpad-preview" hidden></div>
-    </div>
-
-    <div class="scratch-help-modal sheet-modal" id="scratchpad-help-modal" aria-labelledby="scratchpad-help-title">
-      <div class="sheet-card">
-        <header class="sheet-head">
-          <h2 class="sheet-title" id="scratchpad-help-title">❓ Help & How-to</h2>
-          <button type="button" class="modal-btn cancel" id="scratchpad-help-close" data-close-sheet>Close</button>
-        </header>
-        <div class="gh-sync-body">
-          <section class="gh-section">
-            <h3 class="gh-section-title">What the Dashboard Does</h3>
-            <p class="modal-hint">
-              Dash is an offline-first workspace that lets you take fast, exportable, GitHub-backed notes.
-              It includes a Scratchpad for quick markdown notes, a Feeds view, and an Inference panel,
-              all synced to your GitHub repository.
-            </p>
-          </section>
-
-          <section class="gh-section">
-            <h3 class="gh-section-title">How to Use It</h3>
-            <ol class="gh-restore-steps">
-              <li><strong>Scratchpad:</strong> Type notes, use the toolbar (Bold, Italic, Link, etc.) and export them.</li>
-              <li><strong>GitHub Sync:</strong> Click the ⚙ GitHub sync button to connect your repo and save/pull notes.</li>
-              <li><strong>Workspace:</strong> Use the Files &amp; folders panel to create, rename, or browse files.</li>
-              <li><strong>Live Preview:</strong> Toggle the 👁 Preview button to see markdown rendered in real-time.</li>
-            </ol>
-          </section>
-
-          <section class="gh-section">
-            <h3 class="gh-section-title">Ideas for Improving the Dashboard</h3>
-            <ul class="gh-restore-steps">
-              <li>Add collaborative editing with live sync between multiple users.</li>
-              <li>Support for image drag-and-drop and inline preview.</li>
-              <li>Enhanced search across all notes and folders.</li>
-              <li>Integration with Notion or other task managers.</li>
-            </ul>
-          </section>
-        </div>
-      </div>
     </div>
 
     <p class="status-msg" id="scratchpad-status" role="status" aria-live="polite"></p>

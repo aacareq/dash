@@ -802,3 +802,22 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
   }
   .emoji-scroll { max-height: 32dvh; }
 }
+
+/* Review content is always plain text, scrollable and thumb-friendly. */
+#smart-review { min-width: 0; border: 1px solid var(--border); padding: 1rem; border-radius: var(--radius); }
+#smart-review p, .review-card { white-space: pre-wrap; overflow-wrap: anywhere; }
+#smart-review button { margin: .25rem; min-height: 44px; }
+.review-card { padding: 1rem; background: var(--card-bg); border-radius: var(--radius); touch-action: pan-y; }
+.review-serendipity { max-height: 9rem; overflow: auto; color: var(--text-muted); }
+.review-archive { max-height: 24rem; overflow-y: auto; }
+.shell, .shell > *, .editor-row, .md-preview { min-width: 0; }
+@media (max-width: 720px) {
+  .app-header, .workspace-bar, .path-row, .token-row, .md-toolbar, .storage-clarity-bar { flex-wrap: wrap; }
+  .app-header { gap: .5rem; padding: .75rem; }
+  .shell { padding: .75rem; }
+  .editor-row { display: flex; flex-direction: column; }
+  input, textarea, select { font-size: 16px; min-width: 0; max-width: 100%; }
+  .modal-btn, .ws-btn, .md-btn, .ws-chip-btn { min-height: 44px; }
+  .sheet-card { max-height: 92dvh; width: 96vw; overflow-y: auto; }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}

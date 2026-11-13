@@ -222,6 +222,18 @@ export function createEditor({ textarea, toolbar, preview, previewToggle, emojiE
     else if (tool === "italic") wrapSelection("*", "italic text");
     else if (tool === "strike") wrapSelection("~~", "strikethrough");
     else if (tool === "hr") insertDivider();
+    else if (tool === "link") {
+      const start = textarea.selectionStart, end = textarea.selectionEnd;
+      const label = textarea.value.slice(start, end) || "link text";
+      const raw = window.prompt("Link URL (https:// or http://)", "https://");
+      if (!raw) return;
+      let url;
+      try { url = new URL(raw.trim()); if (!/^https?:$/.test(url.protocol)) throw Error(); }
+      catch { window.alert("Enter a valid http or https URL."); return; }
+      const safeLabel = label.replace(/[\\\[\]]/g, "\\$&");
+      const text = `[${safeLabel}](${url.href.replace(/\(/g, "%28").replace(/\)/g, "%29")})`;
+      applyEdit(start, end, text, start + 1, start + 1 + safeLabel.length);
+    }
     else if (tool === "table") insertTable();
     else if (LINE_TOOLS[tool]) toggleLinePrefix(tool);
   }

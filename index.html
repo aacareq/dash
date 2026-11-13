@@ -906,6 +906,28 @@
       #scratchpad-app-frame { height: 78vh; }
       .scratch-view-toggle .modal-btn { flex: 1 1 auto; }
     }
+
+    .help-guide { width: min(850px, 94vw); max-height: 85dvh; overflow-y: auto; line-height: 1.65; overflow-wrap: anywhere; }
+    .help-guide h3 { margin-top: 1.4rem; }
+    .help-guide li { margin-bottom: .65rem; }
+    .help-guide form { position: sticky; top: 0; text-align: right; }
+    main, .search-wrapper, .card { min-width: 0; }
+    @media (max-width: 992px) {
+      aside { flex-wrap: wrap; }
+      main > header { flex-wrap: wrap; gap: .6rem; }
+      .search-wrapper { flex: 1 1 100%; }
+      .sidebar-footer { flex-wrap: wrap; }
+      .nav-links { padding-bottom: max(.55rem, env(safe-area-inset-bottom)); }
+      main { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+    }
+    @media (max-width: 560px) {
+      .modal { max-width: 100vw; }
+      .modal-card { max-width: 94vw; padding: 1rem; }
+      button, .nav-btn { min-height: 44px; }
+      .md-toolbar { flex-wrap: wrap; }
+      .scratchpad-editor, .scratchpad-editor-row { min-width: 0; }
+      input, textarea, select { font-size: 16px; }
+    }
   </style>
 </head>
 <body>
@@ -915,7 +937,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.6.1</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.7.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -962,6 +984,7 @@
         <button class="clear-search" id="clear-search" type="button" aria-label="Clear search">Clear</button>
         <span class="search-shortcut">/</span>
       </div>
+      <button class="btn-add-custom" id="dashboard-help-open" type="button">❓ Help &amp; How to use</button>
       <button class="btn-add-custom season-toggle" id="btn-toggle-season" type="button" aria-pressed="true" title="Toggle the seasonal effects layer (shortcut: S)">🍂 Season</button>
       <button class="btn-add-custom hidden" id="install-app" type="button" title="Install the offline Scratchpad as a standalone app">📲 Install Scratchpad</button>
       <button class="btn-add-custom" id="btn-open-custom-modal" type="button">+ Custom Tool</button>
@@ -969,6 +992,43 @@
 
     <!-- Toast Container -->
     <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+
+    <dialog id="dashboard-help" class="modal" aria-labelledby="dashboard-help-title">
+      <div class="modal-card help-guide">
+        <form method="dialog"><button class="modal-btn cancel" autofocus>Close help</button></form>
+        <h2 id="dashboard-help-title">Help &amp; How to use Dash</h2>
+        <p>Your personal launchpad for tools, workflows, research, and quick notes. Dashboard settings live in this browser. Only Scratchpad notes have optional GitHub sync; feeds and inference panels are not synced to a repository.</p>
+        <h3>Explore, find, and organize</h3>
+        <ul>
+          <li><strong>All Clusters / Daily Core:</strong> Browse grouped tools or start with daily essentials. Choose a cluster in the sidebar (bottom navigation on phones); the menu button expands mobile navigation.</li>
+          <li><strong>Search:</strong> Type tool names, descriptions, tasks, or tags in the top search bar. Press / to focus it; Clear resets the filter.</li>
+          <li><strong>Tool cards:</strong> Open a tool, copy its URL, expand its details or workflow, and use its task-specific launch links. External services have their own accounts, pricing, and availability.</li>
+          <li><strong>Favorites:</strong> Star useful cards and open Favorites to find them again. Custom Tool adds your own named URL and description; use its card controls to maintain it.</li>
+          <li><strong>Working On:</strong> Track current work using its task and workflow controls. Personal AI Agents and Bookmarklets provide launch shortcuts; drag bookmarklet links to your bookmarks bar, then run them on a suitable page. Browser permissions may limit them.</li>
+          <li><strong>Tool clusters:</strong> Inference, Free Inference, Coding Agents, Zero-Cost APIs, Agents, Vibe Dev, CLI Coding Tools, and Free Tier Ops group services by purpose. Open the linked panels for focused browsing; “free” offerings can change.</li>
+          <li><strong>News and discovery:</strong> Tech News, Trending &amp; Research, Socials, and Search Socials collect sources. Enter a query in a section's search launcher, then choose a source. Feed loading requires network access and may depend on provider/CORS availability.</li>
+          <li><strong>Service Revenue:</strong> Browse service and revenue workflows. Clipboard history provides local reuse of copied snippets where supported; browser clipboard permission and a secure context may be required.</li>
+          <li><strong>Preferences and backups:</strong> Toggle light/dark mode and Season effects (S). Export saves dashboard configuration as JSON; Import restores it. Keep separate backups of notes and review data. Previous dashboard opens the archived layout.</li>
+        </ul>
+        <h3>Scratchpad / Quick Notes — fast, exportable, GitHub-backed notes</h3>
+        <ol>
+          <li>Open the Scratchpad card. Quick notes autosave on this device. Choose the full app view or open <a href="scratchpad.html">Scratchpad</a> for files, folders, and the Smart Review Queue.</li>
+          <li>Select text, then use Bold, Italic, Strike, headings, lists, checkboxes, quotes, tables, dividers, or emoji. Link asks for an http/https URL and wraps the selection as Markdown. Toggle Preview to render it; preview checkboxes update task lines.</li>
+          <li>Copy, download Markdown/text, or use Open/Save file where your browser supports it. Clearing text is destructive: export important notes first.</li>
+          <li>In the full app, Today's note reuses one daily file; New note creates another dated file. Today's folder and Files &amp; folders create, browse, and rename local files/directories. Check the active path before saving.</li>
+          <li>GitHub sync is optional: connect through the GitHub App setup/restore flow or advanced token option; choose repository, branch, and file path. Pull latest before editing remote work. Local and repository indicators are separate. Auto-save sends edits after a pause; offline commits queue for Sync now when online. Resolve conflicts explicitly; overwrite only when you intend to replace the remote version. Protect connection files and keys.</li>
+          <li>Install Scratchpad using Install app when available (iOS: Share → Add to Home Screen). After a successful online visit, the cached shell works offline; remote tools, feeds, and GitHub still need connectivity. Private browsing or cleared site data can erase local notes.</li>
+        </ol>
+        <h3>Smart Review Queue</h3>
+        <p>In the full Scratchpad app, paragraphs separated by blank lines become local review copies after a typing pause. Checkboxes/action verbs become Tasks (72 hours); URLs become Follow-Up (7 days); other prose becomes Spark / Inspiration (evergreen). Task intent takes precedence over a URL. Editing a captured paragraph refreshes its timer.</p>
+        <p>Open Needs Attention to review one card at a time: Do / Done archives a completed copy; Promote makes a task; Defer / Snooze delays a week; Mutate asks you to write an offline Markdown summary and archives the original link; Compost moves a copy to searchable cold storage. Swipe right to snooze or left to compost, or use the buttons. After three snoozes, Keep as reference is suggested. Links untouched for 30 days auto-archive. Daily Serendipity shows up to two evergreen sparks. Search the archive to Restore items; Export review JSON backs up this local queue. Original note files are never deleted or rewritten by triage. Review metadata is local-only, not GitHub-synced.</p>
+        <h3>Ideas for new capabilities (not implemented)</h3>
+        <ul><li>Cross-note full-text search and backlinks for connecting ideas.</li><li>Optional recurring tasks and a weekly digest with opt-in notifications.</li><li>Import/restore for review backups, and conflict-aware cross-device review metadata sync.</li><li>Accessible drag-and-drop attachments, with storage quotas and explicit upload consent.</li></ul>
+        <h3>Ideas for performance (not implemented)</h3>
+        <ul><li>Profile startup, long tasks, memory, and mobile input latency before optimizing.</li><li>Lazy-render offscreen clusters and virtualize large file/archive lists.</li><li>Move large review collections to indexed IndexedDB storage; batch writes and cache normalized search text.</li><li>Pause seasonal animation in hidden tabs and use idle time for nonessential work.</li><li>Keep preview work debounced/off-thread and load remote feeds only on demand.</li></ul>
+      </div>
+    </dialog>
 
     <!-- Custom Tool Modal -->
     <dialog id="custom-tool-modal" class="modal">
@@ -1315,6 +1375,7 @@
           <div class="md-toolbar-group" role="group" aria-label="Insert">
             <button type="button" class="md-btn" data-md="quote" title="Quote" aria-label="Quote">❝ Quote</button>
             <button type="button" class="md-btn" data-md="hr" title="Divider" aria-label="Horizontal divider">― Divider</button>
+            <button type="button" class="md-btn" data-md="link" title="Link selected text">🔗 Link</button>
             <button type="button" class="md-btn" data-md="table" title="Insert a markdown table (header row + as many rows as you need)" aria-label="Insert table">▦ Table</button>
             <span class="emoji-anchor">
               <button type="button" class="md-btn" id="scratchpad-emoji-btn" aria-haspopup="dialog" aria-expanded="false"
@@ -4622,7 +4683,19 @@
         else if (tool === "italic") wrapSelection("*", "italic text");
         else if (tool === "strike") wrapSelection("~~", "strikethrough");
         else if (tool === "hr") insertDivider();
-        else if (tool === "table") insertTable();
+        else if (tool === "link") {
+      const start = textarea.selectionStart, end = textarea.selectionEnd;
+      const label = textarea.value.slice(start, end) || "link text";
+      const raw = window.prompt("Link URL (https:// or http://)", "https://");
+      if (!raw) return;
+      let url;
+      try { url = new URL(raw.trim()); if (!/^https?:$/.test(url.protocol)) throw Error(); }
+      catch { window.alert("Enter a valid http or https URL."); return; }
+      const safeLabel = label.replace(/[\\\[\]]/g, "\\$&");
+      const text = `[${safeLabel}](${url.href.replace(/\(/g, "%28").replace(/\)/g, "%29")})`;
+      applyEdit(start, end, text, start + 1, start + 1 + safeLabel.length);
+    }
+    else if (tool === "table") insertTable();
         else if (LINE_TOOLS[tool]) toggleLinePrefix(tool);
       }
 
@@ -7390,5 +7463,14 @@
     <button type="button" class="modal-btn submit" id="sw-reload">Reload</button>
   </div>
   <script type="module" src="assets/dashboard-pwa.js"></script>
+<script>
+    {
+      const help = document.getElementById('dashboard-help');
+      const opener = document.getElementById('dashboard-help-open');
+      opener.addEventListener('click', () => help.showModal());
+      help.addEventListener('close', () => opener.focus());
+      help.addEventListener('click', event => { if (event.target === help) help.close(); });
+    }
+  </script>
 </body>
 </html>

@@ -124,6 +124,10 @@ attachments, deadlines and note links. Search includes image filenames, not
 image contents. Notes suggests categories and related notes based on content
 and shared tags, and shows backlinks and upcoming or overdue reminders.
 
+Notes syncs Markdown to `<your GitHub username>/notes` using the existing GitHub
+connection. If the repository is missing, Notes tries to create it privately;
+if GitHub denies creation, create it yourself and grant the connection access.
+Scratchpad keeps its own repository setting, and existing files are not moved.
 GitHub sync and Markdown exports cover the note text. Images, tags, deadlines,
 favorites and note relationships are stored on this device; reminders are
 shown in Notes while the page is open, not delivered in the background. Notes

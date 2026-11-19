@@ -14,6 +14,7 @@ const path = require("path");
 const { webcrypto, generateKeyPairSync } = require("crypto");
 const { pathToFileURL } = require("url");
 
+const notesMode = process.argv.includes("--notes");
 const ROOT = path.join(__dirname, "..");
 let failures = 0;
 function check(name, cond, extra) {
@@ -28,7 +29,7 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", error => errors.push(String(error.message || error)));
   const dom = new JSDOM(fs.readFileSync(path.join(ROOT, "scratchpad.html"), "utf8"), {
-    url: "https://aacareq.github.io/dash/scratchpad.html",
+    url: `https://aacareq.github.io/dash/scratchpad.html${notesMode ? "?notes=1" : ""}`,
     pretendToBeVisual: true,
     virtualConsole
   });
@@ -38,7 +39,7 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   // Node's globalThis, hence defineProperty.
   for (const key of ["window", "document", "location", "navigator", "sessionStorage", "localStorage",
     "HTMLElement", "HTMLInputElement", "HTMLTextAreaElement", "HTMLAnchorElement", "Event", "CustomEvent",
-    "Blob", "File", "URL", "URLSearchParams", "AbortController", "Node", "Element", "DOMParser",
+    "Blob", "File", "Option", "URL", "URLSearchParams", "AbortController", "Node", "Element", "DOMParser",
     "getComputedStyle", "requestAnimationFrame"]) {
     if (!(key in win)) continue;
     try { globalThis[key] = win[key]; }
@@ -51,6 +52,8 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   globalThis.atob = value => Buffer.from(value, "base64").toString("binary");
 
   const calls = [];
+  let ownNotesAvailable = false;
+  if (notesMode) win.localStorage.setItem("dash-scratchpad-gh-repo", "octocat/scratch");
   const repoFiles = {};
   const issued = { installations: [{ id: 424242, account: { login: "octocat" }, target_type: "User" }] };
   globalThis.fetch = async (url, options = {}) => {
@@ -62,8 +65,15 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
     }
     if (target.includes("/access_tokens")) return jsonRes({ token: "ghs_minted", expires_at: new Date(Date.now() + 3600 * 1000).toISOString() });
     if (target.includes("/app/installations")) return jsonRes(issued.installations);
+    if (target.endsWith("/user/repos") && method === "POST" && notesMode) {
+      return jsonRes({ message: "Repository creation not permitted" }, 403);
+    }
     if (target.includes("/installation/repositories")) {
-      return jsonRes({ total_count: 1, repositories: [{ full_name: "octocat/scratch", name: "scratch" }] });
+      return jsonRes({ repositories: [
+        { full_name: "octocat/scratch", name: "scratch" },
+        ...(notesMode ? [{ full_name: "other/notes", name: "notes" }] : []),
+        ...(ownNotesAvailable ? [{ full_name: "octocat/notes", name: "notes" }] : [])
+      ] });
     }
     if (target.includes("/repos/")) {
       if (/\/repos\/[^/]+\/[^/]+$/.test(target) && method === "GET") return jsonRes({ default_branch: "main" });
@@ -163,6 +173,32 @@ const jsonRes = (payload, status = 200) => ({ ok: status >= 200 && status < 300,
   check("the app record is stored", adopted && adopted.app_id === 987654, JSON.stringify(adopted && adopted.app_id));
   check("GitHub confirmed the key with GET /app", calls.some(call => call.target === "https://api.github.com/app"));
   check("the existing installation is picked up", adopted && adopted.installation_id === 424242, JSON.stringify(adopted && adopted.installation_id));
+  if (notesMode) {
+    console.log("\n[3] Notes sync is restricted to the connected user's notes repository");
+    const picker = $("scratchpad-gh-repo");
+    check("Notes mode is visible", !$("notes-workspace").hidden);
+    check("missing personal repo never falls back to scratch or another owner's notes", picker.disabled && picker.value === "");
+    check("creation requests a private notes repository", calls.some(call => {
+      if (!call.target.endsWith("/user/repos") || call.method !== "POST") return false;
+      const body = JSON.parse(call.options.body);
+      return body.name === "notes" && body.private && body.auto_init;
+    }));
+    $("scratchpad-gh-save").click();
+    await wait(100);
+    check("save cannot write without a usable Notes repo", !calls.some(call => call.method === "PUT"));
+    ownNotesAvailable = true;
+    $("scratchpad-gh-scratch").click();
+    await wait(400);
+    check("the connected user's notes repo is selected", picker.value === "octocat/notes");
+    $("scratchpad-text").value = "# Notes sync test";
+    $("scratchpad-gh-save").click();
+    await wait(400);
+    check("save commits to octocat/notes only", calls.some(call => call.method === "PUT" && call.target.includes("/repos/octocat/notes/contents/")) &&
+      !calls.some(call => call.method === "PUT" && !call.target.includes("/repos/octocat/notes/contents/")));
+    check("Scratchpad's stored repo is unchanged", win.localStorage.getItem("dash-scratchpad-gh-repo") === "octocat/scratch");
+    win.close();
+    process.exit(failures === 0 ? 0 : 1);
+  }
   check("the panel says no new app was created", /no new GitHub App was created/.test($("scratchpad-gh-status").textContent),
     $("scratchpad-gh-status").textContent);
   check("saving controls appear", $("scratchpad-gh-target").hidden === false);

@@ -101,8 +101,8 @@ export class SyncEngine {
 
   // Drains the queue. Stops at the first network failure (everything behind it
   // would fail the same way) or at a conflict the user must resolve.
-  async flush() {
-    const entries = await this.store.listOutbox();
+  async flush({ repo } = {}) {
+    const entries = (await this.store.listOutbox()).filter(entry => !repo || entry.repo.toLowerCase() === repo.toLowerCase());
     if (!entries.length) return { status: "empty", delivered: 0 };
     const connection = await this.gh.connection();
     if (!connection.ready) return { status: "disconnected", pending: entries.length };

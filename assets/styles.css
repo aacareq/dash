@@ -830,3 +830,14 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
 #notes-images a { display: block; }
 #notes-ai-context, #notes-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
 #notes-ai-context { max-height: 15rem; overflow: auto; }
+
+#notes-workspace [hidden] { display: none !important; }
+#notes-workspace [data-notes-view] { padding: .5rem .8rem; }
+#notes-workspace [data-notes-view][aria-pressed="true"] { border-color: var(--accent); color: var(--text); }
+#notes-editor-slot > details { margin-bottom: .7rem; }
+#notes-ai-status { border-inline-start: 3px solid var(--accent); padding: .55rem .75rem; }
+#notes-ai-status[data-state="busy"]::before { content: '⏳ '; }
+#notes-ai-status[data-state="error"]::before { content: '⚠ '; }
+#notes-ai-status[data-state="success"]::before { content: '✓ '; }
+#notes-answer:not(:empty) { padding: .65rem .75rem; }
+#notes-assistant a { color: var(--accent); }

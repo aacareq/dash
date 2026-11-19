@@ -54,6 +54,10 @@ function noteIdForPath(path) {
   return `note:${path}`;
 }
 
+export function workspaceIdentity(note) {
+  return note.workspaceId || `legacy:${note.createdAt}`;
+}
+
 function titleForPath(path) {
   return String(path || "").replace(/\.md$/i, "");
 }
@@ -105,6 +109,26 @@ export class NoteManager {
 
   async list() {
     return this._readIndex();
+  }
+
+  async readWorkspaceNotes() {
+    const index = await this.list();
+    const active = this.current;
+    const records = await Promise.all(index.filter(({ path }) => path !== active?.path)
+      .map(({ path }) => this.store.getNote(noteIdForPath(path))));
+    return Promise.all([active, ...records].filter(Boolean).map(async note => ({
+      ...note,
+      workspace: (await this.store.getNote(`workspace:${workspaceIdentity(note)}`))?.workspace
+    })));
+  }
+
+  async updateWorkspaceMetadata(note, patch) {
+    if (note !== this.current) throw new Error("The active note changed. Please try again.");
+    // Separate records prevent another Scratchpad tab's editor save from
+    // overwriting metadata, and keep image blobs out of ordinary autosaves.
+    const id = `workspace:${workspaceIdentity(note)}`;
+    const previous = await this.store.getNote(id);
+    await this.store.putNote({ id, workspace: { ...previous?.workspace, ...patch } });
   }
 
   async listFolders() {
@@ -168,6 +192,7 @@ export class NoteManager {
     if (!note) {
       note = {
         id,
+        workspaceId: globalThis.crypto?.randomUUID?.() || `${this.now().getTime()}-${Math.random()}`,
         title: titleForPath(cleanPath),
         path: cleanPath,
         body: typeof initialBody === "string" ? initialBody : createNoteOutline(cleanPath, this.now()),

@@ -943,7 +943,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.11.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.12.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -2060,6 +2060,14 @@
             aliases: ["quick notes", "notepad", "markdown editor", "notes to github", "github backup"]
           },
           {
+            name: "Notes",
+            url: "scratchpad.html?notes=1",
+            internal: true,
+            desc: "Capture and search your notes, organize with tags and favorites, track reminders, link ideas, and ask a BYOK memory assistant.",
+            best: "A searchable personal notebook",
+            tags: ["notes", "tasks", "knowledge", "BYOK"]
+          },
+          {
             name: "Clipboard History",
             modal: "modal-clipboard",
             desc: "Keeps more than one thing in the clipboard: capture what you paste or copy, pin the keepers, and save the whole collection to clips/clips-<date>.md in a dedicated clips repo.",
@@ -2185,14 +2193,16 @@
     const defaultFavorites = ["daily:github", "inference:gemini", "inference:arena-ai", "inference:claude"];
     const state = { activeSection: "all", query: "", favorites: new Set(), theme: "dark", sectionQueries: {} };
     const slugify = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    // Keep the personal agents bookmarklet first, then Scratchpad and the remaining bookmarklets.
+    // Keep the personal agents bookmarklet first, then Scratchpad, Notes, and the remaining bookmarklets.
     // Pinned cards reuse the definitions in their original clusters and never duplicate saved favorites.
     const scratchpadCard = database.workingon.items.find(item => item.modal === "modal-scratchpad");
+    const notesCard = database.workingon.items.find(item => item.url === "scratchpad.html?notes=1");
     const personalAgentsBookmarklet = bookmarkletItems.find(item => item.name === "Personal AI Agents — Always-On");
     const pinnedBookmarklet = item => ({ ...item, sectionKey: "bookmarklets", id: `bookmarklets:${slugify(item.name)}` });
     const pinnedFavorites = [
       ...(personalAgentsBookmarklet ? [pinnedBookmarklet(personalAgentsBookmarklet)] : []),
       ...(scratchpadCard ? [{ ...scratchpadCard, sectionKey: "workingon", id: `workingon:${slugify(scratchpadCard.name)}` }] : []),
+      ...(notesCard ? [{ ...notesCard, sectionKey: "workingon", id: `workingon:${slugify(notesCard.name)}` }] : []),
       ...bookmarkletItems.filter(item => item !== personalAgentsBookmarklet).map(pinnedBookmarklet)
     ];
     /*

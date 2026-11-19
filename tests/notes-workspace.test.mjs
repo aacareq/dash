@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { MemoryStore } from '../assets/notes-store.js';
 import { NoteManager } from '../assets/notes-manager.js';
-import { category, dueNotes, initNotesWorkspace, matchingNotes, memoryContext, relatedNotes } from '../assets/notes-workspace.js';
+import { askMemory, category, dueNotes, initNotesWorkspace, matchingNotes, memoryContext, relatedNotes } from '../assets/notes-workspace.js';
 
 async function setup() {
   const store = new MemoryStore();
@@ -76,24 +76,39 @@ test('workspace renders live search, persists details, and only sends inference 
   const textarea = $('scratchpad-text');
   textarea.value = notes.current.body;
   const requests = [];
-  globalThis.fetch = async (url, options) => {
+  let respond;
+  globalThis.fetch = (url, options) => new Promise(resolve => {
     requests.push({ url, options });
-    return { ok: true, json: async () => ({ choices: [{ message: { content: 'Thursday [projects/launch.md]' } }] }) };
-  };
+    respond = resolve;
+  });
   initNotesWorkspace({ notes, textarea, flushLocalSave: () => notes.setBody(textarea.value), switchNote: next => {
     textarea.value = next.body;
     document.dispatchEvent(new Event('dash-note-changed'));
   } });
   await settle();
   assert.equal($('notes-workspace').hidden, false);
+  assert.ok($('notes-editor').contains(textarea));
+  assert.equal(document.querySelectorAll('#scratchpad-text').length, 1);
+  assert.equal($('notes-library').hidden, true);
+  const view = name => document.querySelector(`[data-notes-view="${name}"]`).click();
+  view('library');
+  assert.equal($('notes-editor').hidden, true);
+  assert.equal($('notes-library').hidden, false);
   $('notes-search').value = 'wireframe';
   $('notes-search').dispatchEvent(new Event('input'));
   assert.match($('notes-results').textContent, /projects\/launch\.md/);
   assert.doesNotMatch($('notes-results').textContent, /planning\.md/);
+  view('editor');
   $('notes-tags').value = 'planning, launch';
   $('notes-metadata').dispatchEvent(new Event('submit', { cancelable: true }));
   await settle();
   assert.deepEqual((await notes.readWorkspaceNotes())[0].workspace.tags, ['planning', 'launch']);
+  view('assistant');
+  assert.equal($('notes-editor').hidden, true);
+  assert.equal($('notes-assistant').hidden, false);
+  assert.deepEqual([...$('notes-assistant').querySelectorAll('a')].map(a => a.href), [
+    'https://console.groq.com/keys', 'https://openrouter.ai/keys', 'https://aistudio.google.com/apikey'
+  ]);
   $('notes-question').value = 'When is the launch?';
   $('notes-key').value = 'mock-key';
   $('notes-prepare').click();
@@ -102,8 +117,46 @@ test('workspace renders live search, persists details, and only sends inference 
   assert.doesNotMatch($('notes-ai-context').textContent, /mock-key/);
   assert.equal(requests.length, 0);
   $('notes-send').click();
-  await settle();
+  assert.equal($('notes-ai-status').textContent, 'Waiting for Groq…');
+  assert.equal($('notes-send').disabled, true);
   assert.equal(requests.length, 1);
   assert.equal(requests[0].url, 'https://api.groq.com/openai/v1/chat/completions');
+  respond({ ok: true, json: async () => ({ choices: [{ message: { content: 'Thursday [projects/launch.md]' } }] }) });
+  await settle();
   assert.match($('notes-answer').textContent, /Thursday/);
+  assert.equal($('notes-ai-status').textContent, 'Groq answered.');
+  $('notes-provider').value = 'google';
+  $('notes-provider').dispatchEvent(new Event('change'));
+  assert.equal($('notes-key').value, '');
+  assert.equal($('notes-send').disabled, true);
+  localStorage.setItem('zc.byok.v1', JSON.stringify({ google: 'stored-test-key' }));
+  $('notes-prepare').click();
+  await settle();
+  $('notes-send').click();
+  assert.equal(requests[1].options.headers['x-goog-api-key'], 'stored-test-key');
+  assert.match($('notes-ai-status').textContent, /Waiting for Gemini/);
+  respond({ ok: false, status: 429 });
+  await settle();
+  assert.match($('notes-ai-status').textContent, /Gemini.*429.*quota/);
+  assert.equal($('notes-send').disabled, false);
+});
+
+
+test('Gemini posts generateContent with a header key and extracts visible text parts', async () => {
+  const request = { provider: 'google', question: 'Summarize', context: [{ text: 'Example note' }] };
+  const answer = await askMemory(request, 'secret', async (url, options) => {
+    assert.equal(url, 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent');
+    assert.equal(options.headers['x-goog-api-key'], 'secret');
+    assert.equal(options.headers.Authorization, undefined);
+    const body = JSON.parse(options.body);
+    assert.deepEqual(JSON.parse(body.contents[0].parts[0].text), { question: request.question, context: request.context });
+    assert.match(body.systemInstruction.parts[0].text, /untrusted/);
+    return { ok: true, json: async () => ({ candidates: [{ content: { parts: [
+      { text: 'Internal', thought: true }, { text: 'One ' }, { text: 'note.' }
+    ] } }] }) };
+  });
+  assert.equal(answer, 'One note.');
+  await assert.rejects(askMemory(request, 'secret', async () => ({
+    ok: true, json: async () => ({ promptFeedback: { blockReason: 'SAFETY' } })
+  })), /Gemini blocked/);
 });

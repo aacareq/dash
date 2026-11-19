@@ -58,57 +58,71 @@
 
     <!-- Section 2: Workspace Quick-Action Bar (Bigger, color-coded buttons) -->
     <section id="notes-workspace" class="ws-panel" aria-label="Notes workspace" hidden>
-      <h2>Notes workspace</h2>
-      <div class="notes-actions">
+      <nav class="notes-actions" aria-label="Notes views">
+        <button type="button" class="ws-chip-btn" data-notes-view="editor" aria-controls="notes-editor" aria-pressed="true">Write</button>
+        <button type="button" class="ws-chip-btn" data-notes-view="library" aria-controls="notes-library" aria-pressed="false">Library</button>
+        <button type="button" class="ws-chip-btn" data-notes-view="assistant" aria-controls="notes-assistant" aria-pressed="false">AI Memory</button>
         <button type="button" class="modal-btn submit" id="notes-new">＋ New note</button>
-        <button type="button" class="ws-chip-btn" id="notes-check">Insert checklist item</button>
-      </div>
-      <div class="notes-fields">
-        <label>Search notes <input id="notes-search" type="search" class="form-input" placeholder="Title, text, tags, image filenames…" /></label>
-        <label>Folder <select id="notes-folder" class="form-input"><option value="">All folders</option></select></label>
-        <label>Filter <select id="notes-filter" class="form-input">
-          <option value="">All notes</option><option value="favorites">Favorites</option>
-          <option>Tasks</option><option>Images</option><option>Links</option><option>General</option>
-        </select></label>
-      </div>
-      <div id="notes-results" class="notes-actions" aria-label="Matching notes"></div>
-      <div id="notes-reminders" class="notes-actions" aria-label="Reminders"></div>
+      </nav>
       <p id="notes-status" role="status"></p>
-      <details>
-        <summary>Organize, attach and connect · <strong id="notes-active"></strong></summary>
-        <p class="modal-hint">Use Files &amp; folders below to move or rename a note. Tags, relationships, reminders and images stay on this device; GitHub sync covers Markdown only. Reminders appear here while Notes is open.</p>
-        <form id="notes-metadata" class="notes-fields">
-          <label>Tags (comma-separated) <input id="notes-tags" class="form-input" maxlength="300" /></label>
-          <label>Task deadline / reminder <input id="notes-due" type="datetime-local" class="form-input" /></label>
-          <label><input type="checkbox" id="notes-favorite" /> Favorite</label>
-          <label><input type="checkbox" id="notes-done" /> Task complete</label>
-          <button class="ws-chip-btn">Save note details</button>
-        </form>
+      <section id="notes-library" aria-label="Note library" hidden>
         <div class="notes-fields">
-          <label>Attach image (up to 5 MB) <input id="notes-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="form-input" /></label>
-          <label>Related note <select id="notes-link" class="form-input"></select></label>
-          <button type="button" class="ws-chip-btn" id="notes-add-link">Link note</button>
+          <label>Search notes <input id="notes-search" type="search" class="form-input" placeholder="Title, text, tags, image filenames…" /></label>
+          <label>Folder <select id="notes-folder" class="form-input"><option value="">All folders</option></select></label>
+          <label>Filter <select id="notes-filter" class="form-input">
+            <option value="">All notes</option><option value="favorites">Favorites</option>
+            <option>Tasks</option><option>Images</option><option>Links</option><option>General</option>
+          </select></label>
         </div>
-        <div id="notes-related" class="notes-actions"></div>
-        <div id="notes-images" class="notes-actions"></div>
-      </details>
-      <details>
-        <summary>AI Memory Assistant · free-tier BYOK</summary>
+        <div id="notes-results" class="notes-actions" aria-label="Matching notes"></div>
+        <div id="notes-reminders" class="notes-actions" aria-label="Reminders"></div>
+      </section>
+      <section id="notes-editor" aria-label="Note editor">
+        <div id="notes-editor-slot"></div>
+        <details>
+          <summary>Organize, attach and connect · <strong id="notes-active"></strong></summary>
+          <p class="modal-hint">Use Workspace tools above to move or rename a note. Tags, relationships, reminders and images stay on this device; GitHub sync covers Markdown only. Reminders appear here while Notes is open.</p>
+          <form id="notes-metadata" class="notes-fields">
+            <label>Tags (comma-separated) <input id="notes-tags" class="form-input" maxlength="300" /></label>
+            <label>Task deadline / reminder <input id="notes-due" type="datetime-local" class="form-input" /></label>
+            <label><input type="checkbox" id="notes-favorite" /> Favorite</label>
+            <label><input type="checkbox" id="notes-done" /> Task complete</label>
+            <button class="ws-chip-btn">Save note details</button>
+          </form>
+          <div class="notes-fields">
+            <label>Attach image (up to 5 MB) <input id="notes-image" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="form-input" /></label>
+            <label>Related note <select id="notes-link" class="form-input"></select></label>
+            <button type="button" class="ws-chip-btn" id="notes-add-link">Link note</button>
+          </div>
+          <div id="notes-related" class="notes-actions"></div>
+          <div id="notes-images" class="notes-actions"></div>
+        </details>
+      </section>
+      <section id="notes-assistant" aria-label="AI Memory Assistant" hidden>
+        <h2>AI Memory Assistant</h2>
         <p class="modal-hint">Ask about your active note and up to four matching or linked local notes. Review the excerpts before sending them to the provider. Images are never sent. Free-tier limits apply.</p>
         <div class="notes-fields">
-          <label>Provider <select id="notes-provider" class="form-input"><option value="groq">Groq free tier</option><option value="openrouter">OpenRouter free router</option></select></label>
+          <label>Provider <select id="notes-provider" class="form-input"><option value="groq">Groq free tier</option><option value="openrouter">OpenRouter free router</option><option value="google">Gemini 3.1 Flash-Lite</option></select></label>
           <label>API key <input id="notes-key" type="password" autocomplete="off" class="form-input" placeholder="Or use key from Harness Hub" /></label>
           <label>Question <textarea id="notes-question" class="form-input" rows="2" maxlength="1500" placeholder="What did I decide about the launch?"></textarea></label>
         </div>
+        <div class="notes-actions" aria-label="Get API keys">
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq API keys ↗</a>
+          <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer">OpenRouter API keys ↗</a>
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini API keys ↗</a>
+        </div>
+        <p class="modal-hint">Use a free-tier project to avoid paid usage. Only send text you’re comfortable sharing with the selected provider.</p>
         <div class="notes-actions">
           <button type="button" class="ws-chip-btn" id="notes-prepare">Preview request</button>
           <button type="button" class="ws-chip-btn" id="notes-send" disabled>Send to provider</button>
         </div>
-        <pre id="notes-ai-context" aria-label="Prepared request"></pre>
-        <p id="notes-answer" role="status"></p>
-      </details>
+        <p id="notes-ai-status" role="status" aria-atomic="true">Preview your request before sending.</p>
+        <pre id="notes-ai-context" aria-label="Prepared request" hidden></pre>
+        <div id="notes-answer" aria-label="Assistant answer"></div>
+      </section>
     </section>
 
+    <div id="scratchpad-workspace-tools">
     <section class="workspace-bar" aria-label="Note, file and folder actions">
       <button type="button" class="ws-btn ws-today" id="note-open-today"
               title="Open (or create) today's single reusable note — notes-YYYY-MM-DD.md">📅 Today's note</button>
@@ -228,6 +242,8 @@
       <p class="status-msg" id="scratchpad-ws-status" role="status" aria-live="polite"></p>
     </section>
 
+    </div>
+    <div id="scratchpad-compose">
     <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
       <div class="md-toolbar-group" role="group" aria-label="Text styling">
         <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B" aria-label="Bold"><strong>B</strong></button>
@@ -324,6 +340,7 @@
       This browser has no File System Access API — Save/Open fall back to downloading and uploading files.
     </p>
 
+    </div>
     <dialog class="sheet-modal" id="scratchpad-gh-panel" aria-labelledby="scratchpad-gh-title">
       <div class="sheet-card">
         <header class="sheet-head">

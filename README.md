@@ -118,8 +118,9 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
 ## Notes
 
 Open **Notes** from Favorites for a searchable workspace over the same local
-files as Scratchpad. Use the Markdown toolbar for links, the checklist button
-for tasks, or **Organize, attach and connect** for tags, favorites, image
+files as Scratchpad. **Write** opens the editor, **Library** contains search and
+reminders, and **AI Memory** opens the assistant. Use the Markdown toolbar for
+links and checklists, or **Organize, attach and connect** for tags, favorites, image
 attachments, deadlines and note links. Search includes image filenames, not
 image contents. Notes suggests categories and related notes based on content
 and shared tags, and shows backlinks and upcoming or overdue reminders.
@@ -133,8 +134,11 @@ favorites and note relationships are stored on this device; reminders are
 shown in Notes while the page is open, not delivered in the background. Notes
 searches local files; open remote-only files through Files & folders first.
 
-The **AI Memory Assistant** uses Groq's free tier or OpenRouter's free router.
-Enter a key for the session or reuse one configured in the Harness Hub. Preview
+The **AI Memory Assistant** supports [Groq](https://console.groq.com/keys),
+[OpenRouter's free router](https://openrouter.ai/keys), and [Gemini 3.1
+Flash-Lite](https://aistudio.google.com/apikey). Use a free-tier provider project
+to avoid paid usage. Enter a key for the session or reuse one configured in
+the Harness Hub. Preview
 the exact question and note excerpts before sending them directly to the selected
 provider. No attachment bytes are sent. Availability and quotas depend on the
 provider, and inference requires internet access.

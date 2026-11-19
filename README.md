@@ -115,6 +115,26 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   requests reduced motion. The sidebar also gets a matching seasonal greeting
   and a small garland accent under the brand.
 
+## Notes
+
+Open **Notes** from Favorites for a searchable workspace over the same local
+files as Scratchpad. Use the Markdown toolbar for links, the checklist button
+for tasks, or **Organize, attach and connect** for tags, favorites, image
+attachments, deadlines and note links. Search includes image filenames, not
+image contents. Notes suggests categories and related notes based on content
+and shared tags, and shows backlinks and upcoming or overdue reminders.
+
+GitHub sync and Markdown exports cover the note text. Images, tags, deadlines,
+favorites and note relationships are stored on this device; reminders are
+shown in Notes while the page is open, not delivered in the background. Notes
+searches local files; open remote-only files through Files & folders first.
+
+The **AI Memory Assistant** uses Groq's free tier or OpenRouter's free router.
+Enter a key for the session or reuse one configured in the Harness Hub. Preview
+the exact question and note excerpts before sending them directly to the selected
+provider. No attachment bytes are sent. Availability and quotas depend on the
+provider, and inference requires internet access.
+
 ## Scratchpad PWA
 
 [`scratchpad.html`](scratchpad.html) is the installable, offline-first version

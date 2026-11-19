@@ -514,6 +514,7 @@ async function main() {
   if (noteCurrentLabel) noteCurrentLabel.textContent = note.path;
 
   async function refreshWorkspaceList() {
+    document.dispatchEvent(new Event("dash-note-changed"));
     if (!wsListEl) return;
     const localNotes = await notes.list();
     const localFolders = await notes.listFolders();
@@ -1967,6 +1968,11 @@ async function main() {
     document.body.classList.add("is-embedded");
     embedBanner?.classList.remove("hidden");
     $("install-app")?.classList.add("hidden");
+  }
+
+  if (new URLSearchParams(location.search).get("notes") === "1") {
+    const { initNotesWorkspace } = await import("./notes-workspace.js");
+    initNotesWorkspace({ notes, textarea, flushLocalSave, switchNote });
   }
 
   await setupPwaInstall({ embedded });

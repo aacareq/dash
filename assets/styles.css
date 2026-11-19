@@ -814,3 +814,19 @@ h1 { margin: 0; font-size: 1.25rem; font-weight: 800; }
   .sheet-card { max-height: 92dvh; width: 96vw; overflow-y: auto; }
   body { padding-bottom: env(safe-area-inset-bottom); }
 }
+
+/* Notes workspace extends, rather than replaces, the Scratchpad editor. */
+#notes-workspace { margin-bottom: 1rem; }
+#notes-workspace h2 { margin-top: 0; }
+#notes-workspace details { margin-top: .65rem; }
+#notes-workspace summary { cursor: pointer; overflow-wrap: anywhere; }
+.notes-fields, .notes-actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: end; margin: .55rem 0; }
+.notes-fields label:has(.form-input) { flex: 1 1 12rem; min-width: 0; }
+.notes-fields .form-input { display: block; width: 100%; }
+.notes-actions button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+#notes-results { max-height: 12rem; overflow: auto; }
+#notes-images figure { margin: 0; max-width: 12rem; overflow-wrap: anywhere; }
+#notes-images img { display: block; width: 100%; max-height: 10rem; object-fit: contain; }
+#notes-images a { display: block; }
+#notes-ai-context, #notes-answer { white-space: pre-wrap; overflow-wrap: anywhere; }
+#notes-ai-context { max-height: 15rem; overflow: auto; }

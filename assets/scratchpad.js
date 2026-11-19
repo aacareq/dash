@@ -15,7 +15,7 @@ import { initCapture } from "./capture.js";
 import { datedFileName } from "./markdown.js";
 import { createEditor } from "./editor.js";
 import { openStore, migrateLegacyStorage, withLocalStorageMirror, ACTIVE_NOTE_ID, LEGACY_KEYS } from "./notes-store.js";
-import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO, connectionFileText, connectionFileName, parseConnectionInput, parsePrivateKey } from "./github-app.js";
+import { GitHubAppClient, GH_KEYS, normalizePath, SCRATCH_REPO, NOTES_REPO, connectionFileText, connectionFileName, parseConnectionInput, parsePrivateKey } from "./github-app.js";
 import { SyncEngine } from "./sync-engine.js";
 import {
   NoteManager,
@@ -47,6 +47,19 @@ function pulseElement(el, className = "is-pulsing", ms = 650) {
 }
 
 async function main() {
+  const page = new URL(location.href);
+  let pendingSetup;
+  try { pendingSetup = JSON.parse(sessionStorage.getItem(GH_KEYS.pending) || "null"); } catch { /* optional */ }
+  const notesMode = page.searchParams.get("notes") === "1" || Boolean(pendingSetup?.notesMode &&
+    (page.searchParams.get("state") === pendingSetup.state || pendingSetup.state === "install"));
+  if (notesMode && !page.searchParams.has("notes")) {
+    page.searchParams.set("notes", "1");
+    window.history.replaceState({}, document.title, page);
+  }
+  const repoName = notesMode ? NOTES_REPO : SCRATCH_REPO;
+  const branchKey = notesMode ? "dash-notes-gh-branch" : GH_KEYS.branch;
+  const callbackReturn = url => `${url.pathname}${notesMode ? "?notes=1" : ""}${url.hash}`;
+
   // IndexedDB owns the data; the localStorage mirror keeps the dashboard dialog's
   // GitHub App connection and settings converged with this PWA (no re-registration).
   const baseStore = await openStore();
@@ -307,6 +320,21 @@ async function main() {
   let ghSaveTimer;
   let reposLoaded = false;
   let scratchAttempted = false;
+  let notesRepoTarget = "";
+  let notesRepoAvailable = "";
+  function setNotesRepo(available = "") {
+    notesRepoAvailable = available;
+    const option = document.createElement("option");
+    option.value = available;
+    option.textContent = available || (notesRepoTarget ? `${notesRepoTarget} (not connected)` : "Connect your Notes repository");
+    repoSelect.replaceChildren(option);
+  }
+  if (notesMode) {
+    repoSelect.disabled = true;
+    scratchBtn.textContent = "Use notes repo";
+    scratchBtn.title = "Connect or create your private notes repository";
+    setNotesRepo();
+  }
   let barState = { text: "Saved on this device", tone: "" };
   let lastConnectionState = { kind: "none", ready: false };
   let pendingOutboxTotal = 0;
@@ -495,7 +523,7 @@ async function main() {
     note = next;
     textarea.value = note.body || "";
     pathInput.value = note.path;
-    if (note.branch) branchInput.value = note.branch;
+    if (!notesMode && note.branch) branchInput.value = note.branch;
     await store.kvSet(GH_KEYS.path, note.path);
     engine.conflictPaused = false;
     showOverwrite(false);
@@ -778,6 +806,7 @@ async function main() {
     forgetBtn.hidden = connection.kind === "none";
     tokenClearBtn.hidden = connection.kind !== "token";
     target.hidden = !connection.ready;
+    if (notesMode && !connection.ready) { notesRepoTarget = ""; setNotesRepo(); }
     scratchBtn.hidden = !connection.ready;
     if (exportBtn) exportBtn.hidden = connection.kind !== "app";
     if (keepNote) keepNote.hidden = !(connection.kind === "app" && !connection.app.connection_saved_at);
@@ -859,10 +888,18 @@ async function main() {
 
   async function loadRepos({ announce = false, createScratch = true } = {}) {
     let hasScratch = false;
+    if (notesMode) { notesRepoTarget = ""; setNotesRepo(); }
     try {
+      if (notesMode) notesRepoTarget = await gh.notesRepoFullName();
       const repos = await gh.listRepositories();
-      const result = await renderRepoOptions(repos);
-      hasScratch = Boolean(result && result.scratch);
+      if (notesMode) {
+        const match = repos.find(repo => repo.full_name?.toLowerCase() === notesRepoTarget.toLowerCase());
+        setNotesRepo(match?.full_name);
+        hasScratch = Boolean(match);
+      } else {
+        const result = await renderRepoOptions(repos);
+        hasScratch = Boolean(result && result.scratch);
+      }
       reposLoaded = true;
       paintFileBar();
       paintStorageClarity();
@@ -882,33 +919,52 @@ async function main() {
     if (!connection.ready) return;
     if (automatic && scratchAttempted) return;
     scratchAttempted = true;
-    setGhStatus(`Creating a private “${SCRATCH_REPO}” repository…`);
+    setGhStatus(`Creating a private “${repoName}” repository…`);
     showRepoHelp("");
-    const result = await gh.ensureScratchRepo();
+    if (notesMode && notesRepoAvailable) {
+      setGhStatus(`Ready to save to ${notesRepoAvailable}.`, "success");
+      return;
+    }
+    let result;
+    try {
+      if (notesMode) notesRepoTarget = await gh.notesRepoFullName();
+      result = notesMode ? await gh.ensureNotesRepo(notesRepoTarget) : await gh.ensureScratchRepo();
+    } catch (error) {
+      setGhStatus(error.message, "error");
+      return;
+    }
     if (!result.ok) {
       const error = result.error;
       const app = await gh.readApp();
       const slug = app && (app.slug || app.name);
       const settingsUrl = slug ? `https://github.com/settings/apps/${encodeURIComponent(slug)}/permissions` : "https://github.com/settings/apps";
-      const newRepoUrl = "https://github.com/new?name=" + encodeURIComponent(SCRATCH_REPO) + "&private=1";
+      const newRepoUrl = "https://github.com/new?name=" + encodeURIComponent(repoName) + "&private=1";
       const alreadyExists = error.status === 422 && /already exists/i.test(error.message);
       const usableRepo = repoSelect?.value;
       if (alreadyExists) {
-        setGhStatus(`A repository named “${SCRATCH_REPO}” already exists but this app can't see it. Add it to the app's installation, then click Re-check connection.${usableRepo ? ` Saving to ${usableRepo} still works.` : ""}`, "error");
+        setGhStatus(`A repository named “${repoName}” already exists but this app can't see it. Add it to the app's installation, then click Re-check connection.${usableRepo ? ` Saving to ${usableRepo} still works.` : ""}`, "error");
       } else if (automatic && usableRepo) {
-        setGhStatus(`Tip: the “${SCRATCH_REPO}” repo wasn't found and the app couldn't create it (${error.message}). Notes still save to ${usableRepo}.`);
+        setGhStatus(`Tip: the “${repoName}” repo wasn't found and the app couldn't create it (${error.message}). Notes still save to ${usableRepo}.`);
       } else {
-        setGhStatus(`GitHub wouldn't let the app create the “${SCRATCH_REPO}” repo (${error.message}).`, "error");
+        setGhStatus(`GitHub wouldn't let the app create the “${repoName}” repo (${error.message}).`, "error");
       }
       showRepoHelp(
-        `To let the app make its own <code>${SCRATCH_REPO}</code> repo: grant <strong>Repository creation: write</strong> in ` +
+        `To let the app make its own <code>${repoName}</code> repo: grant <strong>Repository creation: write</strong> in ` +
         `<a href="${settingsUrl}" target="_blank" rel="noopener noreferrer">the app's permissions</a> and accept it on the installation — ` +
-        `or <a href="${newRepoUrl}" target="_blank" rel="noopener noreferrer">create “${SCRATCH_REPO}” yourself</a> and add it to the app. ` +
+        `or <a href="${newRepoUrl}" target="_blank" rel="noopener noreferrer">create “${repoName}” yourself</a> and add it to the app. ` +
         `Then click <strong>Re-check connection</strong>.`
       );
       return;
     }
     const fullName = result.repo;
+    if (notesMode) {
+      setNotesRepo(fullName);
+      paintFileBar();
+      paintStorageClarity();
+      setGhStatus(`Ready to save to ${fullName}.`, "success");
+      refreshRemoteWorkspace().catch(() => {});
+      return;
+    }
     await store.kvSet(GH_KEYS.repo, fullName);
     reposLoaded = false;
     await loadRepos({ createScratch: false });
@@ -921,15 +977,15 @@ async function main() {
     repoSelect.value = fullName;
     paintFileBar();
     paintStorageClarity();
-    setGhStatus(`Ready — notes are saved to the private “${SCRATCH_REPO}” repo (${fullName}).`, "success");
+    setGhStatus(`Ready — notes are saved to the private “${repoName}” repo (${fullName}).`, "success");
     showRepoHelp("");
   }
 
   function targetIsValid({ quiet = false } = {}) {
     const repo = repoSelect.value;
     const path = normalizePath(pathInput.value);
-    if (!repo || !path) {
-      if (!quiet) setFileStatus("Choose a repository and file path first.", "error");
+    if (!repo || !path || (notesMode && repo !== notesRepoAvailable)) {
+      if (!quiet) setFileStatus(notesMode ? "Connect your personal notes repository and choose a file path first." : "Choose a repository and file path first.", "error");
       return false;
     }
     return true;
@@ -937,7 +993,8 @@ async function main() {
 
   // ---- outbox: commits attempted while offline ----------------------------------------
   async function refreshOutboxBadge() {
-    const entries = await store.listOutbox();
+    const entries = (await store.listOutbox()).filter(entry => !notesMode ||
+      (notesRepoTarget && entry.repo.toLowerCase() === notesRepoTarget.toLowerCase()));
     pendingOutboxTotal = entries.length;
     if (outboxCount) {
       outboxCount.textContent = entries.length ? `${entries.length} pending` : "";
@@ -948,7 +1005,11 @@ async function main() {
   }
 
   async function flushOutbox({ announce = false } = {}) {
-    const result = await engine.flush();
+    if (notesMode && !notesRepoAvailable) {
+      if (announce) setFileStatus("Connect your Notes repository to deliver pending commits.", "error");
+      return;
+    }
+    const result = await engine.flush({ repo: notesMode ? notesRepoAvailable : undefined });
     await refreshOutboxBadge();
     const now = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     if (result.status === "empty") {
@@ -981,8 +1042,9 @@ async function main() {
 
   async function saveNotes({ forced = false, auto = false } = {}) {
     if (engine.saving) return;
-    if (!targetIsValid()) { openGhModal(); return; }
+    if (!targetIsValid({ quiet: auto })) { if (!auto) openGhModal(); return; }
     await flushLocalSave();
+    if (notesMode && !targetIsValid({ quiet: auto })) return;
     const repo = repoSelect.value;
     const path = normalizePath(pathInput.value);
     const branch = branchInput.value.trim();
@@ -1108,7 +1170,7 @@ async function main() {
     if (!redirectUrl) { setGhStatus("GitHub setup needs a real page URL — open the live PWA rather than a downloaded file.", "error"); return; }
     const state = gh.randomState();
     try {
-      sessionStorage.setItem(GH_KEYS.pending, JSON.stringify({ state, redirectUrl, startedAt: Date.now() }));
+      sessionStorage.setItem(GH_KEYS.pending, JSON.stringify({ state, redirectUrl, notesMode, startedAt: Date.now() }));
     } catch (error) {
       setGhStatus("This browser blocked session storage, so the setup can't be verified. Allow storage for this site and try again.", "error");
       return;
@@ -1134,7 +1196,7 @@ async function main() {
     if (!record) return;
     const slug = record.slug || record.name?.toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
     if (!slug) { setGhStatus("Couldn't work out the app's install URL — open the app on GitHub and install it there.", "error"); return; }
-    try { sessionStorage.setItem(GH_KEYS.pending, JSON.stringify({ state: "install", startedAt: Date.now() })); } catch (error) {}
+    try { sessionStorage.setItem(GH_KEYS.pending, JSON.stringify({ state: "install", notesMode, startedAt: Date.now() })); } catch (error) {}
     setGhStatus("Opening GitHub to install the app — pick the repositories to allow, then you'll be brought back here.");
     window.location.assign(`https://github.com/apps/${encodeURIComponent(slug)}/installations/new`);
   }
@@ -1149,7 +1211,7 @@ async function main() {
     try { pending = JSON.parse(sessionStorage.getItem(GH_KEYS.pending) || "null"); } catch (error) { pending = null; }
     if (!pending || pending.state !== returnedState) return false;
 
-    try { window.history.replaceState({}, document.title, `${url.origin}${url.pathname}${url.hash}`); } catch (error) {}
+    try { window.history.replaceState({}, document.title, callbackReturn(url)); } catch (error) {}
     try { sessionStorage.removeItem(GH_KEYS.pending); } catch (error) {}
 
     openGhModal();
@@ -1173,7 +1235,7 @@ async function main() {
       if (!match) return;
       reposLoaded = false;
       await render();
-      if (!quiet) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
+      if (!quiet && !notesMode) setGhStatus(`${lead}Connected to ${match.account?.login || "your account"} — pick a repo and start saving.`, "success");
     } catch (error) {
       if (error.code === "NO_INSTALLATION") {
         await render();
@@ -1187,7 +1249,7 @@ async function main() {
 
   // ---- wiring -------------------------------------------------------------------------
   pathInput.value = note.path || (await store.kvGet(GH_KEYS.path)) || datedFileName();
-  branchInput.value = note.branch || (await store.kvGet(GH_KEYS.branch)) || "";
+  branchInput.value = (!notesMode && note.branch) || (await store.kvGet(branchKey)) || "";
   autosaveCheckbox.checked = (await store.kvGet(GH_KEYS.autosave)) !== "false";
 
   setupBtn.addEventListener("click", startSetup);
@@ -1716,9 +1778,14 @@ async function main() {
     if (event.key === "Enter") { event.preventDefault(); handleRenameDirectory(); }
   });
 
-  scratchBtn.addEventListener("click", () => { scratchAttempted = false; ensureScratchRepo(); });
+  scratchBtn.addEventListener("click", () => {
+    scratchAttempted = false;
+    if (notesMode) loadRepos({ announce: true });
+    else ensureScratchRepo();
+  });
 
   repoSelect.addEventListener("change", async () => {
+    if (notesMode) return;
     await store.kvSet(GH_KEYS.repo, repoSelect.value);
     engine.conflictPaused = false;
     showOverwrite(false);
@@ -1741,7 +1808,7 @@ async function main() {
   });
   pathInput.addEventListener("input", paintFileBar);
   branchInput.addEventListener("change", async () => {
-    await store.kvSet(GH_KEYS.branch, branchInput.value.trim());
+    await store.kvSet(branchKey, branchInput.value.trim());
     engine.conflictPaused = false;
     showOverwrite(false);
     refreshRemoteWorkspace().catch(() => {});
@@ -1775,7 +1842,7 @@ async function main() {
       tokenInput.value = "";
       reposLoaded = false;
       await render();
-      setGhStatus(`Using a pasted token${user.login ? ` for @${user.login}` : ""}. Save now will commit your notes.`, "success");
+      if (!notesMode || notesRepoAvailable) setGhStatus(`Using a pasted token${user.login ? ` for @${user.login}` : ""}. Save now will commit your notes.`, "success");
     } catch (error) {
       setGhStatus(error.message, "error");
     }
@@ -1926,7 +1993,7 @@ async function main() {
       const setupAction = here.searchParams.get("setup_action");
       const installationId = here.searchParams.get("installation_id");
       if (setupAction || installationId) {
-        try { window.history.replaceState({}, document.title, `${here.origin}${here.pathname}${here.hash}`); } catch (error) {}
+        try { window.history.replaceState({}, document.title, callbackReturn(here)); } catch (error) {}
         try { sessionStorage.removeItem(GH_KEYS.pending); } catch (error) {}
         openGhModal();
         await resolveInstallation(installationId);
@@ -1970,7 +2037,7 @@ async function main() {
     $("install-app")?.classList.add("hidden");
   }
 
-  if (new URLSearchParams(location.search).get("notes") === "1") {
+  if (notesMode) {
     const { initNotesWorkspace } = await import("./notes-workspace.js");
     initNotesWorkspace({ notes, textarea, flushLocalSave, switchNote });
   }

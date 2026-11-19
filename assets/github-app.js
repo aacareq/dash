@@ -12,6 +12,7 @@ import { encodeUtf8Base64, decodeUtf8Base64 } from "./markdown.js";
 
 export const GITHUB_API = "https://api.github.com";
 export const SCRATCH_REPO = "scratch";
+export const NOTES_REPO = "notes";
 export const INSTALLATION_TOKEN_TTL_MS = 50 * 60 * 1000;
 
 export const GH_KEYS = {
@@ -586,8 +587,38 @@ export class GitHubAppClient {
     return Array.isArray(data) ? data : (data.repositories || []);
   }
 
-  // Creates the private `scratch` repo (auto_init gives it a default branch).
+  async notesRepoFullName() {
+    const connection = await this.connection();
+    if (!connection.ready) throw new Error("Connect GitHub first.");
+    if (connection.kind === "app" && connection.app.installation_type === "Organization") {
+      throw new Error("Install the GitHub App on your personal account to sync Notes.");
+    }
+    let owner = connection.label;
+    if (!owner && connection.kind === "token") {
+      const response = await this.authorizedFetch("/user");
+      if (response.ok) owner = (await response.json()).login;
+    }
+    if (!owner) throw new Error("Could not identify your GitHub username. Re-check the connection.");
+    return `${owner}/${NOTES_REPO}`;
+  }
+
   async ensureScratchRepo() {
+    return this.createPrivateRepo(SCRATCH_REPO);
+  }
+
+  async ensureNotesRepo(expected) {
+    if ((await this.notesRepoFullName()).toLowerCase() !== expected.toLowerCase()) {
+      throw new Error("The GitHub account changed. Re-check the connection.");
+    }
+    const result = await this.createPrivateRepo(NOTES_REPO);
+    if (result.ok && result.repo.toLowerCase() !== expected.toLowerCase()) {
+      throw new Error("GitHub did not confirm the expected Notes repository.");
+    }
+    return result;
+  }
+
+  // Auto-initialize the repository so it has a default branch.
+  async createPrivateRepo(name) {
     const connection = await this.connection();
     if (!connection.ready) return { ok: false, error: new Error("Connect GitHub first.") };
     const owner = connection.kind === "app" ? (connection.app.installation_account || connection.app.owner || "") : "";
@@ -596,11 +627,11 @@ export class GitHubAppClient {
     const res = await this.authorizedFetch(createPath, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: SCRATCH_REPO, description: "Scratchpad notes from the dash PWA.", private: true, auto_init: true })
+      body: JSON.stringify({ name, description: name === NOTES_REPO ? "Notes from DashOS." : "Scratchpad notes from the dash PWA.", private: true, auto_init: true })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, error: Object.assign(new Error(data.message || `GitHub API error (${res.status})`), { status: res.status }) };
-    return { ok: true, repo: data.full_name || `${owner}/${SCRATCH_REPO}` };
+    return { ok: true, repo: data.full_name || `${owner}/${name}` };
   }
 
   async scratchRepoFullName() {

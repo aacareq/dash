@@ -26,6 +26,15 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   un-star afterwards sticks).
 - **Custom Tools** lets you add your own links; export/import your config from
   the dashboard to move it between browsers.
+- **Video Creation** — use the sidebar's Video Creation cluster for a zero-cost
+  research matrix, official free-tier evidence, open-weight checkpoints, prompt
+  templates, and a browser-native storyboard studio. The local builder edits
+  three-scene Canvas animations and records them with `MediaRecorder` when the
+  browser supports it; exports are usually WebM and contain procedural text and
+  shapes, not AI-generated footage. Gemini/Groq BYOK requests are optional and
+  create storyboard text only; keys are held in memory, sent directly to the
+  chosen provider after an explicit click, and cleared when the dialog closes.
+  The matrix was checked November 20, 2026; quotas and model availability change.
 - **Bookmarklets** — its own menu cluster (dashed cards, e.g. *GitHub + Arena
   Agent*, *Coding Agents*, *GitHub + Arena AI + Proton VPN*, and
   *Personal AI Agents — Always-On*) can be clicked
@@ -65,8 +74,12 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   private GitHub App owned by you (via GitHub's app-manifest flow, which hands
   the page the app's key through a CORS-enabled endpoint), one install screen
   scopes it to a repo, and from then on the page signs its own short-lived app
-  JWTs to mint one-hour installation tokens — so returning visitors never sign
-  in again, and no long-lived credential is ever stored. Notes are committed
+  JWTs to mint one-hour installation tokens — so returning visitors do not sign
+  in again. The app's private key is stored in this browser's IndexedDB and can
+  be exported as a connection file: treat both as long-lived credentials, keep
+  them on trusted devices, and follow the security notes in
+  [`docs/working-on-integrations.md`](docs/working-on-integrations.md). Short-lived
+  installation tokens are minted as needed. Notes are committed
   in place via the Contents API, pause with a warning instead of overwriting a
   version that changed on GitHub (offering *Pull latest* or *Overwrite
   anyway*), and can autosave a few seconds after you stop typing. Because that
@@ -232,16 +245,16 @@ the file/folder creation boxes), the `⋯ More` menu and the clock chip.
 
 ## Layout
 
-- `index.html` — the current dashboard (Command Center 2026)
+- `index.html` — the current dashboard (Command Center 2026), including Video Creation
+- `assets/video-studio.js` — optional BYOK storyboard requests and browser-native Canvas/MediaRecorder studio
 - `scratchpad.html`, `manifest.webmanifest`, `sw.js` — the installable
   Scratchpad PWA, its manifest and service worker
 - `assets/` — the PWA's ES modules (`editor`, `markdown`, `emoji`,
   `notes-store`, `notes-manager`, `github-app`, `sync-engine`,
   `markdown-worker`), stylesheet and generated icons
 - `scripts/` — dependency-free build helpers (icon generator)
-- `tests/` — Node test-runner suites for the PWA modules and the dashboard
-  Scratchpad card (`node --test tests/`); the jsdom behavior suites live in
-  `docs/`
+- `tests/` — Node test-runner suites for PWA modules, dashboard behavior, and
+  Video Creation; `docs/` contains additional jsdom behavior checks
 - `inference.html`, `zerocost.html`, `feeds.html` — the standalone topic pages
   linked from the current dashboard
 - `archive/` — the 11 superseded dashboard versions, each kept exactly where
@@ -258,9 +271,10 @@ the file/folder creation boxes), the `⋯ More` menu and the clock chip.
 
 ## Tests
 
-`npm install` once, then `npm test` — it runs the Node test-runner PWA suite
-(`tests/`, no browser needed) and the four jsdom behavior suites for the
-dashboard dialogs (`docs/*.test.js`).
+Run `npm ci` once, then `npm test` — it runs the Node test-runner suites named
+in `package.json` (including the jsdom dashboard/Video Creation checks) and the
+additional `docs/` behavior suites. `npm run test:pwa` and
+`npm run test:dashboard` run focused subsets.
 
 Unreferenced legacy pages (the old `Inf-*`, `infer-*`, `0824-*`, `con-*`
 generations and the `tools/` directory) were removed in the 2026-10-27 cleanup;

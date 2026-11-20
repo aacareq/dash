@@ -933,6 +933,80 @@
       .scratchpad-editor, .scratchpad-editor-row { min-width: 0; }
       input, textarea, select { font-size: 16px; }
     }
+
+    /* Video creation research and browser-native studio */
+    .dashboard-section[data-key="video"] .section-note { margin-bottom: 1rem; }
+    .video-section-note, .video-research-panel, .video-panel {
+      border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); padding: 1rem;
+    }
+    .video-section-note p, .video-research-panel p { margin: .2rem 0 .65rem; line-height: 1.55; }
+    .video-section-note ul { margin: .35rem 0 0; padding-left: 1.25rem; color: var(--text-muted); font-size: .82rem; line-height: 1.55; }
+    .modal.modal-video { width: min(1180px, calc(100vw - 1.5rem)); max-width: min(1180px, calc(100vw - 1.5rem)); }
+    .video-studio-card { max-height: 90vh; max-height: 90dvh; overflow-y: auto; overflow-x: hidden; }
+    .video-studio-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem; }
+    .video-studio-heading h3, .video-studio-heading p { margin: 0; }
+    .video-studio-heading p { margin-top: .35rem; color: var(--text-muted); font-size: .82rem; line-height: 1.5; }
+    .video-lab-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .95fr); gap: 1rem; align-items: start; }
+    .video-panel { display: flex; flex-direction: column; gap: .7rem; min-width: 0; }
+    .video-panel h4, .video-research-panel h4 { margin: 0; font-size: .95rem; }
+    .video-panel .form-label { min-width: 0; }
+    .video-panel textarea.form-input { min-height: 76px; resize: vertical; line-height: 1.45; }
+    .video-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: .55rem; }
+    .video-three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .55rem; }
+    .video-key-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .85fr); gap: .55rem; }
+    .video-disclosure { border: 1px solid var(--border); border-radius: 10px; padding: .75rem; background: var(--card-bg); }
+    .video-disclosure > summary { cursor: pointer; color: var(--text); font-size: .88rem; font-weight: 750; }
+    .video-disclosure[open] > summary { margin-bottom: .75rem; }
+    .video-guide-note { margin: .25rem 0; color: var(--text-muted); font-size: .78rem; line-height: 1.55; }
+    .video-guide-note a, .video-research-panel a { color: var(--accent); text-underline-offset: 2px; }
+    .video-guide-note code { background: var(--tag-bg); padding: .05rem .25rem; border-radius: 4px; }
+    .video-table-scroll { overflow-x: auto; max-width: 100%; }
+    .video-research-table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: left; font-size: .76rem; line-height: 1.45; }
+    .video-research-table th, .video-research-table td { padding: .55rem; border: 1px solid var(--border); vertical-align: top; }
+    .video-research-table th { color: var(--text-muted); background: var(--card-bg); font-weight: 750; }
+    .video-model-list { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0; }
+    .video-model-list a { display: inline-flex; border: 1px solid var(--border); border-radius: 999px; padding: .25rem .5rem; font-size: .76rem; }
+    .video-capability-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin: .5rem 0; }
+    .video-capability-list > div { border-left: 3px solid var(--accent); padding: .25rem .55rem; font-size: .78rem; line-height: 1.45; }
+    .video-capability-list strong { display: block; margin-bottom: .1rem; }
+    .video-studio-actions, .video-button-row { display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; }
+    .video-button-row .modal-btn, .video-studio-actions .modal-btn { min-height: 38px; }
+    .video-status { min-height: 1.2rem; margin: 0; color: var(--text-muted); font-size: .8rem; line-height: 1.45; }
+    .video-status.is-error { color: #f87171; }
+    .video-status.is-success { color: #34d399; }
+    .video-status.busy { color: var(--accent); }
+    .video-privacy-note { margin: 0; padding: .55rem .65rem; border-left: 3px solid var(--accent); background: var(--tag-bg); color: var(--text-muted); font-size: .76rem; line-height: 1.5; }
+    .video-scenes { display: grid; gap: .55rem; max-height: 32vh; overflow: auto; padding-right: .2rem; }
+    .video-scene-edit { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; min-width: 0; margin: 0; padding: .65rem; border: 1px solid var(--border); border-radius: 9px; }
+    .video-scene-edit legend { padding: 0 .3rem; color: var(--accent); font-size: .76rem; font-weight: 750; }
+    .video-scene-field { min-width: 0; font-size: .73rem; }
+    .video-scene-field:first-of-type, .video-scene-field:nth-of-type(2) { grid-column: 1 / -1; }
+    .video-scene-field .form-input { width: 100%; min-width: 0; font-size: .8rem; }
+    .video-preview-frame { position: relative; width: 100%; background: #111827; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    #video-canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    #video-result { display: block; width: 100%; max-height: 66vh; border: 1px solid var(--border); border-radius: 10px; background: #000; }
+    #video-result[hidden] { display: none; }
+    #video-download { color: var(--accent); font-size: .84rem; font-weight: 750; }
+    .video-prompt-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+    .video-prompt-card { display: flex; flex-direction: column; gap: .45rem; min-width: 0; padding: .65rem; border: 1px solid var(--border); border-radius: 9px; background: var(--card-bg); }
+    .video-prompt-card h5 { margin: 0; font-size: .8rem; }
+    .video-prompt-card pre, .video-worker-snippet { max-width: 100%; max-height: 240px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: .6rem; border-radius: 7px; background: var(--bg); color: var(--text-muted); font: .72rem/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .video-prompt-card .modal-btn { align-self: flex-start; font-size: .75rem; padding: .4rem .65rem; }
+    .video-blueprint-list { margin: .4rem 0 .2rem; padding-left: 1.2rem; color: var(--text-muted); font-size: .8rem; line-height: 1.6; }
+    @media (max-width: 800px) {
+      .video-lab-grid { grid-template-columns: 1fr; }
+      .video-prompt-grid { grid-template-columns: 1fr; }
+      .video-prompt-card pre { max-height: 180px; }
+    }
+    @media (max-width: 560px) {
+      .modal.modal-video { width: calc(100vw - .5rem); max-width: calc(100vw - .5rem); }
+      .video-studio-card { max-height: 94vh; max-height: 94dvh; padding: .75rem; }
+      .video-studio-heading { flex-wrap: wrap; }
+      .video-two-col, .video-three-col, .video-key-row, .video-capability-list { grid-template-columns: 1fr; }
+      .video-scene-edit { grid-template-columns: 1fr; }
+      .video-scene-field:first-of-type, .video-scene-field:nth-of-type(2) { grid-column: auto; }
+      .video-button-row .modal-btn, .video-studio-actions .modal-btn { flex: 1 1 auto; }
+    }
   </style>
   <link rel="stylesheet" href="assets/capture.css" />
 </head>
@@ -943,7 +1017,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.14.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.15.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -958,6 +1032,7 @@
       <button class="nav-btn" type="button" data-section="bookmarklets"><span>Bookmarklets</span> <span class="count" id="cnt-bookmarklets">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
       <button class="nav-btn" type="button" data-section="freeinference"><span>Free Inference</span> <span class="count" id="cnt-freeinference">0</span></button>
+      <button class="nav-btn" type="button" data-section="video"><span>🎬 Video Creation</span> <span class="count" id="cnt-video">0</span></button>
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
       <button class="nav-btn" type="button" data-section="agent"><span>Agents</span> <span class="count" id="cnt-agent">0</span></button>
@@ -1070,6 +1145,7 @@
             <option value="bookmarklets">Bookmarklets</option>
             <option value="inference">Inference</option>
             <option value="freeinference">Free Inference</option>
+            <option value="video">Video Creation</option>
             <option value="zerocost">Zero-Cost APIs</option>
             <option value="agent">Agents</option>
             <option value="codingagents">Coding Agents</option>
@@ -1711,6 +1787,213 @@
       </div>
     </dialog>
 
+    <dialog id="modal-video-studio" class="modal modal-video" aria-labelledby="video-studio-title">
+      <div class="modal-card video-studio-card">
+        <div class="video-studio-heading">
+          <div>
+            <h3 class="modal-title" id="video-studio-title">🎬 Zero-Cost Video Studio</h3>
+            <p>Plan scenes, try verified free-tier routes, and export local motion graphics. This browser builder makes a storyboard animation; it does not generate AI footage.</p>
+          </div>
+          <button type="button" class="modal-btn cancel" data-close-modal aria-label="Close video studio">Close</button>
+        </div>
+
+        <div class="video-lab-grid">
+          <section class="video-panel" aria-labelledby="video-brief-title">
+            <h4 id="video-brief-title">1. Brief → editable storyboard</h4>
+            <label class="form-label" for="video-brief">Video idea or script
+              <textarea id="video-brief" class="form-input" rows="3" maxlength="800" placeholder="A tiny robot finds a seed in a quiet city garden at sunrise…"></textarea>
+            </label>
+            <div class="video-two-col">
+              <label class="form-label" for="video-preset">Prompt style
+                <select id="video-preset" class="form-input">
+                  <option value="cinematic">Cinematic realism</option>
+                  <option value="kinetic">Kinetic motion / VFX</option>
+                  <option value="product">UI / product explainer</option>
+                </select>
+              </label>
+              <label class="form-label" for="video-provider">Optional storyboard model
+                <select id="video-provider" class="form-input">
+                  <option value="google">Gemini API</option>
+                  <option value="groq">Groq API</option>
+                </select>
+              </label>
+            </div>
+            <div class="video-key-row">
+              <label class="form-label" for="video-key">Provider API key (optional)
+                <input id="video-key" class="form-input" type="password" autocomplete="off" spellcheck="false" placeholder="Used for this request only" />
+              </label>
+              <label class="form-label" for="video-model">Model ID
+                <input id="video-model" class="form-input" type="text" autocomplete="off" spellcheck="false" value="gemini-3.1-flash-lite" />
+              </label>
+            </div>
+            <p class="video-privacy-note">Keys are never saved by Video Studio. An AI request sends your idea and key directly to the selected provider over HTTPS only after you click Generate with AI. Use a provider's free-tier key and review its current quota/data terms. The local builder works offline without a key.</p>
+            <div class="video-button-row">
+              <button type="button" class="modal-btn submit" id="video-build-local">Build locally</button>
+              <button type="button" class="modal-btn cancel" id="video-build-ai">Generate with AI</button>
+            </div>
+            <p id="video-status" class="video-status" role="status" aria-live="polite"></p>
+            <div id="video-scenes" class="video-scenes" aria-label="Editable storyboard scenes"></div>
+          </section>
+
+          <section class="video-panel" aria-labelledby="video-preview-title">
+            <h4 id="video-preview-title">2. Preview &amp; export</h4>
+            <div class="video-three-col">
+              <label class="form-label" for="video-aspect">Aspect ratio
+                <select id="video-aspect" class="form-input">
+                  <option value="16:9">16:9 landscape</option>
+                  <option value="9:16">9:16 portrait</option>
+                  <option value="1:1">1:1 square</option>
+                </select>
+              </label>
+              <label class="form-label" for="video-duration">Duration
+                <select id="video-duration" class="form-input">
+                  <option value="6">6 seconds</option>
+                  <option value="9" selected>9 seconds</option>
+                  <option value="12">12 seconds</option>
+                </select>
+              </label>
+              <label class="form-label" for="video-audio-cues">Optional audio
+                <span><input id="video-audio-cues" type="checkbox" /> Add soft WebAudio scene cues</span>
+              </label>
+            </div>
+            <div class="video-preview-frame">
+              <canvas id="video-canvas" width="1280" height="720" aria-label="Local animated storyboard preview"></canvas>
+            </div>
+            <div class="video-studio-actions">
+              <button type="button" class="modal-btn submit" id="video-preview-button" disabled>Preview motion</button>
+              <button type="button" class="modal-btn cancel" id="video-record-button" disabled>Record video</button>
+              <button type="button" class="modal-btn cancel" id="video-stop-button" hidden>Stop early</button>
+              <button type="button" class="modal-btn cancel" id="video-export-storyboard" disabled>Download storyboard JSON</button>
+            </div>
+            <video id="video-result" controls playsinline hidden aria-label="Recorded video preview"></video>
+            <a id="video-download" hidden></a>
+            <p class="video-guide-note">Canvas capture uses <code>MediaRecorder</code> when supported. It selects a browser-supported format (usually WebM); MP4 is not guaranteed. Output is rendered on this device with no watermark or video-service upload. The recording contains typography/shapes, not generated footage.</p>
+          </section>
+        </div>
+
+        <section class="video-research-panel" aria-labelledby="video-tools-title">
+          <details class="video-disclosure">
+            <summary id="video-tools-title">Free video tools &amp; current limits — verified November 20, 2026</summary>
+            <p class="video-guide-note">Zero-cost means no paid plan or card-required trial. Provider free limits change; check the linked account page before each project. Length and quality are model-specific, not blanket guarantees.</p>
+            <div class="video-table-scroll">
+              <table class="video-research-table">
+                <thead><tr><th>Tool / model</th><th>Free limit &amp; reset</th><th>Output, watermark &amp; duration</th><th>Access, API &amp; CORS</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td><a href="https://app.pixverse.ai/creation/video" target="_blank" rel="noopener noreferrer">PixVerse Basic ↗</a></td>
+                    <td>$0 Basic web plan: 60 initial credits + 30 daily credits; daily credits reset at 00:00 UTC and expire at day's end.</td>
+                    <td>Up to 540p on Basic; the plan does not include the watermark-free entitlement shown on paid tiers. Clip length and credit cost vary by model/settings; V6 API specs are not a Basic-plan promise.</td>
+                    <td>Browser UI is the straightforward free path. API billing/credits are separate; do not send a PixVerse API key from a static page. The web app is not a free browser API.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://huggingface.co/spaces/enzostvs/zero-gpu-spaces" target="_blank" rel="noopener noreferrer">Hugging Face Spaces / ZeroGPU ↗</a></td>
+                    <td>For ZeroGPU demos: free accounts get 5 GPU minutes/day; unauthenticated use gets 2 minutes/day. Quota resets 24 hours after first GPU use. Queues and space availability vary.</td>
+                    <td>Model/demo determines resolution, duration, export and watermark. No platform-wide video cap or watermark policy; some Spaces sleep or change.</td>
+                    <td>Gradio Spaces can expose API endpoints, but auth, CORS and quota behavior are Space-specific. Use the demo UI first; API calls consume the caller's quota.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://research.google.com/colaboratory/faq.html" target="_blank" rel="noopener noreferrer">Google Colab free notebooks ↗</a></td>
+                    <td>No published fixed GPU quota; free GPU availability and usage limits fluctuate. A free runtime can last up to 12 hours depending on availability and usage.</td>
+                    <td>Checkpoint, GPU memory and notebook code set limits; no platform watermark. Model license and output rights still apply. Free compute is not guaranteed for video generation.</td>
+                    <td>Notebook execution, not a stable video API; do not expose a Colab runtime as a public web service. Keep work interactive and policy-compliant; save outputs before the VM expires.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://www.kaggle.com/code" target="_blank" rel="noopener noreferrer">Kaggle Notebooks ↗</a></td>
+                    <td>Free GPU (P100) with a weekly quota of 30 hours or sometimes more depending on demand/resources; check the live account quota. Busy GPUs can queue.</td>
+                    <td>Model, VRAM and notebook set practical resolution/duration; the platform adds no watermark. Large video checkpoints may not fit the available GPU.</td>
+                    <td>Notebook environment, not a public generation API; CORS is not applicable. Save outputs and monitor the weekly accelerator quota.</td>
+                  </tr>
+                  <tr>
+                    <td>Open-weight video checkpoints</td>
+                    <td>Wan 2.2, LTX-Video, HunyuanVideo, Mochi 1 and CogVideoX are model families, not free hosted quotas. Try a live HF Space, Colab or Kaggle only if the demo is free and the checkpoint fits.</td>
+                    <td>Duration/resolution, VRAM, license and commercial-use terms vary by checkpoint and quantization. A free cloud GPU is not a guarantee a 14B-class model will run.</td>
+                    <td>Model cards are the authority; community Spaces do not promise uptime or API/CORS access. Downloading/running weights is not browser-native execution.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Gemini API (storyboard only) ↗</a></td>
+                    <td>Eligible models have a free tier; model/project limits vary and are shown in AI Studio. Daily request quotas reset at midnight Pacific Time.</td>
+                    <td>Produces JSON text for a storyboard, not video. Generation limits/terms are provider-side; no footage or image upload is made by this studio.</td>
+                    <td>Optional BYOK HTTPS request from the browser. Exact quota is project-specific; CORS/network may block a direct call. A Worker is an optional proxy, not required.</td>
+                  </tr>
+                  <tr>
+                    <td><a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">Groq API (storyboard only) ↗</a></td>
+                    <td>Per-model/organization limits; use the account Limits page for exact live RPM/RPD/TPM. Treat all free quotas as changeable, not unlimited.</td>
+                    <td>Produces JSON text for a storyboard, not video. A 429 means wait and re-check the account's model limits.</td>
+                    <td>Optional BYOK HTTPS request from the browser. Direct CORS may vary by provider/account; the optional Worker can proxy this request.</td>
+                  </tr>
+                  <tr>
+                    <td>Local Canvas Video Studio</td>
+                    <td>No account, GPU, key, quota or reset. Everything except optional AI storyboard generation runs locally.</td>
+                    <td>No watermark; procedural text/shapes only. Record duration is user-selected. Browser and codec support determine whether MediaRecorder can export.</td>
+                    <td>Canvas + MediaRecorder, no server and no CORS. Current MVP exports a local recording (usually WebM) and storyboard JSON.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="video-guide-note">Open-weight model cards: <span class="video-model-list"><a href="https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B" target="_blank" rel="noopener noreferrer">Wan 2.2 ↗</a><a href="https://huggingface.co/Lightricks/LTX-Video" target="_blank" rel="noopener noreferrer">LTX-Video ↗</a><a href="https://github.com/Tencent-Hunyuan/HunyuanVideo" target="_blank" rel="noopener noreferrer">HunyuanVideo ↗</a><a href="https://huggingface.co/genmo/mochi-1-preview" target="_blank" rel="noopener noreferrer">Mochi 1 ↗</a><a href="https://github.com/THUDM/CogVideo" target="_blank" rel="noopener noreferrer">CogVideoX ↗</a></span>Read each checkpoint's license and hardware requirements; free compute does not guarantee a running demo. PixVerse Basic terms: <a href="https://app.pixverse.ai/subscribe" target="_blank" rel="noopener noreferrer">plan/credits ↗</a>; HF quota: <a href="https://huggingface.co/docs/hub/en/spaces-zerogpu" target="_blank" rel="noopener noreferrer">ZeroGPU docs ↗</a>; Colab: <a href="https://research.google.com/colaboratory/faq.html" target="_blank" rel="noopener noreferrer">FAQ ↗</a>; Kaggle: <a href="https://www.kaggle.com/docs/efficient-gpu-usage" target="_blank" rel="noopener noreferrer">weekly GPU quota ↗</a>; Gemini: <a href="https://aistudio.google.com/docs/rate-limits" target="_blank" rel="noopener noreferrer">rate limits ↗</a>; Groq: <a href="https://console.groq.com/docs/rate-limits" target="_blank" rel="noopener noreferrer">rate limits ↗</a>.</p>
+          </details>
+        </section>
+
+        <section class="video-research-panel" aria-labelledby="video-capabilities-title">
+          <details class="video-disclosure">
+            <summary id="video-capabilities-title">Prompt engineering &amp; capability map</summary>
+            <div class="video-capability-list">
+              <div><strong>Keyframes / interpolation</strong>Start/end-frame controls are model-specific; do not assume a free plan or every Space exposes them. Keep subject position, screen direction, and lighting consistent between keyframes.</div>
+              <div><strong>Motion brush / control</strong>Specialized motion masks and camera controls are not a platform-wide free-tier feature. Use an explicit camera trajectory and one physically plausible action in the prompt.</div>
+              <div><strong>Audio / SFX synchronization</strong>Some hosted models expose native audio only in selected modes. This local builder can add optional, procedural WebAudio scene cues to a recording; it is not generated music.</div>
+              <div><strong>Style transfer</strong>Image-to-video or restyle features depend on the selected model and may consume credits. Keep a clean reference image and name the style separately from subject motion.</div>
+              <div><strong>Multi-scene stitching</strong>PixVerse's model features are mode-specific. This studio sequences editable canvas scenes; joining generated footage requires a video editor or optional client-side FFmpeg pass.</div>
+              <div><strong>Talking avatars / lip sync</strong>Free access and rights vary by provider; use a verified free demo or open-weight checkpoint only after reviewing its license. Browser speech synthesis is not face animation.</div>
+            </div>
+            <div id="video-prompt-templates" class="video-prompt-grid" aria-label="Copyable video prompt templates"></div>
+          </details>
+        </section>
+
+        <section class="video-research-panel" aria-labelledby="video-blueprint-title">
+          <details class="video-disclosure">
+            <summary id="video-blueprint-title">Single-file, zero-cost builder blueprint</summary>
+            <ul class="video-blueprint-list">
+              <li><strong>Rendering:</strong> use <code>&lt;canvas&gt;</code> or SVG plus <code>requestAnimationFrame</code> for deterministic scene timing and kinetic typography. The included MVP uses canvas and edits each scene with ordinary DOM controls.</li>
+              <li><strong>Recording:</strong> <code>canvas.captureStream()</code> + <code>MediaRecorder</code> is the compatibility-first path; feature-detect the MIME type and offer a local download. <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder" target="_blank" rel="noopener noreferrer">MediaRecorder reference ↗</a></li>
+              <li><strong>Precision encoding:</strong> <code>WebCodecs</code> can encode frames with timestamps where supported, but a container/muxer is still needed. Keep it optional and retain MediaRecorder as fallback. <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API" target="_blank" rel="noopener noreferrer">WebCodecs reference ↗</a></li>
+              <li><strong>Audio:</strong> use <code>WebAudio</code> for procedural SFX and optional tracks; use browser <code>speechSynthesis</code> for a preview voice only when available. Voice availability is platform-specific. <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API" target="_blank" rel="noopener noreferrer">WebAudio reference ↗</a></li>
+              <li><strong>GPU effects:</strong> treat <code>WebGPU</code> shaders as progressive enhancement; maintain a 2D canvas fallback. <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API" target="_blank" rel="noopener noreferrer">WebGPU reference ↗</a></li>
+              <li><strong>MP4/transcoding:</strong> optionally load a pinned <code>ffmpeg.wasm</code> single-thread ESM build from a free CDN only after the user asks to convert. Single-thread mode avoids the <code>SharedArrayBuffer</code> cross-origin-isolation headers that static GitHub Pages generally cannot set; warn about the large download and memory use. <a href="https://ffmpegwasm.netlify.app/" target="_blank" rel="noopener noreferrer">ffmpeg.wasm docs ↗</a></li>
+              <li><strong>AI orchestration:</strong> on one explicit click, call Gemini or Groq with a user-owned key to request schema-checked storyboard JSON. The key stays in memory; no prompt, image or video is sent in local-only mode. Free image/TTS endpoints are optional; user-supplied images and procedural canvas/SVG avoid provider lock-in.</li>
+              <li><strong>Optional edge proxy:</strong> a Cloudflare Worker can add CORS headers or keep an API key in a Worker secret. Restrict the allowed origin, method and payload; never create an open proxy or put a secret in static HTML. An Origin check alone is not authentication for non-browser clients, so add rate limiting/auth before exposing a shared key. A Worker is not needed for local rendering.</li>
+            </ul>
+            <pre class="video-worker-snippet" id="video-worker-snippet"><code>export default {
+  async fetch(request, env) {
+    const origin = request.headers.get("Origin");
+    const cors = {
+      "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Vary": "Origin"
+    };
+    if (origin !== env.ALLOWED_ORIGIN) return new Response("Forbidden", { status: 403 });
+    if (request.method === "OPTIONS") return new Response(null, { headers: cors });
+    if (request.method !== "POST") return new Response("Method not allowed", { status: 405, headers: cors });
+    const body = await request.text();
+    if (body.length &gt; 20000) return new Response("Payload too large", { status: 413, headers: cors });
+    const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.GROQ_API_KEY}`, "Content-Type": "application/json" },
+      body
+    });
+    const headers = new Headers(cors);
+    headers.set("Content-Type", upstream.headers.get("Content-Type") || "application/json");
+    return new Response(upstream.body, { status: upstream.status, headers });
+  }
+};
+// Configure GROQ_API_KEY and ALLOWED_ORIGIN as Worker secrets/vars; never return the key to the browser.</code></pre>
+            <button type="button" class="modal-btn cancel" data-video-copy="video-worker-snippet">Copy optional Worker snippet</button>
+            <p class="video-guide-note">Minimal execution flow: brief → local or BYOK JSON storyboard → editable scene cards → Canvas/WebAudio render → MediaRecorder WebM download → optional single-thread ffmpeg.wasm conversion. There is no backend GPU requirement or build step.</p>
+          </details>
+        </section>
+      </div>
+    </dialog>
+
     <div id="search-meta" class="search-meta" aria-live="polite"></div>
     <div id="workspace-feed"></div>
   </main>
@@ -1934,6 +2217,25 @@
           { name: "Kaggle Notebooks", url: "https://www.kaggle.com/code", desc: "Run hosted notebooks with free GPU and TPU accelerators, subject to quota and availability.", best: "Training and data science notebooks", tags: ["compute", "GPU", "TPU", "notebook", "free"], group: "Free cloud compute", detail: "In notebook Settings choose Accelerator. Kaggle documents a weekly GPU quota, typically 30 hours or higher depending on demand; check your account quota. Busy accelerators may queue; save your outputs.", source: "https://www.kaggle.com/docs/efficient-gpu-usage" },
           { name: "Modal Starter", url: "https://modal.com/", desc: "Serverless CPU and GPU functions with $30/month in included compute credits.", best: "Custom inference and GPU jobs", tags: ["compute", "GPU", "monthly credits"], group: "Credit-limited compute & trials", detail: "Starter has no base subscription fee. Credits cover eligible CPU, memory and GPU compute, not Shared Endpoints; usage beyond the allowance or excluded services is billed. Set a workspace budget.", source: "https://modal.com/pricing" },
           { name: "Cerebras Inference trial", url: "https://cloud.cerebras.ai/", desc: "New accounts can try hosted inference with $5 in one-time credits.", best: "Short high-speed API evaluation", tags: ["API", "trial", "payment method"], group: "Credit-limited compute & trials", detail: "A verified payment method is required; credits expire after 30 days. Access stops when credits expire or run out unless you buy more. This is not a recurring free tier.", source: "https://inference-docs.cerebras.ai/support/rate-limits" }
+        ]
+      },
+      video: {
+        title: "Video Creation",
+        summary: "Plan a storyboard, compare genuinely free generation routes, and export local browser-native motion graphics.",
+        note: `<div class="video-section-note">
+          <p><strong>Start free, not trial-bound.</strong> Open the Zero-Cost Video Studio to build and edit a storyboard locally, preview it, and export a browser-recorded clip. Optional Gemini/Groq calls make storyboard text only; they do not generate footage.</p>
+          <ul>
+            <li>Limits and access details were checked November 20, 2026; free allowances, models, and queues can change. Follow the official source links before relying on a quota.</li>
+            <li>PixVerse Basic has a daily credit allowance; free cloud GPUs are time-limited and may queue. The local canvas path needs no account, GPU, key, or build step.</li>
+          </ul>
+        </div>`,
+        items: [
+          { name: "Zero-Cost Video Studio", modal: "modal-video-studio", desc: "Turn an idea into editable scenes, use copy-ready cinematic prompts, and record local motion graphics.", best: "Planning and exporting a small video without a backend", tags: ["video", "storyboard", "canvas", "WebM", "free"], aliases: ["video maker", "text to video", "prompt templates", "AI video"], detail: "Offline local storyboard builder with an optional BYOK text-model request. Canvas animation and MediaRecorder run in this browser; this MVP does not generate or upload AI footage." },
+          { name: "PixVerse Basic", url: "https://app.pixverse.ai/creation/video", desc: "Try web text-to-video or image-to-video with the free Basic credit allowance.", best: "Hosted short-form video experiments", tags: ["video", "text-to-video", "image-to-video", "free credits"], aliases: ["pixverse AI video"], detail: "The current Basic plan lists 60 initial credits and 30 daily credits. Daily credits reset at 00:00 UTC and expire at day's end. Basic output is listed up to 540p; model-specific duration and credit costs vary. The free tier is not described as watermark-free. API credits are separate from web credits; use the web app for the free path.", source: "https://app.pixverse.ai/subscribe" },
+          { name: "Hugging Face Video Spaces", url: "https://huggingface.co/spaces?sort=trending", desc: "Find community demos for open-weight video models, including Wan, LTX-Video, and other checkpoints.", best: "Trying a hosted open-model demo", tags: ["video", "open weights", "GPU", "Spaces"], aliases: ["HuggingFace video generation", "ZeroGPU"], detail: "ZeroGPU Spaces offer 5 minutes of GPU time per day for free accounts, resetting 24 hours after first GPU use; unauthenticated quota is 2 minutes. A particular Space may queue, sleep, disappear, or use different model limits. Gradio API and CORS behavior are Space-specific.", source: "https://huggingface.co/docs/hub/en/spaces-zerogpu" },
+          { name: "Open-weight Video Checkpoints", url: "https://huggingface.co/models?pipeline_tag=text-to-video", desc: "Browse model cards for Wan 2.2, LTX-Video, HunyuanVideo, Mochi 1, and CogVideoX.", best: "Choosing a model for a free notebook or demo", tags: ["video models", "Wan", "LTX-Video", "HunyuanVideo", "Mochi", "CogVideoX"], detail: "Check each checkpoint's license, supported frames, resolution, VRAM and quantization requirements. Free Spaces, Colab, and Kaggle access is not guaranteed and does not make a checkpoint's license unrestricted.", source: "https://huggingface.co/models?pipeline_tag=text-to-video" },
+          { name: "Google Colab (Video Models)", url: "https://colab.research.google.com/", desc: "Run supported open-weight video notebooks when free GPU access is available.", best: "Interactive, notebook-based experiments", tags: ["video", "GPU", "Colab", "notebook", "free"], detail: "Colab does not publish a fixed free GPU quota; access and usage limits fluctuate. Free runtimes can last up to 12 hours depending on availability and usage. Treat it as an interactive notebook, not a persistent video API or public web service.", source: "https://research.google.com/colaboratory/faq.html" },
+          { name: "Kaggle Notebooks (Video Models)", url: "https://www.kaggle.com/code", desc: "Use free notebook GPUs for compatible open-weight video experiments.", best: "Notebook jobs with a visible accelerator quota", tags: ["video", "GPU", "Kaggle", "notebook", "free"], detail: "Kaggle documents a weekly GPU quota of 30 hours or sometimes more depending on demand/resources; check the live quota in your account. Busy GPUs can queue, and model memory needs may exceed free hardware.", source: "https://www.kaggle.com/docs/efficient-gpu-usage" }
         ]
       },
       codingagents: {
@@ -7489,6 +7791,7 @@ function createNoteOutline(path = 'Untitled.md', now = new Date()) {
     initSeasonalLayer();
     initialize();
   </script>
+  <script src="assets/video-studio.js"></script>
   <p id="ios-hint" class="ios-install-hint hidden">
     On iPhone or iPad: open this page in Safari, tap Share, then Add to Home Screen to install the Scratchpad.
   </p>

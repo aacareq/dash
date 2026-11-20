@@ -64,8 +64,10 @@ test('Video Creation is a searchable dashboard category with official evidence l
   assert.ok(section);
   assert.equal(section.classList.contains('is-hidden'), false);
   const cards = [...section.querySelectorAll('.card')];
-  assert.equal(cards.length, 6);
-  assert.equal(window.document.querySelector('#cnt-video').textContent, '6');
+  assert.equal(cards.length, 7);
+  assert.equal(window.document.querySelector('#cnt-video').textContent, '7');
+  const motionLab = cards.find(card => card.querySelector('.card-title').textContent === 'Zero-Cost Motion Lab');
+  assert.equal(motionLab.querySelector('.card-main').getAttribute('href'), 'video-workshop.html');
   assert.ok(section.querySelector('.section-note').textContent.includes('no account, GPU, key'));
   assert.ok(cards.every(card => card.querySelector('.detail-panel')));
   const pixverse = cards.find(card => card.querySelector('.card-title').textContent === 'PixVerse Basic');

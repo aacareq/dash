@@ -1,0 +1,1362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#09101b" />
+  <meta name="description" content="Create animated videos and PNG scene frames locally in your browser. No account, API key, paid generation service, build step, or cloud upload." />
+  <title>Zero-Cost Motion Lab · DashOS</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080d16;
+      --panel: #101a27;
+      --panel-2: #131f2e;
+      --line: rgba(164, 190, 218, .16);
+      --text: #edf5ff;
+      --muted: #9aaabd;
+      --mint: #8be6c1;
+      --blue: #8db7ff;
+      --violet: #c3a5ff;
+      --amber: #ffd17e;
+      --danger: #ff9c9c;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .24);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(ellipse at 10% -20%, rgba(54, 101, 160, .24), transparent 44rem),
+        radial-gradient(ellipse at 92% 12%, rgba(103, 74, 151, .19), transparent 38rem),
+        linear-gradient(180deg, #080d16 0%, #0a111b 55%, #080d16 100%);
+      color: var(--text);
+    }
+    a { color: #a8c8ff; text-underline-offset: 3px; }
+    a:hover { color: #d6e5ff; }
+    button, input, select, textarea { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(139, 230, 193, .75);
+      outline-offset: 2px;
+    }
+    .shell { width: min(1440px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar {
+      position: sticky; z-index: 20; top: 0;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      padding: .75rem max(20px, calc((100% - 1440px) / 2));
+      border-bottom: 1px solid rgba(164, 190, 218, .12);
+      background: rgba(8, 13, 22, .88);
+      backdrop-filter: blur(18px);
+    }
+    .brand { display: flex; align-items: center; gap: .7rem; min-width: max-content; color: var(--text); text-decoration: none; font-weight: 800; letter-spacing: -.02em; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid rgba(139, 230, 193, .4); border-radius: 11px; color: var(--mint); background: rgba(139, 230, 193, .08); }
+    .topnav { display: flex; flex-wrap: wrap; justify-content: center; gap: .35rem; }
+    .topnav a { padding: .45rem .7rem; border-radius: 999px; color: var(--muted); text-decoration: none; font-size: .83rem; }
+    .topnav a:hover { color: var(--text); background: rgba(255, 255, 255, .06); }
+    .local-pill, .badge, .chip { display: inline-flex; align-items: center; gap: .42rem; border: 1px solid var(--line); border-radius: 999px; padding: .38rem .65rem; color: var(--muted); background: rgba(255,255,255,.035); font-size: .74rem; font-weight: 700; white-space: nowrap; }
+    .local-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 14px var(--mint); }
+    main { padding: 1.5rem 0 4rem; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(340px, .95fr); align-items: center; gap: clamp(1.5rem, 5vw, 5rem); padding: clamp(2rem, 5vw, 4.5rem) 0 2.3rem; }
+    .eyebrow { margin: 0 0 .9rem; color: var(--mint); font-size: .72rem; font-weight: 850; letter-spacing: .17em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 780px; margin-bottom: 1rem; font-size: clamp(2.5rem, 6.8vw, 5.9rem); line-height: .98; letter-spacing: -.075em; }
+    h1 span { color: var(--mint); }
+    .hero-copy { max-width: 690px; color: #b4c1d1; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.68; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.35rem; }
+    .button {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      min-height: 42px; padding: .68rem .95rem; border: 1px solid var(--line); border-radius: 11px;
+      background: rgba(255,255,255,.045); color: var(--text); text-decoration: none; font-weight: 760; font-size: .88rem; cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+    .button:hover { transform: translateY(-1px); border-color: rgba(139, 230, 193, .5); background: rgba(139, 230, 193, .09); }
+    .button.primary { border-color: rgba(139, 230, 193, .5); background: linear-gradient(135deg, rgba(73, 191, 149, .24), rgba(87, 134, 221, .18)); color: #ddfff2; }
+    .button.small { min-height: 34px; padding: .45rem .65rem; font-size: .76rem; }
+    .button.danger { color: var(--danger); }
+    .hero-visual { position: relative; overflow: hidden; min-height: 290px; border: 1px solid rgba(164, 190, 218, .18); border-radius: 22px; background: linear-gradient(145deg, rgba(21, 42, 60, .88), rgba(28, 20, 51, .82)); box-shadow: var(--shadow); }
+    .hero-visual::before, .hero-visual::after { position: absolute; z-index: 0; width: 210px; height: 210px; border-radius: 50%; content: ""; filter: blur(1px); animation: float 8s ease-in-out infinite; }
+    .hero-visual::before { top: -68px; right: -38px; background: radial-gradient(circle at 34% 35%, rgba(136, 250, 207, .55), rgba(43, 126, 131, .08) 66%, transparent 70%); }
+    .hero-visual::after { bottom: -125px; left: -55px; background: radial-gradient(circle at 50%, rgba(162, 127, 255, .34), transparent 70%); animation-delay: -3s; }
+    .hero-visual canvas { position: relative; z-index: 1; display: block; width: 100%; min-height: 290px; }
+    .hero-art-label { position: absolute; right: 1rem; bottom: .9rem; z-index: 2; color: rgba(232, 244, 255, .65); font-size: .66rem; letter-spacing: .15em; text-transform: uppercase; }
+    @keyframes float { 50% { transform: translate3d(-12px, 16px, 0) scale(1.06); } }
+    .truth-strip { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: .9rem; margin: 0 0 2.4rem; padding: 1rem 1.1rem; border: 1px solid rgba(139, 230, 193, .24); border-radius: 14px; background: linear-gradient(110deg, rgba(53, 130, 103, .13), rgba(32, 71, 102, .1)); }
+    .truth-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--mint); background: rgba(139, 230, 193, .1); font-weight: 900; }
+    .truth-strip p { margin: 0; color: #c4d0df; font-size: .9rem; line-height: 1.58; }
+    .truth-strip strong { color: #f1fff9; }
+    .section { margin: 2.1rem 0; scroll-margin-top: 82px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .section-heading h2 { margin: 0; font-size: clamp(1.55rem, 3vw, 2.35rem); letter-spacing: -.045em; }
+    .section-heading p { max-width: 680px; margin: .45rem 0 0; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+    .section-kicker { color: var(--blue); font-size: .69rem; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+    .studio-card, .panel, .method-card, .recipe-card, .research-card { border: 1px solid var(--line); border-radius: 16px; background: linear-gradient(145deg, rgba(18, 29, 43, .96), rgba(14, 22, 33, .96)); box-shadow: var(--shadow); }
+    .studio-card { overflow: hidden; }
+    .studio-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 1rem; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.025); }
+    .studio-toolbar strong { font-size: .9rem; }
+    .toolbar-right { display: flex; flex-wrap: wrap; justify-content: end; gap: .4rem; }
+    .studio-grid { display: grid; grid-template-columns: minmax(300px, 375px) minmax(0, 1fr); min-height: 550px; }
+    .controls { display: flex; flex-direction: column; gap: .85rem; padding: 1rem; border-right: 1px solid var(--line); background: rgba(255,255,255,.012); }
+    .form-label { display: flex; flex-direction: column; gap: .38rem; min-width: 0; color: #c5d2e0; font-size: .76rem; font-weight: 720; }
+    .form-label small { color: var(--muted); font-size: .68rem; font-weight: 500; line-height: 1.45; }
+    .input, select, textarea { width: 100%; min-width: 0; border: 1px solid rgba(164,190,218,.2); border-radius: 9px; padding: .6rem .66rem; background: #0b1420; color: var(--text); font-size: .82rem; }
+    textarea { min-height: 92px; resize: vertical; line-height: 1.5; }
+    .input[type="color"] { height: 36px; padding: .2rem; }
+    .field-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+    .field-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .seed-row { display: grid; grid-template-columns: 1fr auto; gap: .45rem; }
+    .checkbox-row { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; color: var(--muted); font-size: .74rem; }
+    .checkbox-row input { accent-color: var(--mint); }
+    .control-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .inline-note { margin: 0; color: var(--muted); font-size: .7rem; line-height: 1.5; }
+    .status { min-height: 1.25rem; margin: 0; color: var(--mint); font-size: .76rem; line-height: 1.45; }
+    .status.error { color: var(--danger); }
+    .limit-note { padding: .65rem .7rem; border-left: 3px solid var(--mint); border-radius: 4px 9px 9px 4px; background: rgba(139,230,193,.06); color: var(--muted); font-size: .72rem; line-height: 1.55; }
+    .limit-note strong { color: var(--text); }
+    .stage-column { display: flex; flex-direction: column; gap: .8rem; min-width: 0; padding: 1rem; }
+    .stage-head { display: flex; justify-content: space-between; align-items: center; gap: .6rem; }
+    .stage-head h3 { margin: 0; font-size: .95rem; }
+    .aspect-chip { color: var(--muted); font-size: .71rem; }
+    .stage-frame { position: relative; overflow: hidden; border: 1px solid rgba(164,190,218,.2); border-radius: 13px; background: #101521; }
+    #preview { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    .playback-row { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; }
+    .progress-wrap { display: flex; align-items: center; gap: .55rem; flex: 1 1 180px; color: var(--muted); font-size: .7rem; }
+    progress { width: 100%; height: 7px; overflow: hidden; border: 0; border-radius: 99px; background: rgba(255,255,255,.1); accent-color: var(--mint); }
+    progress::-webkit-progress-bar { border-radius: 99px; background: rgba(255,255,255,.1); }
+    progress::-webkit-progress-value { border-radius: 99px; background: linear-gradient(90deg,var(--mint),var(--blue)); }
+    .export-row { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .format-note { margin: 0; color: var(--muted); font-size: .7rem; line-height: 1.55; }
+    .frame-list { display: flex; flex-direction: column; gap: .65rem; margin: 0; padding: 0; list-style: none; }
+    .frame-item { display: grid; grid-template-columns: minmax(108px, 132px) minmax(0, 1fr); gap: .6rem; padding: .55rem; border: 1px solid var(--line); border-radius: 11px; background: rgba(7,13,21,.45); }
+    .frame-item.selected { border-color: rgba(139,230,193,.55); box-shadow: inset 0 0 0 1px rgba(139,230,193,.16); }
+    .frame-select { display: block; width: 100%; padding: 0; overflow: hidden; border: 1px solid rgba(164,190,218,.14); border-radius: 7px; background: #090e16; color: var(--text); cursor: pointer; text-align: left; }
+    .frame-select canvas { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+    .frame-select span { display: block; padding: .32rem .4rem; color: var(--muted); font-size: .66rem; }
+    .frame-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: .4rem; }
+    .frame-fields .form-label { gap: .2rem; font-size: .66rem; }
+    .frame-fields .input, .frame-fields textarea { padding: .42rem .48rem; font-size: .7rem; }
+    .frame-fields textarea { min-height: 50px; }
+    .frame-field-wide { grid-column: 1 / -1; }
+    .frame-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; grid-column: 1 / -1; }
+    .file-label { position: relative; display: inline-flex; align-items: center; min-height: 28px; padding: .32rem .5rem; border: 1px solid var(--line); border-radius: 7px; color: var(--blue); font-size: .67rem; cursor: pointer; }
+    .file-label input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .frame-file-name { max-width: 145px; overflow: hidden; color: var(--muted); font-size: .64rem; text-overflow: ellipsis; white-space: nowrap; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1rem; }
+    .filter-chip { min-height: 34px; padding: .45rem .7rem; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.03); color: var(--muted); cursor: pointer; font-size: .74rem; font-weight: 720; }
+    .filter-chip[aria-pressed="true"] { border-color: rgba(139,230,193,.5); background: rgba(139,230,193,.1); color: #d8fff0; }
+    .method-grid, .recipe-grid, .research-grid, .tool-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+    .method-card, .recipe-card, .research-card { position: relative; min-width: 0; padding: 1rem; box-shadow: none; }
+    .method-card[hidden] { display: none; }
+    .method-card h3, .recipe-card h3, .research-card h3 { margin: .55rem 0 .45rem; font-size: .98rem; letter-spacing: -.02em; }
+    .method-card p, .recipe-card p, .research-card p { margin-bottom: .65rem; color: var(--muted); font-size: .79rem; line-height: 1.58; }
+    .method-card ul, .recipe-card ol, .research-card ul { margin: .45rem 0 0; padding-left: 1.1rem; color: #bdcada; font-size: .74rem; line-height: 1.65; }
+    .card-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.035); font-size: 1rem; }
+    .tag-local { color: var(--mint); }
+    .tag-caveat { color: var(--amber); }
+    .tag-ai { color: var(--violet); }
+    .recipe-layout { display: grid; grid-template-columns: minmax(245px, .75fr) minmax(0, 1.5fr); gap: .8rem; }
+    .recipe-picker { padding: 1rem; }
+    .recipe-result { min-height: 170px; padding: 1rem 1.1rem; border-left: 3px solid var(--blue); border-radius: 6px 12px 12px 6px; background: rgba(103,144,217,.07); }
+    .recipe-result h3 { margin: 0 0 .5rem; font-size: 1.05rem; }
+    .recipe-result p, .recipe-result ol { color: #bdcada; font-size: .81rem; line-height: 1.65; }
+    .recipe-result ol { padding-left: 1.2rem; }
+    .spec-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; }
+    .spec { padding: .8rem; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.025); }
+    .spec strong { display: block; margin-bottom: .25rem; color: var(--text); font-size: .76rem; }
+    .spec span { color: var(--muted); font-size: .7rem; line-height: 1.5; }
+    .source-list { display: flex; flex-wrap: wrap; gap: .45rem; padding: 0; list-style: none; }
+    .source-list a { display: inline-flex; min-height: 32px; align-items: center; padding: .35rem .58rem; border: 1px solid var(--line); border-radius: 999px; color: #b7cced; font-size: .71rem; text-decoration: none; }
+    .source-list a:hover { border-color: rgba(139,230,193,.4); color: var(--text); }
+    .mini-table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    .mini-table { width: 100%; min-width: 790px; border-collapse: collapse; font-size: .74rem; line-height: 1.55; }
+    .mini-table th, .mini-table td { padding: .72rem .75rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .mini-table th { position: sticky; top: 0; background: #121d2b; color: #bdcada; font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; }
+    .mini-table td { color: #c4d0df; }
+    .mini-table tr:last-child td { border-bottom: 0; }
+    .callout { padding: .85rem 1rem; border: 1px solid rgba(255,209,126,.28); border-radius: 11px; background: rgba(255,209,126,.06); color: #dac9a8; font-size: .78rem; line-height: 1.58; }
+    .callout strong { color: #ffe3ac; }
+    .copyline { display: flex; align-items: center; justify-content: space-between; gap: .7rem; padding: .65rem .75rem; border: 1px solid var(--line); border-radius: 9px; background: #09111c; }
+    .copyline code { overflow-wrap: anywhere; color: #cbd9ee; font-size: .72rem; }
+    footer { padding: 1.2rem 0 0; border-top: 1px solid var(--line); color: var(--muted); font-size: .72rem; line-height: 1.6; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 1020px) {
+      .studio-grid { grid-template-columns: minmax(265px, 330px) minmax(0, 1fr); }
+      .method-grid, .recipe-grid, .research-grid, .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      .shell { width: min(100% - 24px, 680px); }
+      .topbar { padding: .65rem 12px; }
+      .topnav { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 1.2rem; padding-top: 2.2rem; }
+      .hero-visual { min-height: 235px; }
+      .hero-visual canvas { min-height: 235px; }
+      .studio-grid { grid-template-columns: 1fr; }
+      .controls { border-right: 0; border-bottom: 1px solid var(--line); }
+      .recipe-layout { grid-template-columns: 1fr; }
+      .frame-item { grid-template-columns: 110px minmax(0, 1fr); }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 520px) {
+      .local-pill { font-size: .63rem; padding: .34rem .5rem; }
+      .brand { font-size: .82rem; }
+      .method-grid, .recipe-grid, .research-grid, .tool-grid { grid-template-columns: 1fr; }
+      .spec-grid { grid-template-columns: 1fr 1fr; }
+      .studio-toolbar { align-items: flex-start; flex-direction: column; }
+      .toolbar-right { justify-content: flex-start; }
+      .frame-item { grid-template-columns: 1fr; }
+      .frame-select { max-width: 240px; }
+      .frame-fields { grid-template-columns: 1fr 1fr; }
+      .field-grid.three { grid-template-columns: 1fr 1fr; }
+      .truth-strip { grid-template-columns: 1fr; }
+      .truth-icon { width: 30px; height: 30px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="Back to DashOS Video Creation">
+      <span class="brand-mark" aria-hidden="true">✳</span><span>Zero-Cost Motion Lab</span>
+    </a>
+    <nav class="topnav" aria-label="Page sections">
+      <a href="#studio">Studio</a><a href="#routes">Free workflows</a><a href="#image-frames">Image frames</a><a href="#research">Research &amp; limits</a>
+    </nav>
+    <span class="local-pill"><span class="local-dot" aria-hidden="true"></span>Local-only renderer</span>
+  </header>
+
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">A no-metered-cost creation path · checked November 20, 2026</p>
+        <h1 id="page-title">Make motion from <span>frames you own.</span></h1>
+        <p class="hero-copy">Build animated scenes, generate original stylized procedural frames, and record a video right in this browser. For subject-specific or photoreal imagery, bring a local model's stills; no AI endpoint, key, account, subscription, cloud render, external library, or build step is used by the lab.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#studio">✦ Open the local studio</a>
+          <a class="button" href="#image-frames">How to make image frames</a>
+          <a class="button" href="index.html">← Video Creation research</a>
+        </div>
+      </div>
+      <div class="hero-visual" aria-label="Example generative motion artwork">
+        <canvas id="hero-canvas" width="960" height="560" role="img" aria-label="Procedurally generated colorful still frame"></canvas>
+        <span class="hero-art-label">Canvas art · generated on this device</span>
+      </div>
+    </section>
+
+    <div class="truth-strip" role="note">
+      <span class="truth-icon" aria-hidden="true">✓</span>
+      <p><strong>The honest guarantee:</strong> this page never calls a paid or free AI API, never uploads your brief or local images, and has no usage meter. It can always make procedural graphics and a PNG frame pack on a supported browser. A cloud service cannot promise unlimited $0 generations forever; local hardware, electricity, storage, and internet access are outside the app's control.</p>
+    </div>
+
+    <section class="section" id="studio" aria-labelledby="studio-title">
+      <div class="section-heading">
+        <div><span class="section-kicker">Make something now</span><h2 id="studio-title">Local frame &amp; motion studio</h2><p>Every generated scene is drawn from vector shapes, gradients, typography, and optional image files you choose. The built-in generator is procedural, not a hidden cloud AI.</p></div>
+        <span class="badge tag-local">0 API calls · 0 cloud uploads</span>
+      </div>
+      <div class="studio-card">
+        <div class="studio-toolbar">
+          <strong>01 / Create a storyboard, illustrated frames, and animation</strong>
+          <div class="toolbar-right">
+            <button class="button small" id="export-project" type="button">Save project JSON</button>
+            <label class="button small" for="import-project">Open project JSON</label>
+            <input class="sr-only" id="import-project" type="file" accept="application/json,.json" />
+          </div>
+        </div>
+        <div class="studio-grid">
+          <aside class="controls" aria-label="Local video settings">
+            <label class="form-label" for="idea">What should the video feel like?
+              <textarea id="idea" maxlength="480">A tiny greenhouse glows above a quiet midnight city. Soft light travels through glass leaves. The first sunrise reaches the rooftop.</textarea>
+              <small>Saved as storyboard notes and used as a deterministic art seed; this is not semantic text-to-image AI. Import your own local still for a specific subject. Do not enter private material if someone else can see your screen.</small>
+            </label>
+            <div class="field-grid">
+              <label class="form-label" for="art-style">Artwork recipe
+                <select id="art-style">
+                  <option value="paper">Layered paper landscape</option>
+                  <option value="orbit">Orbital / science graphic</option>
+                  <option value="bloom">Radial bloom</option>
+                  <option value="ribbon">Flowing ribbons</option>
+                  <option value="interface">Product / interface card</option>
+                  <option value="poster">Bold geometric poster</option>
+                </select>
+              </label>
+              <label class="form-label" for="palette">Color story
+                <select id="palette">
+                  <option value="aurora">Aurora</option>
+                  <option value="ember">Ember</option>
+                  <option value="ocean">Deep ocean</option>
+                  <option value="citrus">Citrus / ink</option>
+                  <option value="mono">Monochrome</option>
+                  <option value="rose">Rose dusk</option>
+                </select>
+              </label>
+            </div>
+            <div class="field-grid">
+              <label class="form-label" for="aspect">Frame shape
+                <select id="aspect"><option value="16:9">16:9 landscape</option><option value="9:16">9:16 vertical</option><option value="1:1">1:1 square</option></select>
+              </label>
+              <label class="form-label" for="resolution">Frame resolution
+                <select id="resolution"><option value="720">720-class (1280 × 720 landscape)</option><option value="1080">1080-class (1920 × 1080 landscape)</option></select>
+              </label>
+            </div>
+            <div class="field-grid three">
+              <label class="form-label" for="scene-count">Scene frames
+                <select id="scene-count"><option value="3">3</option><option value="4" selected>4</option><option value="6">6</option><option value="8">8</option></select>
+              </label>
+              <label class="form-label" for="scene-seconds">Seconds / scene
+                <select id="scene-seconds"><option value="2">2 sec</option><option value="3">3 sec</option><option value="4" selected>4 sec</option><option value="5">5 sec</option><option value="6">6 sec</option></select>
+              </label>
+              <label class="form-label" for="motion">Camera motion
+                <select id="motion"><option value="drift">Slow drift</option><option value="push">Gentle push-in</option><option value="orbit">Orbit</option><option value="sweep">Lateral sweep</option></select>
+              </label>
+            </div>
+            <label class="form-label" for="seed">Repeatable art seed
+              <span class="seed-row"><input class="input" id="seed" type="number" min="1" max="99999999" value="240517" /><button class="button small" id="shuffle-seed" type="button" title="Choose a new local art seed">Shuffle</button></span>
+              <small>Keep the same seed and palette across scenes for a more consistent art direction. The app uses deterministic procedural drawing, not an AI model.</small>
+            </label>
+            <div class="control-actions">
+              <button class="button primary" id="generate-frames" type="button">✦ Generate local frames</button>
+              <button class="button" id="add-frame" type="button">＋ Add scene</button>
+            </div>
+            <p class="status" id="studio-status" role="status" aria-live="polite">Ready. This studio makes visuals without network calls.</p>
+            <div class="limit-note"><strong>Local image input:</strong> choose a PNG/JPEG/WebP under 20 MB and 24 megapixels on any scene to use it as a background plate with animated pan/zoom. The file is decoded on-device and is not uploaded or saved after you close this tab.</div>
+          </aside>
+
+          <div class="stage-column">
+            <div class="stage-head"><h3>Preview</h3><span class="aspect-chip" id="stage-spec">1280 × 720 · 16:9 · 30 fps capture</span></div>
+            <div class="stage-frame"><canvas id="preview" width="1280" height="720" role="img" aria-label="Animated video preview canvas"></canvas></div>
+            <div class="playback-row">
+              <button class="button small primary" id="play-preview" type="button">▶ Play sequence</button>
+              <button class="button small" id="stop-preview" type="button" disabled>■ Stop</button>
+              <button class="button small" id="record-video" type="button">● Record video</button>
+              <div class="progress-wrap"><progress id="play-progress" max="1" value="0" aria-label="Animation progress"></progress><span id="time-readout">00:00 / 00:00</span></div>
+            </div>
+            <div class="export-row">
+              <button class="button small" id="export-png" type="button">Download selected PNG</button>
+              <button class="button small" id="export-frame-pack" type="button">Download PNG frame pack</button>
+            </div>
+            <p class="format-note">PNG frame pack = one still per scene plus a JSON brief. Record video = the animated Canvas captured in real time (silent; add audio in a local editor/OBS). The recorder uses a browser-supported format; WebM is common and MP4 is not guaranteed. No network or watermark is added by this lab.</p>
+            <div class="frame-list-wrap">
+              <div class="stage-head"><h3>Scene frames <span id="scene-count-label" class="aspect-chip"></span></h3><span class="aspect-chip">Select a thumbnail to edit</span></div>
+              <ol class="frame-list" id="frame-list" aria-label="Editable sequence of video scenes"></ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="routes" aria-labelledby="routes-title">
+      <div class="section-heading"><div><span class="section-kicker">What is genuinely $0</span><h2 id="routes-title">Free creation routes, ranked by reliability</h2><p>“No metered charge” and “free hosted quota” are different. Use local methods for repeatable work; treat any cloud credits, free demos, or queues as optional bonuses.</p></div></div>
+      <div class="filter-bar" role="group" aria-label="Filter creation routes">
+        <button class="filter-chip" type="button" data-route-filter="all" aria-pressed="true">All routes</button>
+        <button class="filter-chip" type="button" data-route-filter="local" aria-pressed="false">No usage quota / local</button>
+        <button class="filter-chip" type="button" data-route-filter="images" aria-pressed="false">Make image frames</button>
+        <button class="filter-chip" type="button" data-route-filter="cloud" aria-pressed="false">Free cloud access (variable)</button>
+      </div>
+      <div class="method-grid" id="method-grid">
+        <article class="method-card" data-method="local images">
+          <span class="card-icon tag-local" aria-hidden="true">◈</span><span class="badge tag-local">Most reliable $0 path</span>
+          <h3>Procedural Canvas / SVG art</h3>
+          <p>This page generates original stylized and geometric keyframes using browser-native Canvas, gradients, vector shapes, and type. It does not infer depicted subjects from your text; import a local AI still for that. Animate with camera drift, pan/zoom, particles, geometric layers, and captions.</p>
+          <ul><li>No account, GPU service, API key, credits, or remote images.</li><li>Exports clean PNG frames and a local WebM recording.</li><li>Excellent for motion graphics, explainers, diagrams, title cards, loops, and stylized scenes—not photorealistic AI.</li></ul>
+        </article>
+        <article class="method-card" data-method="local">
+          <span class="card-icon tag-local" aria-hidden="true">▧</span><span class="badge tag-local">Local capture</span>
+          <h3>Screen, browser, or live-demo recording</h3>
+          <p>Record a product walkthrough, slide deck, web animation, or camera scene locally. The browser Motion Lab records its Canvas; OBS combines windows, images, text, webcams, and audio.</p>
+          <ul><li>Browser path uses <code>canvas.captureStream()</code> and <code>MediaRecorder</code>.</li><li>OBS is free/open source for desktop recording; screen capture itself needs no AI quota.</li><li>Good writing, pacing, captions, and clean audio matter more than a paid generator.</li></ul>
+          <a href="https://obsproject.com/" target="_blank" rel="noopener noreferrer">OBS official site ↗</a>
+        </article>
+        <article class="method-card" data-method="local">
+          <span class="card-icon tag-local" aria-hidden="true">◌</span><span class="badge tag-local">Interactive content</span>
+          <h3>Interactive web animation</h3>
+          <p>Publish a responsive page with CSS, SVG, Canvas, WebAudio, or WebGL/WebGPU effects. The interaction is the experience; capture it as a video only when a linear clip is needed.</p>
+          <ul><li>Vanilla HTML/CSS/JS can run as static files on GitHub Pages or Cloudflare Pages.</li><li>p5.js is a free/open-source creative-coding library; this lab deliberately has no runtime dependency.</li><li>Prefer 2D fallbacks, reduced-motion support, keyboard access, and readable labels.</li></ul>
+          <a href="https://p5js.org/" target="_blank" rel="noopener noreferrer">p5.js official site ↗</a>
+        </article>
+        <article class="method-card" data-method="local images">
+          <span class="card-icon tag-ai" aria-hidden="true">✺</span><span class="badge tag-ai">AI stills · local compute</span>
+          <h3>Open-weight image model on your own device</h3>
+          <p>Install a local image-generation workflow such as ComfyUI and run a checkpoint such as SDXL on hardware you already own. Export one still per shot, then animate those plates in this lab or an editor.</p>
+          <ul><li>No cloud inference invoice or daily hosted quota after the weights are downloaded.</li><li>SDXL Base is a 3B-parameter text-to-image model; the base can run standalone, with an optional refiner pass.</li><li>Not “free compute”: expect a large model download, setup, GPU/RAM limits, storage, and electricity.</li><li>Check the exact checkpoint license and permitted uses; open weights do not erase license terms.</li></ul>
+          <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank" rel="noopener noreferrer">ComfyUI project ↗</a> · <a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" target="_blank" rel="noopener noreferrer">SDXL model card &amp; license ↗</a>
+        </article>
+        <article class="method-card" data-method="local">
+          <span class="card-icon tag-ai" aria-hidden="true">◉</span><span class="badge tag-ai">AI video · owned hardware</span>
+          <h3>Open-weight video generation locally</h3>
+          <p>Current model families include Wan 2.2, LTX-2.5, HunyuanVideo-1.5, and CogVideoX. Downloading weights can avoid a per-generation service bill; it does not make the compute, setup, hardware, or license terms disappear.</p>
+          <ul><li>Wan 2.2 TI2V-5B is listed for 720p at 24 fps and consumer-class RTX 4090; the A14B T2V example recommends at least 80 GB VRAM.</li><li>The official LTX-2.5 quick-start bundle is about 66 GiB on disk for a 121-frame example; quantization/offload may help when GPU memory is limited.</li><li>Check the exact checkpoint license, VRAM, resolution, frame count, and dependencies. Free notebooks/Spaces are not a dependable substitute for compatible hardware.</li></ul>
+          <a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan 2.2 specs ↗</a> · <a href="https://github.com/Lightricks/LTX-2" target="_blank" rel="noopener noreferrer">LTX-2.5 ↗</a> · <a href="https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5" target="_blank" rel="noopener noreferrer">HunyuanVideo-1.5 ↗</a> · <a href="https://github.com/THUDM/CogVideo" target="_blank" rel="noopener noreferrer">CogVideoX ↗</a>
+        </article>
+        <article class="method-card" data-method="images local">
+          <span class="card-icon tag-caveat" aria-hidden="true">⌁</span><span class="badge tag-caveat">Experimental · not guaranteed</span>
+          <h3>Browser-local AI image demo (WebGPU)</h3>
+          <p>MLC’s Web Stable Diffusion research demo runs a model client-side and downloads model parameters into browser cache. The current project page warns that it may not work in your environment and documents old, narrow hardware/browser testing; use it as an experiment, not a dependable production generator.</p>
+          <ul><li>No inference request to a GPU service, but the first model download is large and generation needs substantial local memory.</li><li>The project page reports about 7 GB memory use and testing on Apple silicon Macs with Chrome Canary; performance/compatibility are not universal.</li><li>Generate or download stills there, then import them with “Use local still” in this lab.</li></ul>
+          <a href="https://websd.mlc.ai/" target="_blank" rel="noopener noreferrer">MLC Web Stable Diffusion research demo ↗</a>
+        </article>
+        <article class="method-card" data-method="local">
+          <span class="card-icon tag-local" aria-hidden="true">▤</span><span class="badge tag-local">Free desktop editing</span>
+          <h3>Finish in a free local video editor</h3>
+          <p>Import the frame pack, screen recordings, voiceover, or generated local clips into an editor. Add timing, transitions, grades, captions, and a final export without sending the project to a cloud service.</p>
+          <ul><li>Shotcut is free/open source and supports multi-format timelines and resolutions up to 4K.</li><li>Kdenlive provides effects, keyframes, transitions, title clips, and Glaxnimate vector animation integration.</li><li>Blender’s Video Sequence Editor supports image/video/audio layers, keyframes, transitions, masks, and effects.</li></ul>
+          <a href="https://www.shotcut.org/" target="_blank" rel="noopener noreferrer">Shotcut ↗</a> · <a href="https://kdenlive.org/" target="_blank" rel="noopener noreferrer">Kdenlive ↗</a> · <a href="https://www.blender.org/features/video-editing/" target="_blank" rel="noopener noreferrer">Blender VSE ↗</a>
+        </article>
+        <article class="method-card" data-method="cloud images">
+          <span class="card-icon tag-caveat" aria-hidden="true">◷</span><span class="badge tag-caveat">Free today · quota/queue can block</span>
+          <h3>Hugging Face ZeroGPU Spaces</h3>
+          <p>Try public text-to-image or video model demos at no charge within the service’s quota. It is useful for sampling open models, not a promise that a specific Space will stay up or return instantly.</p>
+          <ul><li>Current docs list 5 GPU minutes/day for a free account and 2 minutes/day unauthenticated, resetting 24 hours after first use.</li><li>Queues, Space uptime, model settings, output quality, and per-run time vary by demo.</li><li>After the daily free quota, paid accounts may use credits; this guide does not recommend paid continuation.</li></ul>
+          <a href="https://huggingface.co/docs/hub/en/spaces-zerogpu" target="_blank" rel="noopener noreferrer">Official ZeroGPU quota docs ↗</a>
+        </article>
+        <article class="method-card" data-method="cloud">
+          <span class="card-icon tag-caveat" aria-hidden="true">▱</span><span class="badge tag-caveat">Notebook quota · not a hosted app</span>
+          <h3>Kaggle / Colab for open-weight models</h3>
+          <p>Use notebooks interactively when free compute is available. This can be a no-charge way to test a still or short clip, but it has setup friction, session resets, model downloads, and no guaranteed availability.</p>
+          <ul><li>Kaggle documents free P100 access with 30 GPU hours/week or sometimes more depending on demand/resources.</li><li>Colab says free GPU resources are not guaranteed and usage limits fluctuate.</li><li>Colab’s free managed runtimes prohibit bypassing the notebook UI to run a public generation web UI; do not use it as your always-on backend.</li></ul>
+          <a href="https://www.kaggle.com/docs/efficient-gpu-usage" target="_blank" rel="noopener noreferrer">Kaggle GPU quota ↗</a> · <a href="https://research.google.com/colaboratory/faq.html" target="_blank" rel="noopener noreferrer">Colab policy &amp; limits ↗</a>
+        </article>
+        <article class="method-card" data-method="cloud images">
+          <span class="card-icon tag-caveat" aria-hidden="true">⚑</span><span class="badge tag-caveat">Free web credits · not permanent guarantee</span>
+          <h3>PixVerse Basic and other free app quotas</h3>
+          <p>PixVerse Basic currently lists 60 initial credits, 30 daily credits, and output up to 540p. This can produce a hosted AI clip while the free credits are available, but it requires the service, account, queue, and terms to remain available.</p>
+          <ul><li>The web UI and developer API are separate routes; do not treat the web tier as a free public API.</li><li>Credit consumption, supported model, quality, watermarks, and clip length vary by settings and can change.</li><li>Keep a local frame-based fallback so an exhausted or unavailable quota never blocks your project.</li></ul>
+          <a href="https://app.pixverse.ai/subscribe" target="_blank" rel="noopener noreferrer">Current PixVerse plan details ↗</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="image-frames" aria-labelledby="image-title">
+      <div class="section-heading"><div><span class="section-kicker">Image-to-video without a bill</span><h2 id="image-title">A repeatable still-frame workflow</h2><p>Use a handful of strong scene images as keyframes. You do not need a new AI image for every video frame: design one still per shot, then create movement with camera animation, layers, parallax, and transitions.</p></div></div>
+      <div class="recipe-layout">
+        <div class="panel recipe-picker">
+          <label class="form-label" for="recipe-goal">Choose the kind of video you want to make
+            <select id="recipe-goal">
+              <option value="motion">Motion-graphics short</option>
+              <option value="product">Product / UI explainer</option>
+              <option value="illustrated">Illustrated story from stills</option>
+              <option value="interactive">Interactive web animation</option>
+              <option value="photoreal">Photoreal AI image sequence</option>
+              <option value="screen">Screen or camera tutorial</option>
+              <option value="3d">3D / VFX scene</option>
+            </select>
+          </label>
+          <p class="inline-note">This selector is local and only changes the recommended workflow below.</p>
+        </div>
+        <div class="recipe-result" id="recipe-result" aria-live="polite"></div>
+      </div>
+      <div class="panel" style="margin-top:.8rem;padding:1rem">
+        <div class="section-heading"><div><h3 style="margin:0">Image-frame recipes</h3><p style="margin:.35rem 0 0">Two routes that do not require a metered image API.</p></div><button class="button small" id="copy-frame-prompt" type="button">Copy consistent-shot prompt</button></div>
+        <div class="recipe-grid">
+          <article class="recipe-card">
+            <span class="badge tag-local">Instant · built into this page</span>
+            <h3>Generate illustrated images procedurally</h3>
+            <p>Enter storyboard notes, then choose a visual recipe, palette, seed, ratio, and scene count. Canvas draws original geometric/abstract PNG compositions with consistent colors and typography; the text is not semantically interpreted as an AI image prompt. A fixed seed rebuilds the same visual language.</p>
+            <ol><li>Use concise shot descriptions and a clear focal point.</li><li>Use one palette and seed for the whole piece.</li><li>Keep titles/captions separate from the background art.</li><li>Download the PNG frame pack; import it into a free editor or record the animated preview here.</li></ol>
+          </article>
+          <article class="recipe-card">
+            <span class="badge tag-ai">Higher realism · own compute</span>
+            <h3>Generate stills with a local open-weight image model</h3>
+            <p>Install a local UI and model on a computer you already own, create one image per storyboard shot, then select each image through a scene’s “Use local still” control. The lab crops it and adds animated camera movement entirely in-browser.</p>
+            <ol><li>Choose one checkpoint and check its exact license first; SDXL is a text-to-image model with CreativeML Open RAIL++-M terms.</li><li>Use a shared art-direction phrase, aspect ratio, lens/light language, and reference/seed where the model supports them.</li><li>Write 4–8 distinct but related shot prompts; export PNG/WebP stills at the final video ratio.</li><li>Do not mistake local inference for zero resources: downloads, hardware, storage, setup, and electricity still matter.</li></ol>
+          </article>
+        </div>
+      </div>
+      <div class="spec-grid" style="margin-top:.8rem">
+        <div class="spec"><strong>Landscape delivery</strong><span>16:9, 1920×1080, 30 fps. Use 1280×720 previews on slower devices.</span></div>
+        <div class="spec"><strong>Vertical short</strong><span>9:16, 1080×1920. Keep faces, labels, and captions inside a central safe area.</span></div>
+        <div class="spec"><strong>Still sequence</strong><span>One PNG per shot at the final ratio, usually 3–6 seconds per still; animate each with pan/zoom or parallax in an editor.</span></div>
+        <div class="spec"><strong>Browser recording</strong><span>Canvas capture + MediaRecorder records in real time; choose a supported codec. WebM is common; MP4 is not guaranteed.</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="research" aria-labelledby="research-title">
+      <div class="section-heading"><div><span class="section-kicker">Evidence, limits, and safe expectations</span><h2 id="research-title">“Free API key” does not mean “free images”</h2><p>Quota tables are snapshots, not promises. The app itself defaults to a local renderer so changed pricing or queue availability cannot stop a basic video export.</p></div><span class="badge">Research checked Nov 20, 2026</span></div>
+      <div class="callout"><strong>Image-generation warning:</strong> the current Gemini API pricing page lists “Not available” in the Free Tier for its Gemini image-generation models. A free text-model key is not proof that image output is free. This Motion Lab makes no image API calls and contains no billing key field. Always re-check a provider's official pricing before sending a request.</div>
+      <div class="mini-table-wrap" style="margin-top:.8rem">
+        <table class="mini-table">
+          <thead><tr><th>Method</th><th>Cost certainty</th><th>Practical constraints</th><th>Best role</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Canvas/SVG generation in this app</strong></td><td>No provider/API metering; no account. Works offline after the page is available.</td><td>Uses the user's device and produces designed graphics, not photoreal AI. WebM capture is real-time and browser-codec dependent.</td><td>Reliable recurring motion graphics, scene cards, title sequences, simple illustrated shots and interactive previews.</td></tr>
+            <tr><td><strong>Local open-weight image/video inference</strong></td><td>No remote inference bill after obtaining the weights and local software.</td><td>Model storage, setup, GPU/CPU time, memory, power, license, and output consistency all matter. Many video models are much heavier than still-image models.</td><td>Photoreal still frames or locally generated clips when compatible hardware is already available.</td></tr>
+            <tr><td><strong>Free hosted AI allowance</strong></td><td>$0 while the provider honors its current free quota; never a guarantee of always-available output.</td><td>Accounts, wait queues, daily/weekly quotas, changing model access, policy limits, watermarks or plan changes can interrupt use.</td><td>Optional experiments; export useful results locally and keep the no-cloud workflow as fallback.</td></tr>
+            <tr><td><strong>Free/open-source desktop editor</strong></td><td>No subscription or per-export charge for the named open-source tools.</td><td>Install and learn the app; export time, codecs, hardware, and storage are local requirements.</td><td>Polish a timeline, add precise keyframes, assemble image sequences, grade, subtitle, and export MP4/WebM.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="research-grid" style="margin-top:.8rem">
+        <article class="research-card"><span class="badge tag-local">Always available locally</span><h3>Browser capture specs</h3><p><code>canvas.captureStream(30)</code> produces a real-time canvas video stream; <code>MediaRecorder</code> encodes a supported MIME type. Capability-check before recording and keep PNG frames as fallback. WebCodecs gives lower-level frame encoding but not the MP4/WebM file-container muxing by itself.</p><ul><li>Use PNG for clean text/line art; keep contrast and safe margins.</li><li>Do not put cross-origin images on the canvas unless CORS is configured; export can fail if the canvas is tainted.</li></ul><p><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/captureStream" target="_blank" rel="noopener noreferrer">Canvas captureStream ↗</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder" target="_blank" rel="noopener noreferrer">MediaRecorder ↗</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API" target="_blank" rel="noopener noreferrer">WebCodecs ↗</a></p></article>
+        <article class="research-card"><span class="badge tag-caveat">Quota changes / queues</span><h3>Hosted compute is not the dependable path</h3><p>Hugging Face ZeroGPU currently lists 5 GPU minutes/day for free accounts (2 for unauthenticated visitors), resetting 24 hours after first use. Colab says free GPUs are not guaranteed, and its free managed runtime disallows bypassing the notebook UI for content generation web UIs. Kaggle lists a weekly GPU allowance that is usually 30 hours or sometimes higher by demand.</p><ul><li>Public Space demos can sleep, queue, or change their models.</li><li>Keep every result on your device; do not plan a repeatable service around free notebook sessions.</li></ul><p><a href="https://huggingface.co/docs/hub/en/spaces-zerogpu" target="_blank" rel="noopener noreferrer">HF ZeroGPU docs ↗</a> · <a href="https://research.google.com/colaboratory/faq.html" target="_blank" rel="noopener noreferrer">Colab FAQ ↗</a> · <a href="https://www.kaggle.com/docs/efficient-gpu-usage" target="_blank" rel="noopener noreferrer">Kaggle GPU docs ↗</a></p></article>
+        <article class="research-card"><span class="badge tag-ai">Local AI / license aware</span><h3>Image models and interactive demos</h3><p>SDXL’s model card describes a text-to-image model under CreativeML Open RAIL++-M. MLC Web Stable Diffusion shows browser-local inference is technically possible, but its own page says compatibility is experimental, memory-heavy, and tested on a narrow device/browser set. Treat local AI as optional; the procedural renderer below remains the guaranteed fallback.</p><ul><li>Weights are not always “open source”; read model, dataset, and output-use terms.</li><li>Use locally generated stills as scene plates; pan, zoom, mask, or layer them in an editor.</li></ul><p><a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" target="_blank" rel="noopener noreferrer">SDXL model card ↗</a> · <a href="https://websd.mlc.ai/" target="_blank" rel="noopener noreferrer">MLC WebSD research page ↗</a></p></article>
+        <article class="research-card"><span class="badge tag-local">Desktop no-subscription tools</span><h3>Local editing and motion graphics</h3><p>Shotcut, Kdenlive, Blender, and OBS each publish free/open-source or free-software routes. A local editor can assemble still images with durations, pan/zoom keyframes, crossfades, titles, and audio without a cloud-render invoice.</p><ul><li>Shotcut: broad formats and up to 4K timelines.</li><li>Kdenlive: keyframed effects, transitions, titles, and vector animation workflow.</li><li>Blender: 3D/VFX plus video sequencer; official Blender can run without an internet connection.</li></ul><p><a href="https://www.shotcut.org/" target="_blank" rel="noopener noreferrer">Shotcut ↗</a> · <a href="https://kdenlive.org/" target="_blank" rel="noopener noreferrer">Kdenlive ↗</a> · <a href="https://www.blender.org/about/license/" target="_blank" rel="noopener noreferrer">Blender software/artwork rights ↗</a></p></article>
+        <article class="research-card"><span class="badge tag-ai">Model-specific compute &amp; licensing</span><h3>Local video-model reality check</h3><p>“Runs locally” varies from a fairly accessible still-image workflow to a multi-tens-of-GiB video pipeline. These are official examples, not universal minimums; a checkpoint, quantization, frame count, resolution, and software version can change the requirements.</p><ul><li><strong>Wan 2.2 TI2V-5B:</strong> 720p at 24 fps; the project lists consumer RTX 4090-class use. Its A14B T2V example recommends at least 80 GB VRAM.</li><li><strong>LTX-2.5:</strong> the official 121-frame distilled quick start downloads roughly 66 GiB of model files. That is storage size, not a VRAM guarantee; the docs suggest FP8/offload for constrained GPUs.</li><li><strong>CogVideoX:</strong> the project says its 2B model can run on GTX 1080 Ti and 5B on RTX 3060; the 2B model is Apache 2.0, while 5B has separate terms.</li><li><strong>HunyuanVideo:</strong> version 1.5 is an 8.3B-parameter lighter family; its project reports a 480p step-distilled image-to-video run within 75 seconds on RTX 4090. The older 129-frame baseline lists 45 GB minimum at 544×960 and 60 GB at 720×1280.</li></ul><p><a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan 2.2 ↗</a> · <a href="https://github.com/Lightricks/LTX-2" target="_blank" rel="noopener noreferrer">LTX-2.5 ↗</a> · <a href="https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5" target="_blank" rel="noopener noreferrer">HunyuanVideo-1.5 ↗</a> · <a href="https://github.com/Tencent-Hunyuan/HunyuanVideo" target="_blank" rel="noopener noreferrer">Hunyuan baseline ↗</a> · <a href="https://github.com/zai-org/CogVideo" target="_blank" rel="noopener noreferrer">CogVideoX ↗</a></p></article>
+      </div>
+      <h3 style="margin:1.2rem 0 .55rem">Studio workflow you can repeat</h3>
+      <div class="copyline"><code id="workflow-copy">Brief → storyboard 4–8 shots → local PNG keyframes (procedural or your local AI stills) → Canvas/WebAudio motion → WebM capture or PNG ZIP → Shotcut/Kdenlive/Blender for final edit.</code><button class="button small" type="button" data-copy="workflow-copy">Copy workflow</button></div>
+      <ul class="source-list" style="margin-top:.8rem">
+        <li><a href="https://ai.google.dev/gemini-api/docs/pricing" target="_blank" rel="noopener noreferrer">Gemini image API pricing ↗</a></li>
+        <li><a href="https://app.pixverse.ai/subscribe" target="_blank" rel="noopener noreferrer">PixVerse Basic plan ↗</a></li>
+        <li><a href="https://huggingface.co/docs/hub/en/spaces-zerogpu" target="_blank" rel="noopener noreferrer">HF ZeroGPU quota ↗</a></li>
+        <li><a href="https://research.google.com/colaboratory/faq.html" target="_blank" rel="noopener noreferrer">Colab official FAQ ↗</a></li>
+        <li><a href="https://www.kaggle.com/docs/efficient-gpu-usage" target="_blank" rel="noopener noreferrer">Kaggle GPU quota ↗</a></li>
+        <li><a href="https://www.shotcut.org/" target="_blank" rel="noopener noreferrer">Shotcut official site ↗</a></li>
+        <li><a href="https://kdenlive.org/" target="_blank" rel="noopener noreferrer">Kdenlive official site ↗</a></li>
+        <li><a href="https://www.blender.org/features/video-editing/" target="_blank" rel="noopener noreferrer">Blender video editor ↗</a></li>
+        <li><a href="https://obsproject.com/" target="_blank" rel="noopener noreferrer">OBS official site ↗</a></li>
+        <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder" target="_blank" rel="noopener noreferrer">MediaRecorder API ↗</a></li>
+        <li><a href="https://github.com/comfyanonymous/ComfyUI" target="_blank" rel="noopener noreferrer">ComfyUI local image workflow ↗</a></li>
+        <li><a href="https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0" target="_blank" rel="noopener noreferrer">SDXL image model card &amp; license ↗</a></li>
+        <li><a href="https://github.com/Wan-Video/Wan2.2" target="_blank" rel="noopener noreferrer">Wan 2.2 model specifications ↗</a></li>
+        <li><a href="https://github.com/Lightricks/LTX-2" target="_blank" rel="noopener noreferrer">LTX-2.5 model specifications ↗</a></li>
+        <li><a href="https://github.com/Tencent-Hunyuan/HunyuanVideo-1.5" target="_blank" rel="noopener noreferrer">HunyuanVideo-1.5 ↗</a></li>
+        <li><a href="https://github.com/zai-org/CogVideo" target="_blank" rel="noopener noreferrer">CogVideoX hardware &amp; licensing ↗</a></li>
+      </ul>
+    </section>
+
+    <footer>
+      <strong>Zero-Cost Motion Lab</strong> is a standalone HTML5/CSS/ES6+ app with no build step or runtime dependency. Local images and project text stay in this tab unless you explicitly download an export. External pages are only opened when you choose their research links. Generated art is procedural, not an image diffusion model; results are made to be edited and extended in free local tools.
+    </footer>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const PALETTES = {
+        aurora: ["#0b1727", "#133a4a", "#68e0c0", "#a78bfa", "#f5d77f"],
+        ember: ["#21111a", "#692f3d", "#f38d68", "#ffc36e", "#f8e9ce"],
+        ocean: ["#071c2c", "#0f5470", "#36c1c6", "#81e6cf", "#b9d9ff"],
+        citrus: ["#101a19", "#34473a", "#b5d35d", "#f4cb57", "#f6efe0"],
+        mono: ["#111318", "#333943", "#77818f", "#c4ced7", "#ffffff"],
+        rose: ["#211325", "#553252", "#b56c8e", "#f0b2a6", "#ffe0bd"]
+      };
+      const ART_STYLES = new Set(["paper", "orbit", "bloom", "ribbon", "interface", "poster"]);
+      const MOTIONS = new Set(["drift", "push", "orbit", "sweep"]);
+      const ASPECTS = { "16:9": [16, 9], "9:16": [9, 16], "1:1": [1, 1] };
+      const LABELS = ["Establish", "Move", "Reveal", "Detail", "Shift", "Resolve", "Hold", "Finish"];
+      const DEFAULT_BRIEF = "A tiny greenhouse glows above a quiet midnight city. Soft light travels through glass leaves. The first sunrise reaches the rooftop.";
+      const $ = selector => document.querySelector(selector);
+      const byId = id => document.getElementById(id);
+      const state = { scenes: [], current: 0, style: "paper", palette: "aurora", aspect: "16:9", resolution: 720, seconds: 4, motion: "drift", seed: 240517, animation: null, recorder: null, stream: null, stopAtEnd: false };
+      let nextId = 1;
+      let lockedControls = null;
+
+      function cleanText(value, max = 480) {
+        return String(value ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+      }
+
+      function hashText(text) {
+        let hash = 2166136261;
+        for (const char of String(text ?? "")) {
+          hash ^= char.codePointAt(0);
+          hash = Math.imul(hash, 16777619);
+        }
+        return hash >>> 0;
+      }
+
+      function seededRandom(seed) {
+        let value = seed >>> 0;
+        return () => {
+          value += 0x6D2B79F5;
+          let t = value;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+      }
+
+      function buildScenes(brief, count = 4, seed = 1) {
+        const text = cleanText(brief, 480);
+        if (!text) throw new Error("Write a short idea before generating frames.");
+        const n = Math.max(1, Math.min(8, Number(count) || 4));
+        const parts = text.split(/(?<=[.!?])\s+|;\s+/).map(part => cleanText(part, 180)).filter(Boolean);
+        const scenes = [];
+        for (let i = 0; i < n; i += 1) {
+          const line = parts[i % parts.length] || text;
+          const title = parts.length >= n ? cleanText(line.replace(/[.!?]+$/, ""), 44) : LABELS[i] || `Scene ${i + 1}`;
+          const prompt = parts.length >= n ? line : `${line} — ${LABELS[i] || "Final frame"} composition ${i + 1}`;
+          scenes.push({ id: `frame-${nextId++}`, title: title || `Scene ${i + 1}`, prompt, caption: i === 0 ? cleanText(line, 54) : cleanText(LABELS[i] || "Final frame", 54), image: null, imageUrl: "", imageName: "", seed: (Number(seed) || 1) + i * 197 });
+        }
+        return scenes;
+      }
+
+      function dimensions(aspect, resolution) {
+        const pair = ASPECTS[aspect] || ASPECTS["16:9"];
+        const longest = Number(resolution) === 1080 ? 1920 : 1280;
+        if (aspect === "9:16") return [Number(resolution) === 1080 ? 1080 : 720, Number(resolution) === 1080 ? 1920 : 1280];
+        if (aspect === "1:1") return [Number(resolution) === 1080 ? 1080 : 720, Number(resolution) === 1080 ? 1080 : 720];
+        return [longest, Math.round(longest * pair[1] / pair[0])];
+      }
+
+      function roundedRect(ctx, x, y, width, height, radius, fill, stroke) {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+      }
+
+      function polygon(ctx, points, fill, stroke = "") {
+        if (!points.length) return;
+        ctx.beginPath();
+        ctx.moveTo(points[0][0], points[0][1]);
+        for (let i = 1; i < points.length; i += 1) ctx.lineTo(points[i][0], points[i][1]);
+        ctx.closePath();
+        ctx.fillStyle = fill;
+        ctx.fill();
+        if (stroke) { ctx.strokeStyle = stroke; ctx.stroke(); }
+      }
+
+      function coverImage(ctx, image, width, height, progress, motion) {
+        if (!image || !image.width || !image.height) return;
+        const scale = Math.max(width / image.width, height / image.height) * (1.03 + .07 * Math.sin(progress * Math.PI));
+        const drawWidth = image.width * scale;
+        const drawHeight = image.height * scale;
+        const pan = motion === "sweep" ? (progress - .5) * width * .07 : Math.sin(progress * Math.PI * 2) * width * .025;
+        const x = (width - drawWidth) / 2 - pan;
+        const y = (height - drawHeight) / 2 + Math.cos(progress * Math.PI * 2) * height * .018;
+        try { ctx.drawImage(image, x, y, drawWidth, drawHeight); } catch { /* An unloaded local image falls back to generated art. */ }
+      }
+
+      function drawArtwork(ctx, style, palette, seed, centerX, centerY, radius, progress) {
+        const [bg, secondary, accent, highlight, light] = palette;
+        const rand = seededRandom(seed);
+        const pulse = Math.sin(progress * Math.PI * 2) * .04;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        if (style === "paper") {
+          const sunR = radius * .31;
+          const sun = ctx.createRadialGradient(-radius * .14, -radius * .18, 2, 0, 0, sunR * 1.6);
+          sun.addColorStop(0, light);
+          sun.addColorStop(.36, highlight);
+          sun.addColorStop(1, `${highlight}00`);
+          ctx.fillStyle = sun;
+          ctx.beginPath(); ctx.arc(-radius * .12, -radius * .28, sunR * (1 + pulse), 0, Math.PI * 2); ctx.fill();
+          for (let layer = 0; layer < 5; layer += 1) {
+            const y = radius * (.02 + layer * .20);
+            const amp = radius * (.23 + layer * .026);
+            const points = [[-radius * 1.2, radius * .92]];
+            for (let step = 0; step <= 12; step += 1) {
+              const x = -radius * 1.2 + step * radius * .2;
+              const ridge = y + Math.sin(step * .74 + layer * 1.6 + progress * 1.1) * amp * .42 + (rand() - .5) * amp * .22;
+              points.push([x, ridge]);
+            }
+            points.push([radius * 1.2, radius * 1.05]);
+            polygon(ctx, points, [secondary, accent, highlight, "#30465c", bg][layer]);
+          }
+          for (let i = 0; i < 34; i += 1) {
+            const x = (rand() * 2 - 1) * radius * 1.12;
+            const y = (rand() * .6 - .15) * radius;
+            ctx.fillStyle = i % 4 === 0 ? light : "rgba(239,248,255,.42)";
+            ctx.beginPath(); ctx.arc(x, y, Math.max(1.2, radius * .006), 0, Math.PI * 2); ctx.fill();
+          }
+        } else if (style === "orbit") {
+          for (let ring = 0; ring < 5; ring += 1) {
+            ctx.beginPath();
+            ctx.ellipse(0, 0, radius * (.42 + ring * .14), radius * (.18 + ring * .055), -.44 + ring * .18 + progress * .15, .1, Math.PI * 1.9);
+            ctx.lineWidth = Math.max(1.5, radius * (.006 + ring * .001));
+            ctx.strokeStyle = [accent, highlight, light, "rgba(225,240,255,.36)", secondary][ring];
+            ctx.stroke();
+          }
+          const orb = ctx.createRadialGradient(-radius * .15, -radius * .2, radius * .03, 0, 0, radius * .52);
+          orb.addColorStop(0, light); orb.addColorStop(.18, highlight); orb.addColorStop(.52, accent); orb.addColorStop(1, secondary);
+          ctx.fillStyle = orb; ctx.beginPath(); ctx.arc(0, 0, radius * (.34 + pulse), 0, Math.PI * 2); ctx.fill();
+          for (let i = 0; i < 9; i += 1) {
+            const angle = i / 9 * Math.PI * 2 + progress * Math.PI * 1.5;
+            const rx = radius * (.58 + (i % 3) * .13), ry = radius * (.25 + (i % 3) * .07);
+            ctx.fillStyle = i % 2 ? light : accent; ctx.beginPath(); ctx.arc(Math.cos(angle) * rx, Math.sin(angle) * ry, radius * (.015 + (i % 3) * .006), 0, Math.PI * 2); ctx.fill();
+          }
+        } else if (style === "bloom") {
+          const petalCount = 12;
+          for (let i = 0; i < petalCount; i += 1) {
+            const angle = i / petalCount * Math.PI * 2 + progress * .18;
+            ctx.save(); ctx.rotate(angle);
+            ctx.fillStyle = i % 3 === 0 ? highlight : i % 2 === 0 ? accent : secondary;
+            ctx.globalAlpha = .74;
+            ctx.beginPath(); ctx.ellipse(0, -radius * .37, radius * (.17 + pulse), radius * .42, 0, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+          }
+          const core = ctx.createRadialGradient(-radius * .06, -radius * .08, 2, 0, 0, radius * .2);
+          core.addColorStop(0, light); core.addColorStop(1, highlight);
+          ctx.fillStyle = core; ctx.beginPath(); ctx.arc(0, 0, radius * .19, 0, Math.PI * 2); ctx.fill();
+          for (let i = 0; i < 44; i += 1) {
+            const angle = rand() * Math.PI * 2, r = radius * (.62 + rand() * .43);
+            ctx.fillStyle = i % 2 ? light : accent; ctx.globalAlpha = .42 + rand() * .45;
+            ctx.beginPath(); ctx.arc(Math.cos(angle) * r, Math.sin(angle) * r, Math.max(1, radius * .009), 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        } else if (style === "ribbon") {
+          for (let band = 0; band < 15; band += 1) {
+            const y = -radius * .75 + band * radius * .105;
+            ctx.beginPath(); ctx.moveTo(-radius * 1.15, y);
+            ctx.bezierCurveTo(-radius * .7, y - radius * (.36 + Math.sin(progress * 6 + band) * .05), radius * .45, y + radius * (.47 + Math.cos(progress * 5 + band) * .08), radius * 1.1, y - radius * .16);
+            ctx.lineWidth = radius * (.013 + (band % 4) * .002);
+            ctx.strokeStyle = [accent, highlight, light, secondary][band % 4];
+            ctx.globalAlpha = .46 + (band % 3) * .12;
+            ctx.stroke();
+          }
+          ctx.globalAlpha = 1;
+          for (let i = 0; i < 18; i += 1) {
+            const angle = rand() * Math.PI * 2;
+            ctx.fillStyle = light; ctx.beginPath(); ctx.arc(Math.cos(angle) * radius * rand(), Math.sin(angle) * radius * rand(), radius * .009, 0, Math.PI * 2); ctx.fill();
+          }
+        } else if (style === "interface") {
+          roundedRect(ctx, -radius * .74, -radius * .66, radius * 1.48, radius * 1.22, radius * .1, "rgba(6,15,25,.75)", "rgba(240,250,255,.38)");
+          roundedRect(ctx, -radius * .62, -radius * .52, radius * .19, radius * .055, radius * .025, accent);
+          for (let i = 0; i < 4; i += 1) {
+            roundedRect(ctx, -radius * .62 + i * radius * .25, -radius * .37, radius * .2, radius * .12, radius * .02, i === 1 ? "rgba(104,224,192,.38)" : "rgba(171,196,224,.10)", "rgba(255,255,255,.16)");
+          }
+          ctx.beginPath();
+          for (let i = 0; i < 9; i += 1) {
+            const x = -radius * .58 + i * radius * .145;
+            const y = radius * (.31 - Math.sin(i * .72 + progress) * (.14 + rand() * .2));
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.lineWidth = radius * .025; ctx.strokeStyle = highlight; ctx.stroke();
+          for (let i = 0; i < 5; i += 1) {
+            ctx.fillStyle = [accent, highlight, light][i % 3]; ctx.beginPath(); ctx.arc(-radius * .58 + i * radius * .29, radius * (.2 - Math.sin(i * .72 + progress) * .14), radius * .028, 0, Math.PI * 2); ctx.fill();
+          }
+        } else {
+          for (let i = 0; i < 18; i += 1) {
+            const angle = i * Math.PI / 9 + progress * .12;
+            const r = radius * (.17 + (i % 4) * .14);
+            const x = Math.cos(angle) * r, y = Math.sin(angle) * r;
+            ctx.fillStyle = [accent, highlight, secondary, light][i % 4];
+            ctx.globalAlpha = .45 + (i % 5) * .1;
+            ctx.beginPath(); ctx.arc(x, y, radius * (.2 + (i % 3) * .035), 0, Math.PI * 2); ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+          for (let i = 0; i < 8; i += 1) {
+            ctx.save(); ctx.rotate(i * Math.PI / 4 + progress * .08);
+            ctx.strokeStyle = "rgba(240,248,255,.55)"; ctx.lineWidth = Math.max(1, radius * .007);
+            ctx.beginPath(); ctx.arc(0, 0, radius * (.34 + (i % 3) * .16), -.2, 1.1); ctx.stroke(); ctx.restore();
+          }
+        }
+        ctx.restore();
+      }
+
+      function wrapText(ctx, text, maxChars, maxLines = 2) {
+        const words = cleanText(text, 120).split(/\s+/).filter(Boolean);
+        const lines = [];
+        let line = "";
+        for (const word of words) {
+          const candidate = line ? `${line} ${word}` : word;
+          if (candidate.length > maxChars && line) { lines.push(line); line = word; }
+          else line = candidate;
+        }
+        if (line) lines.push(line);
+        if (lines.length > maxLines) {
+          const kept = lines.slice(0, maxLines);
+          kept[maxLines - 1] = `${kept[maxLines - 1].slice(0, Math.max(0, maxChars - 1)).trimEnd()}…`;
+          return kept;
+        }
+        return lines;
+      }
+
+      function drawScene(ctx, scene, config = {}, progress = .5, sceneIndex = 0) {
+        if (!ctx || !ctx.canvas) return;
+        const canvas = ctx.canvas;
+        const width = canvas.width || 1280;
+        const height = canvas.height || 720;
+        const p = Math.max(0, Math.min(1, Number(progress) || 0));
+        const colors = PALETTES[config.palette] || PALETTES.aurora;
+        const style = ART_STYLES.has(config.style) ? config.style : "paper";
+        const motion = MOTIONS.has(config.motion) ? config.motion : "drift";
+        const seed = (Number(config.seed) || 1) + (Number(scene?.seed) || 0) + hashText(scene?.prompt || scene?.title || "frame") + sceneIndex * 571;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+        const background = ctx.createLinearGradient(0, 0, width, height);
+        background.addColorStop(0, colors[0]); background.addColorStop(.58, colors[1]); background.addColorStop(1, "#101522");
+        ctx.fillStyle = background; ctx.fillRect(0, 0, width, height);
+        const glow = ctx.createRadialGradient(width * .73, height * .42, 2, width * .73, height * .42, Math.max(width, height) * .62);
+        glow.addColorStop(0, `${colors[2]}52`); glow.addColorStop(.48, `${colors[3]}24`); glow.addColorStop(1, `${colors[0]}00`);
+        ctx.fillStyle = glow; ctx.fillRect(0, 0, width, height);
+        const rand = seededRandom(seed ^ 0xC0FFEE);
+        for (let i = 0; i < 90; i += 1) {
+          const x = rand() * width, y = rand() * height;
+          const twinkle = .36 + .56 * Math.abs(Math.sin(p * 6 + i * 2.31));
+          ctx.globalAlpha = twinkle * (i % 7 === 0 ? .8 : .4);
+          ctx.fillStyle = i % 5 === 0 ? colors[4] : "#e8f2ff";
+          ctx.beginPath(); ctx.arc(x, y, Math.max(.7, Math.min(width, height) * (i % 9 === 0 ? .003 : .0011)), 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        const portrait = height > width;
+        const centerX = portrait ? width * .5 : width * .70;
+        const centerY = portrait ? height * .42 : height * .43;
+        const radius = Math.min(width * (portrait ? .39 : .29), height * (portrait ? .29 : .49));
+        const drift = motion === "sweep" ? (p - .5) * width * .065 : motion === "orbit" ? Math.sin(p * Math.PI * 2) * width * .035 : Math.sin(p * Math.PI * 2) * width * .018;
+        const zoom = motion === "push" ? 1 + p * .07 : 1 + Math.sin(p * Math.PI) * .035;
+        ctx.save(); ctx.translate(drift, 0); ctx.translate(centerX, centerY); ctx.scale(zoom, zoom); ctx.translate(-centerX, -centerY);
+        if (scene?.image && scene.image.complete && scene.image.naturalWidth) {
+          coverImage(ctx, scene.image, width, height, p, motion);
+          const overlay = ctx.createLinearGradient(0, height * .35, 0, height);
+          overlay.addColorStop(0, "rgba(6,10,18,.05)"); overlay.addColorStop(.48, "rgba(6,10,18,.28)"); overlay.addColorStop(1, "rgba(6,10,18,.88)");
+          ctx.fillStyle = overlay; ctx.fillRect(0, 0, width, height);
+        } else {
+          drawArtwork(ctx, style, colors, seed, centerX, centerY, radius, p);
+          // Edge framing and a subtle editorial grid add structure without obscuring the art.
+          ctx.strokeStyle = "rgba(232,245,255,.10)"; ctx.lineWidth = Math.max(1, width * .0007);
+          ctx.strokeRect(width * .035, height * .055, width * .93, height * .89);
+          ctx.beginPath(); ctx.moveTo(width * .06, height * .13); ctx.lineTo(width * .19, height * .13); ctx.strokeStyle = colors[2]; ctx.lineWidth = Math.max(2, width * .004); ctx.stroke();
+        }
+        ctx.restore();
+        const titleY = portrait ? height * .73 : height * .74;
+        const margin = width * .075;
+        const titleSize = Math.max(23, Math.min(height * (portrait ? .052 : .072), width * (portrait ? .11 : .056)));
+        ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+        ctx.fillStyle = colors[4]; ctx.font = `800 ${Math.max(12, height * .022)}px system-ui, sans-serif`;
+        ctx.fillText(`FRAME ${String(sceneIndex + 1).padStart(2, "0")}  /  LOCAL MOTION`, margin, titleY - titleSize * 1.55);
+        ctx.fillStyle = "#f5f8ff"; ctx.font = `850 ${titleSize}px system-ui, sans-serif`;
+        const lines = wrapText(ctx, scene?.title || "Untitled scene", Math.max(12, Math.floor((width * (portrait ? .83 : .53)) / (titleSize * .58))), 2);
+        lines.forEach((line, index) => ctx.fillText(line, margin, titleY + index * titleSize * 1.12));
+        const caption = cleanText(scene?.caption || scene?.prompt || "", 88);
+        ctx.fillStyle = "rgba(233,243,255,.78)"; ctx.font = `500 ${Math.max(13, height * .022)}px system-ui, sans-serif`;
+        const captionY = titleY + lines.length * titleSize * 1.12 + height * .045;
+        const captionLines = wrapText(ctx, caption, Math.max(16, Math.floor(width * .78 / Math.max(12, height * .022 * .58))), 2);
+        captionLines.forEach((line, index) => ctx.fillText(line, margin, captionY + index * height * .034));
+        ctx.fillStyle = "rgba(233,243,255,.55)"; ctx.font = `700 ${Math.max(10, height * .015)}px system-ui, sans-serif`;
+        ctx.fillText("GENERATED LOCALLY · NO MODEL REQUEST", margin, height * .94);
+      }
+
+      function readConfig() {
+        state.style = byId("art-style").value;
+        state.palette = byId("palette").value;
+        state.aspect = byId("aspect").value;
+        state.resolution = Number(byId("resolution").value);
+        state.seconds = Number(byId("scene-seconds").value);
+        state.motion = byId("motion").value;
+        state.seed = Number(byId("seed").value) || 1;
+        return state;
+      }
+
+      function revokeImages(scenes = state.scenes) {
+        for (const scene of scenes) {
+          if (scene.imageUrl) URL.revokeObjectURL(scene.imageUrl);
+        }
+      }
+
+      function updateCanvasSize() {
+        const [width, height] = dimensions(state.aspect, state.resolution);
+        const canvas = byId("preview");
+        canvas.width = width; canvas.height = height;
+        canvas.style.aspectRatio = `${width} / ${height}`;
+        byId("stage-spec").textContent = `${width} × ${height} · ${state.aspect} · 30 fps capture`;
+        return [width, height];
+      }
+
+      function renderPreview(progress = .5) {
+        if (!state.scenes.length) return;
+        const canvas = byId("preview");
+        const [width, height] = updateCanvasSize();
+        const scene = state.scenes[state.current] || state.scenes[0];
+        drawScene(canvas.getContext("2d"), scene, state, progress, state.current);
+        byId("scene-count-label").textContent = `${state.scenes.length} scene${state.scenes.length === 1 ? "" : "s"} · ${state.scenes.length * state.seconds}s total`;
+        const selected = document.querySelector(".frame-item.selected .frame-select canvas");
+        if (selected) {
+          selected.width = Math.min(320, width); selected.height = Math.round(selected.width * height / width);
+          drawScene(selected.getContext("2d"), scene, state, .5, state.current);
+        }
+      }
+
+      function createField(labelText, value, field, tag = "input") {
+        const label = document.createElement("label"); label.className = "form-label";
+        label.append(document.createTextNode(labelText));
+        const control = document.createElement(tag);
+        control.className = tag === "textarea" ? "input" : "input";
+        control.dataset.field = field;
+        control.value = value || "";
+        if (tag === "textarea") control.maxLength = field === "prompt" ? 180 : 70;
+        else control.maxLength = field === "title" ? 44 : 54;
+        label.append(control);
+        return label;
+      }
+
+      function makeSmallButton(label, action, title = "") {
+        const button = document.createElement("button"); button.className = "button small"; button.type = "button"; button.dataset.action = action; button.textContent = label;
+        if (title) { button.title = title; button.setAttribute("aria-label", title); }
+        return button;
+      }
+
+      function renderTimeline() {
+        const list = byId("frame-list");
+        list.replaceChildren();
+        state.scenes.forEach((scene, index) => {
+          const item = document.createElement("li"); item.className = `frame-item${index === state.current ? " selected" : ""}`; item.dataset.index = String(index);
+          const select = document.createElement("button"); select.className = "frame-select"; select.type = "button"; select.dataset.action = "select"; select.setAttribute("aria-label", `Select frame ${index + 1}: ${scene.title}`); select.setAttribute("aria-pressed", String(index === state.current));
+          const thumb = document.createElement("canvas"); thumb.width = 320; thumb.height = 180; thumb.setAttribute("aria-hidden", "true");
+          select.append(thumb);
+          const thumbCaption = document.createElement("span"); thumbCaption.textContent = `FRAME ${String(index + 1).padStart(2, "0")} · ${scene.imageName ? "LOCAL IMAGE" : "GENERATED ART"}`; select.append(thumbCaption);
+          item.append(select);
+          const fields = document.createElement("div"); fields.className = "frame-fields";
+          fields.append(createField("Shot title", scene.title, "title"));
+          fields.append(createField("On-screen caption", scene.caption, "caption"));
+          const promptField = createField("Shot direction", scene.prompt, "prompt", "textarea"); promptField.classList.add("frame-field-wide"); fields.append(promptField);
+          const actions = document.createElement("div"); actions.className = "frame-actions";
+          const fileLabel = document.createElement("label"); fileLabel.className = "file-label"; fileLabel.textContent = "Use local still";
+          const file = document.createElement("input"); file.type = "file"; file.accept = "image/png,image/jpeg,image/webp"; file.dataset.action = "upload"; file.setAttribute("aria-label", `Choose a local still for frame ${index + 1}`); fileLabel.append(file); actions.append(fileLabel);
+          const filename = document.createElement("span"); filename.className = "frame-file-name"; filename.textContent = scene.imageName || "Procedural art"; filename.title = scene.imageName || "Procedural art"; actions.append(filename);
+          if (scene.imageUrl) actions.append(makeSmallButton("Clear image", "clear-image"));
+          actions.append(makeSmallButton("↑", "move-up", "Move scene up"));
+          actions.append(makeSmallButton("↓", "move-down", "Move scene down"));
+          const remove = makeSmallButton("Remove", "remove", "Remove this scene"); remove.classList.add("danger"); remove.disabled = state.scenes.length <= 1; actions.append(remove);
+          fields.append(actions); item.append(fields); list.append(item);
+          drawScene(thumb.getContext("2d"), scene, state, .5, index);
+        });
+        byId("scene-count-label").textContent = `${state.scenes.length} scene${state.scenes.length === 1 ? "" : "s"} · ${state.scenes.length * state.seconds}s total`;
+        byId("add-frame").disabled = state.scenes.length >= 8;
+        renderPreview(.5);
+      }
+
+      function setStatus(message, error = false) {
+        const status = byId("studio-status"); status.textContent = message; status.classList.toggle("error", error);
+      }
+
+      function slug(value) {
+        const out = cleanText(value, 60).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+        return out || "motion-lab-video";
+      }
+
+      function downloadBlob(blob, name) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a"); link.href = url; link.download = name; link.hidden = true;
+        document.body.append(link); link.click(); link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }
+
+      function canvasToBlob(canvas) {
+        return new Promise((resolve, reject) => {
+          if (typeof canvas.toBlob === "function") {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("This browser could not encode the frame PNG.")), "image/png");
+            return;
+          }
+          try {
+            const data = canvas.toDataURL("image/png");
+            const raw = atob(data.split(",")[1]);
+            const bytes = Uint8Array.from(raw, char => char.charCodeAt(0));
+            resolve(new Blob([bytes], { type: "image/png" }));
+          } catch { reject(new Error("PNG export is not supported in this browser.")); }
+        });
+      }
+
+      const CRC_TABLE = (() => {
+        const table = new Uint32Array(256);
+        for (let n = 0; n < 256; n += 1) {
+          let c = n;
+          for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+          table[n] = c >>> 0;
+        }
+        return table;
+      })();
+
+      function crc32(bytes) {
+        let crc = 0xFFFFFFFF;
+        for (let i = 0; i < bytes.length; i += 1) crc = CRC_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+        return (crc ^ 0xFFFFFFFF) >>> 0;
+      }
+
+      function zipStored(entries) {
+        if (!Array.isArray(entries) || entries.length > 65535) throw new Error("Frame pack has too many files.");
+        const encoder = new TextEncoder();
+        const local = [];
+        const central = [];
+        let offset = 0;
+        const now = new Date();
+        const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+        const dosDate = (Math.max(1980, now.getFullYear()) - 1980 << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+        for (const entry of entries) {
+          const name = encoder.encode(String(entry.name));
+          const bytes = ArrayBuffer.isView(entry.data)
+            ? new Uint8Array(entry.data.buffer, entry.data.byteOffset, entry.data.byteLength)
+            : entry.data instanceof ArrayBuffer ? new Uint8Array(entry.data) : encoder.encode(String(entry.data ?? ""));
+          if (bytes.length > 0xFFFFFFFF || offset > 0xFFFFFFFF) throw new Error("Frame pack is larger than ZIP32 supports.");
+          const checksum = crc32(bytes);
+          const localHead = new Uint8Array(30); const localView = new DataView(localHead.buffer);
+          localView.setUint32(0, 0x04034B50, true); localView.setUint16(4, 20, true); localView.setUint16(6, 0x0800, true); localView.setUint16(8, 0, true);
+          localView.setUint16(10, dosTime, true); localView.setUint16(12, dosDate, true); localView.setUint32(14, checksum, true);
+          localView.setUint32(18, bytes.length, true); localView.setUint32(22, bytes.length, true); localView.setUint16(26, name.length, true); localView.setUint16(28, 0, true);
+          local.push(localHead, name, bytes);
+          const centralHead = new Uint8Array(46); const centralView = new DataView(centralHead.buffer);
+          centralView.setUint32(0, 0x02014B50, true); centralView.setUint16(4, 20, true); centralView.setUint16(6, 20, true);
+          centralView.setUint16(8, 0x0800, true); centralView.setUint16(10, 0, true); centralView.setUint16(12, dosTime, true); centralView.setUint16(14, dosDate, true);
+          centralView.setUint32(16, checksum, true); centralView.setUint32(20, bytes.length, true); centralView.setUint32(24, bytes.length, true);
+          centralView.setUint16(28, name.length, true); centralView.setUint16(30, 0, true); centralView.setUint16(32, 0, true); centralView.setUint16(34, 0, true); centralView.setUint16(36, 0, true);
+          centralView.setUint32(38, 0, true); centralView.setUint32(42, offset, true);
+          central.push(centralHead, name);
+          offset += localHead.length + name.length + bytes.length;
+        }
+        const centralSize = central.reduce((sum, part) => sum + part.length, 0);
+        const end = new Uint8Array(22); const endView = new DataView(end.buffer);
+        endView.setUint32(0, 0x06054B50, true); endView.setUint16(4, 0, true); endView.setUint16(6, 0, true);
+        endView.setUint16(8, entries.length, true); endView.setUint16(10, entries.length, true); endView.setUint32(12, centralSize, true); endView.setUint32(16, offset, true); endView.setUint16(20, 0, true);
+        return new Blob([...local, ...central, end], { type: "application/zip" });
+      }
+
+      function projectData() {
+        return {
+          app: "Zero-Cost Motion Lab", version: 1,
+          title: cleanText(byId("idea").value, 480),
+          settings: { style: state.style, palette: state.palette, aspect: state.aspect, resolution: state.resolution, secondsPerScene: state.seconds, motion: state.motion, seed: state.seed },
+          scenes: state.scenes.map(scene => ({ id: scene.id, title: cleanText(scene.title, 44), caption: cleanText(scene.caption, 54), prompt: cleanText(scene.prompt, 180), imageName: scene.imageName || "", seed: scene.seed }))
+        };
+      }
+
+      async function exportProject() {
+        const data = projectData();
+        downloadBlob(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `${slug(data.title)}-motion-project.json`);
+        setStatus("Project JSON saved locally. Image files are not embedded; keep the PNG frame pack for a portable render.");
+      }
+
+      async function importProject(file) {
+        if (!file) return;
+        try {
+          if (file.size > 2 * 1024 * 1024) throw new Error("Project JSON must be smaller than 2 MB.");
+          const parsed = JSON.parse(await file.text());
+          if (!parsed || parsed.app !== "Zero-Cost Motion Lab" || parsed.version !== 1 || !Array.isArray(parsed.scenes) || parsed.scenes.length < 1 || parsed.scenes.length > 8) throw new Error("Choose a valid Motion Lab version 1 project with 1–8 scenes.");
+          const settings = parsed.settings || {};
+          state.style = ART_STYLES.has(settings.style) ? settings.style : "paper";
+          state.palette = Object.hasOwn(PALETTES, settings.palette) ? settings.palette : "aurora";
+          state.aspect = Object.hasOwn(ASPECTS, settings.aspect) ? settings.aspect : "16:9";
+          state.resolution = Number(settings.resolution) === 1080 ? 1080 : 720;
+          state.seconds = [2, 3, 4, 5, 6].includes(Number(settings.secondsPerScene)) ? Number(settings.secondsPerScene) : 4;
+          state.motion = MOTIONS.has(settings.motion) ? settings.motion : "drift";
+          state.seed = Number(settings.seed) || 1;
+          byId("idea").value = cleanText(parsed.title, 480);
+          byId("art-style").value = state.style; byId("palette").value = state.palette; byId("aspect").value = state.aspect;
+          byId("resolution").value = String(state.resolution); byId("scene-seconds").value = String(state.seconds); byId("motion").value = state.motion; byId("seed").value = String(state.seed);
+          revokeImages();
+          state.scenes = parsed.scenes.map((scene, index) => ({
+            id: `frame-${nextId++}`, title: cleanText(scene.title, 44) || `Scene ${index + 1}`,
+            caption: cleanText(scene.caption, 54), prompt: cleanText(scene.prompt, 180), image: null, imageUrl: "",
+            imageName: cleanText(scene.imageName, 140), seed: Number(scene.seed) || state.seed + index * 197
+          }));
+          state.current = 0; renderTimeline();
+          const hasImages = state.scenes.some(scene => scene.imageName);
+          setStatus(hasImages ? "Project opened. Re-select any local reference images; image files are not embedded in JSON." : "Project opened locally. No network requests were made.");
+        } catch (error) { setStatus(error.message || "Could not open this project.", true); }
+        finally { byId("import-project").value = ""; }
+      }
+
+      async function exportCurrentPng() {
+        try {
+          const canvas = byId("preview");
+          drawScene(canvas.getContext("2d"), state.scenes[state.current], state, .5, state.current);
+          const blob = await canvasToBlob(canvas);
+          downloadBlob(blob, `${slug(state.scenes[state.current].title)}-frame-${String(state.current + 1).padStart(2, "0")}.png`);
+          setStatus("Selected PNG frame exported from this device.");
+        } catch (error) { setStatus(error.message, true); }
+      }
+
+      async function exportFramePack() {
+        const status = "Preparing local PNG frame pack…";
+        setStatus(status);
+        const entries = [];
+        try {
+          const [width, height] = dimensions(state.aspect, state.resolution);
+          const scratch = document.createElement("canvas"); scratch.width = width; scratch.height = height;
+          const ctx = scratch.getContext("2d");
+          for (let index = 0; index < state.scenes.length; index += 1) {
+            drawScene(ctx, state.scenes[index], state, .5, index);
+            const blob = await canvasToBlob(scratch);
+            entries.push({ name: `frames/frame-${String(index + 1).padStart(2, "0")}.png`, data: new Uint8Array(await blob.arrayBuffer()) });
+          }
+          entries.push({ name: "motion-project.json", data: new TextEncoder().encode(JSON.stringify(projectData(), null, 2)) });
+          const readme = `Zero-Cost Motion Lab frame pack\n\nframes/*.png are one designed scene still per shot, not every 1/30-second animation frame. Import them into Shotcut, Kdenlive, Blender, or another local editor. Set 3–6 seconds per still, add pan/zoom keyframes and crossfades, then export at ${width}×${height}, 30 fps (or choose a different timeline setting).\n\nThe project JSON contains scene text and settings. Original local image files are not embedded; the rendered PNGs are included. The browser recording is silent; add licensed audio in a local editor. This pack was assembled in-browser without network or paid services.\n`;
+          entries.push({ name: "HOW-TO.txt", data: new TextEncoder().encode(readme) });
+          const zip = zipStored(entries);
+          downloadBlob(zip, `${slug(byId("idea").value)}-frames.zip`);
+          setStatus(`${state.scenes.length} PNG scene frames and project notes packed locally.`);
+        } catch (error) { setStatus(error.message || "Could not create the frame pack.", true); }
+        renderTimeline();
+      }
+
+      function currentDuration() { return state.scenes.reduce((sum, scene) => sum + (Number(scene.seconds) || state.seconds), 0) * 1000; }
+
+      function setPlaybackProgress(elapsed) {
+        const total = currentDuration();
+        const bounded = Math.max(0, Math.min(total, elapsed));
+        byId("play-progress").value = total ? bounded / total : 0;
+        const format = ms => {
+          const seconds = Math.floor(ms / 1000);
+          return `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+        };
+        byId("time-readout").textContent = `${format(bounded)} / ${format(total)}`;
+      }
+
+      function setPlaybackLock(locked) {
+        const stopButton = byId("stop-preview");
+        if (locked) {
+          if (!lockedControls) {
+            lockedControls = new Map();
+            document.querySelectorAll("#studio button, #studio input, #studio select, #studio textarea").forEach(control => {
+              if (control === stopButton) return;
+              lockedControls.set(control, control.disabled);
+              control.disabled = true;
+            });
+          }
+          stopButton.disabled = false;
+          return;
+        }
+        if (lockedControls) {
+          for (const [control, wasDisabled] of lockedControls) {
+            if (control.isConnected) control.disabled = wasDisabled;
+          }
+          lockedControls = null;
+        }
+        stopButton.disabled = true;
+      }
+
+      function stopAnimation() {
+        if (state.animation?.raf) cancelAnimationFrame(state.animation.raf);
+        state.animation = null;
+        setPlaybackLock(false);
+      }
+
+      function updateTimelineSelection() {
+        document.querySelectorAll(".frame-item").forEach((item, index) => {
+          const selected = index === state.current;
+          item.classList.toggle("selected", selected);
+          const button = item.querySelector(".frame-select");
+          if (button) button.setAttribute("aria-pressed", String(selected));
+        });
+      }
+
+      function finishRecorder() {
+        const recorder = state.recorder;
+        const stream = state.stream;
+        state.recorder = null; state.stream = null;
+        if (recorder && recorder.state !== "inactive") recorder.stop();
+        if (stream) stream.getTracks().forEach(track => track.stop());
+      }
+
+      function animateSequence(record = false) {
+        if (!state.scenes.length) return;
+        stopAnimation();
+        let recorder = null;
+        if (record) {
+          if (!window.MediaRecorder || !byId("preview").captureStream) {
+            setStatus("This browser cannot record the Canvas directly. The PNG frame pack is the no-cost fallback for Shotcut/Kdenlive/Blender.", true);
+            return;
+          }
+          try {
+            const stream = byId("preview").captureStream(30);
+            const types = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
+            const mimeType = types.find(type => window.MediaRecorder.isTypeSupported?.(type));
+            recorder = mimeType ? new window.MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 }) : new window.MediaRecorder(stream);
+            const chunks = [];
+            state.recorder = recorder; state.stream = stream;
+            recorder.addEventListener("dataavailable", event => { if (event.data?.size) chunks.push(event.data); });
+            recorder.addEventListener("error", () => { setStatus("The browser recorder stopped with an error. Try PNG frame pack or a local editor.", true); finishRecorder(); stopAnimation(); });
+            recorder.addEventListener("stop", () => {
+              const type = recorder.mimeType || "video/webm";
+              const extension = type.includes("mp4") ? "mp4" : "webm";
+              if (chunks.length) {
+                downloadBlob(new Blob(chunks, { type }), `${slug(byId("idea").value)}-motion-lab.${extension}`);
+                setStatus(`Local ${extension.toUpperCase()} video recorded. Check playback; export support varies by browser.`);
+              } else setStatus("No video data was recorded. Use the PNG frame pack as a fallback.", true);
+              if (state.stream) state.stream.getTracks().forEach(track => track.stop());
+              state.stream = null; state.recorder = null;
+            });
+            recorder.start(500);
+          } catch (error) {
+            if (state.stream) state.stream.getTracks().forEach(track => track.stop());
+            state.stream = null; state.recorder = null;
+            setStatus(`Recorder could not start: ${error.message || "unsupported format"}. Download the PNG frame pack instead.`, true);
+            return;
+          }
+        }
+        const started = performance.now();
+        state.animation = { raf: 0, started, recorder };
+        setPlaybackLock(true);
+        setStatus(record ? "Recording locally in real time. Do not close this tab until it finishes." : "Playing local animation preview.");
+        const tick = now => {
+          if (!state.animation) return;
+          const elapsed = Math.max(0, now - started);
+          let remaining = elapsed;
+          let index = 0;
+          while (index < state.scenes.length - 1 && remaining >= (Number(state.scenes[index].seconds) || state.seconds) * 1000) {
+            remaining -= (Number(state.scenes[index].seconds) || state.seconds) * 1000; index += 1;
+          }
+          const selectionChanged = state.current !== index;
+          state.current = index;
+          if (selectionChanged) updateTimelineSelection();
+          const sceneDuration = (Number(state.scenes[index].seconds) || state.seconds) * 1000;
+          drawScene(byId("preview").getContext("2d"), state.scenes[index], state, Math.min(1, remaining / sceneDuration), index);
+          setPlaybackProgress(elapsed);
+          if (elapsed >= currentDuration()) {
+            const activeRecorder = state.recorder;
+            stopAnimation();
+            if (activeRecorder && activeRecorder.state !== "inactive") activeRecorder.stop();
+            else { renderTimeline(); setPlaybackProgress(0); setStatus("Preview finished."); }
+            return;
+          }
+          state.animation.raf = requestAnimationFrame(tick);
+        };
+        state.animation.raf = requestAnimationFrame(tick);
+      }
+
+      function loadLocalImage(input, sceneIndex) {
+        const file = input.files?.[0];
+        if (!file) return;
+        if (!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 20 * 1024 * 1024) {
+          setStatus("Choose a PNG, JPEG, or WebP image smaller than 20 MB. It is used locally only.", true); input.value = ""; return;
+        }
+        const scene = state.scenes[sceneIndex];
+        if (!scene) return;
+        if (scene.imageUrl) URL.revokeObjectURL(scene.imageUrl);
+        const url = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+          if (image.naturalWidth > 12000 || image.naturalHeight > 12000 || image.naturalWidth * image.naturalHeight > 24000000) {
+            URL.revokeObjectURL(url); setStatus("That image is too large to decode safely here. Use a resized copy at or below 24 megapixels.", true); return;
+          }
+          scene.image = image; scene.imageUrl = url; scene.imageName = cleanText(file.name, 140);
+          renderTimeline(); setStatus(`Local image “${scene.imageName}” loaded. It remains on this device and was not uploaded.`);
+        };
+        image.onerror = () => { URL.revokeObjectURL(url); setStatus("Could not decode that local image. Try another PNG, JPEG, or WebP.", true); };
+        image.src = url;
+      }
+
+      function handleFrameListClick(event) {
+        const button = event.target.closest("button[data-action]");
+        if (!button) return;
+        const item = button.closest(".frame-item");
+        const index = Number(item?.dataset.index);
+        if (!Number.isInteger(index) || !state.scenes[index]) return;
+        const action = button.dataset.action;
+        if (action === "select") { state.current = index; renderTimeline(); setStatus(`Selected scene ${index + 1} of ${state.scenes.length}.`); return; }
+        if (action === "remove" && state.scenes.length > 1) {
+          const [removed] = state.scenes.splice(index, 1); if (removed.imageUrl) URL.revokeObjectURL(removed.imageUrl);
+          state.current = Math.max(0, Math.min(state.current, state.scenes.length - 1)); renderTimeline(); setStatus("Scene removed locally."); return;
+        }
+        if (action === "clear-image") {
+          const scene = state.scenes[index]; if (scene.imageUrl) URL.revokeObjectURL(scene.imageUrl);
+          scene.image = null; scene.imageUrl = ""; scene.imageName = ""; renderTimeline(); setStatus("Local image removed; procedural artwork restored."); return;
+        }
+        if (action === "move-up" || action === "move-down") {
+          const destination = index + (action === "move-up" ? -1 : 1);
+          if (destination < 0 || destination >= state.scenes.length) return;
+          const [scene] = state.scenes.splice(index, 1); state.scenes.splice(destination, 0, scene); state.current = destination; renderTimeline(); setStatus("Scene order updated.");
+        }
+      }
+
+      function updateSceneField(event) {
+        const control = event.target.closest("[data-field]");
+        if (!control) return;
+        const item = control.closest(".frame-item"); const index = Number(item?.dataset.index); const scene = state.scenes[index];
+        if (!scene) return;
+        scene[control.dataset.field] = cleanText(control.value, control.dataset.field === "prompt" ? 180 : control.dataset.field === "title" ? 44 : 54);
+        const thumb = item.querySelector(".frame-select canvas");
+        drawScene(thumb.getContext("2d"), scene, state, .5, index);
+        if (index === state.current) renderPreview(.5);
+      }
+
+      function routeFilter(filter) {
+        document.querySelectorAll("[data-route-filter]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.routeFilter === filter)));
+        document.querySelectorAll(".method-card[data-method]").forEach(card => {
+          const kinds = card.dataset.method.split(/\s+/);
+          card.hidden = filter !== "all" && !kinds.includes(filter);
+        });
+      }
+
+      const RECIPES = {
+        motion: { title: "Motion-graphics short · no accounts or AI needed", body: "Build 4–8 designed scenes here, then record the 30 fps Canvas animation or download the PNG pack. For sharper typography, animate the same geometry with SVG/CSS and capture it locally.", steps: ["Pick a 16:9 or 9:16 ratio and a single palette.", "Use 3–5 seconds per scene; keep each shot to one clear motion.", "Export WebM or PNG pack; finish in Shotcut/Kdenlive if you need MP4, subtitles, or a longer sound mix."] },
+        product: { title: "Product / UI explainer · the fastest polished route", body: "Capture the real interface locally, then use callout cards and motion graphics for focus. A truthful product demo often looks better than generated fake interface text.", steps: ["Record the app with OBS or the browser, at the final aspect ratio.", "Make one action per shot; pause the pointer before clicks and keep captions large.", "Use Kdenlive/Shotcut for timing, callouts, captions, and audio; export at 1080p/30 fps if your device can handle it."] },
+        illustrated: { title: "Illustrated story · zero API image frames", body: "Use this page’s procedural frame generator, or bring stills from a local open-weight image model. Reuse a seed and art direction to keep shots visually related.", steps: ["Write 4–8 shot prompts with the same subject, palette, light, and lens language.", "Generate one strong still per shot rather than hundreds of unrelated AI frames.", "Animate with a slow Ken Burns move, 2.5D parallax, and short crossfades; keep text separate from image art."] },
+        interactive: { title: "Interactive web animation · deliver the experience itself", body: "Ship a single static page with HTML/CSS/SVG/Canvas. It can be a scroll narrative, data visualization, animated product demo, or interactive story; record a linear teaser only if you need social video.", steps: ["Use keyboard-accessible controls, captions, responsive layouts, and reduced-motion support.", "Use Canvas/SVG for custom visuals; keep all runtime assets local if offline use matters.", "Record the page with Canvas capture or OBS for a walkthrough; no remote AI call is required."] },
+        photoreal: { title: "Photoreal AI frames · $0 API is possible only on owned compute", body: "For truly photoreal AI stills, use a local open-weight model on hardware you already have. Cloud demos may be free today but are quota- and queue-bound; commercial image APIs may bill per image.", steps: ["Run a locally installed generator with a model whose license fits your use.", "Make a consistent shot list; reuse a reference image/seed when the model supports it.", "Import the resulting stills using each scene’s local-image picker; render the camera motion locally."] },
+        screen: { title: "Screen / camera tutorial · local recording", body: "OBS is the reliable no-subscription option for recording software, camera, slides, or multiple scenes. Use the browser lab for captions and animated overlays.", steps: ["Set one recording profile and test audio/video levels before the full take.", "Record locally to disk; avoid cloud-only recorders with duration or storage limits.", "Trim and add captions in a local editor. Keep a clean take as your safety master."] },
+        "3d": { title: "3D / VFX · free desktop pipeline", body: "Blender combines modeling, animation, compositing, and a video sequencer in a free-software package. It is powerful but not the lowest-friction first hour.", steps: ["Use a simple scene, lighting rig, and 24/30 fps timeline before adding simulations.", "Render locally with the GPU/CPU you have; simplify samples and resolution for previews.", "Assemble shots in Blender VSE or Kdenlive. Save project files and rendered assets locally."] }
+      };
+
+      function renderRecipe(key) {
+        const recipe = RECIPES[key] || RECIPES.motion;
+        const result = byId("recipe-result"); result.replaceChildren();
+        const h = document.createElement("h3"); h.textContent = recipe.title;
+        const p = document.createElement("p"); p.textContent = recipe.body;
+        const list = document.createElement("ol");
+        recipe.steps.forEach(text => { const li = document.createElement("li"); li.textContent = text; list.append(li); });
+        result.append(h, p, list);
+      }
+
+      async function copyText(text) {
+        try {
+          if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
+          else {
+            const helper = document.createElement("textarea"); helper.value = text; helper.style.position = "fixed"; helper.style.opacity = "0"; document.body.append(helper); helper.select(); document.execCommand("copy"); helper.remove();
+          }
+          setStatus("Copied to clipboard. No external service was contacted.");
+        } catch { setStatus("Clipboard access is unavailable; select the text and copy it manually.", true); }
+      }
+
+      function wire() {
+        byId("generate-frames").addEventListener("click", () => {
+          try {
+            readConfig(); const brief = byId("idea").value; const count = Number(byId("scene-count").value);
+            revokeImages(); state.scenes = buildScenes(brief, count, state.seed); state.current = 0; renderTimeline(); setStatus(`${count} original procedural frame${count === 1 ? "" : "s"} generated locally. No network requests.`);
+          } catch (error) { setStatus(error.message, true); }
+        });
+        byId("add-frame").addEventListener("click", () => {
+          if (state.scenes.length >= 8) { setStatus("The local timeline is limited to 8 scenes for responsive preview.", true); return; }
+          const index = state.scenes.length;
+          state.scenes.push({ id: `frame-${nextId++}`, title: LABELS[index] || `Scene ${index + 1}`, caption: "A clear visual beat", prompt: cleanText(byId("idea").value, 180), image: null, imageUrl: "", imageName: "", seed: state.seed + index * 197 });
+          state.current = index; renderTimeline(); setStatus("Added one editable scene.");
+        });
+        byId("shuffle-seed").addEventListener("click", () => { byId("seed").value = String(Math.floor(Math.random() * 90000000) + 1); readConfig(); setStatus("New local art seed selected; generate frames to apply it."); });
+        ["art-style", "palette", "aspect", "resolution", "scene-seconds", "motion", "seed"].forEach(id => byId(id).addEventListener("change", () => { readConfig(); renderTimeline(); }));
+        byId("frame-list").addEventListener("click", handleFrameListClick);
+        byId("frame-list").addEventListener("input", updateSceneField);
+        byId("frame-list").addEventListener("change", event => {
+          if (event.target.matches('input[type="file"][data-action="upload"]')) loadLocalImage(event.target, Number(event.target.closest(".frame-item")?.dataset.index));
+          else updateSceneField(event);
+        });
+        byId("play-preview").addEventListener("click", () => animateSequence(false));
+        byId("stop-preview").addEventListener("click", () => {
+          const recorder = state.recorder; stopAnimation(); if (recorder && recorder.state !== "inactive") recorder.stop(); else { renderTimeline(); setPlaybackProgress(0); setStatus("Preview stopped."); }
+        });
+        byId("record-video").addEventListener("click", () => animateSequence(true));
+        byId("export-png").addEventListener("click", exportCurrentPng);
+        byId("export-frame-pack").addEventListener("click", exportFramePack);
+        byId("export-project").addEventListener("click", exportProject);
+        byId("import-project").addEventListener("change", event => importProject(event.target.files?.[0]));
+        byId("recipe-goal").addEventListener("change", event => renderRecipe(event.target.value));
+        document.querySelectorAll("[data-route-filter]").forEach(button => button.addEventListener("click", () => routeFilter(button.dataset.routeFilter)));
+        document.querySelectorAll("[data-copy]").forEach(button => button.addEventListener("click", () => copyText(byId(button.dataset.copy).textContent)));
+        byId("copy-frame-prompt").addEventListener("click", () => copyText("A coherent series of cinematic still frames for one short video. Subject: [SUBJECT]. Shot [N] of [TOTAL]: [ACTION]. Keep the same subject identity, wardrobe, props, palette, lighting direction, lens character, and screen direction in every shot. Compose one clear focal point with a safe area for captions. Use a physically plausible pose and motion-ready silhouette. No text, letters, logos, watermarks, duplicate subjects, extra limbs, or sudden style changes."));
+        window.addEventListener("online", () => setStatus("Back online. The local renderer still makes no network requests."));
+        window.addEventListener("offline", () => setStatus("Offline and still ready: local frames, PNG pack, and supported recording need no network."));
+        window.addEventListener("beforeunload", () => revokeImages());
+      }
+
+      function init() {
+        readConfig();
+        state.scenes = buildScenes(DEFAULT_BRIEF, 4, state.seed);
+        wire();
+        renderRecipe("motion");
+        renderTimeline();
+        const hero = byId("hero-canvas");
+        drawScene(hero.getContext("2d"), { title: "Frames that move", caption: "Original art · no cloud render", prompt: DEFAULT_BRIEF, seed: 887 }, { style: "orbit", palette: "aurora", motion: "drift", seed: 177 }, .48, 0);
+        if (window.navigator.onLine === false) setStatus("Offline and ready: all art and video rendering on this page runs locally.");
+      }
+
+      window.MotionLab = Object.freeze({ buildScenes, drawScene, dimensions, zipStored, crc32, getProject: projectData, getSceneCount: () => state.scenes.length });
+      init();
+    })();
+  </script>
+</body>
+</html>

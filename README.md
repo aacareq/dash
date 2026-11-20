@@ -35,6 +35,13 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   create storyboard text only; keys are held in memory, sent directly to the
   chosen provider after an explicit click, and cleared when the dialog closes.
   The matrix was checked November 20, 2026; quotas and model availability change.
+  Open the separate [Zero-Cost Motion Lab](video-workshop.html) for an offline-first
+  procedural frame generator, editable scene list, local PNG frame-pack export,
+  browser-recorded video (usually WebM), and step-by-step workflows. It never
+  calls an AI image API; locally run image models and hosted free quotas are
+  clearly marked as optional paths with hardware, license, queue, or quota
+  caveats. The evidence and tradeoffs are documented in
+  [`tasks/zero-cost-video-research-2026-11.md`](tasks/zero-cost-video-research-2026-11.md).
 - **Bookmarklets** — its own menu cluster (dashed cards, e.g. *GitHub + Arena
   Agent*, *Coding Agents*, *GitHub + Arena AI + Proton VPN*, and
   *Personal AI Agents — Always-On*) can be clicked
@@ -246,6 +253,7 @@ the file/folder creation boxes), the `⋯ More` menu and the clock chip.
 ## Layout
 
 - `index.html` — the current dashboard (Command Center 2026), including Video Creation
+- `video-workshop.html` — standalone, no-dependency local frame generator, animated preview, PNG-pack/video export, and zero-cost workflow guide
 - `assets/video-studio.js` — optional BYOK storyboard requests and browser-native Canvas/MediaRecorder studio
 - `scratchpad.html`, `manifest.webmanifest`, `sw.js` — the installable
   Scratchpad PWA, its manifest and service worker

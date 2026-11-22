@@ -43,6 +43,11 @@
       "name": "Notebook — new note",
       "short_name": "New notebook note",
       "url": "./notebook.html?new=1"
+    },
+    {
+      "name": "X Studio",
+      "short_name": "X Studio",
+      "url": "./x-studio.html"
     }
   ]
 }

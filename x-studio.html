@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0914" />
+  <meta name="description" content="Dash X Studio — craft viral X posts with images & video. Hooks, threads, media lab, and publish via Web, API, Buffer, Typefully & webhooks." />
+  <title>X Studio · DashOS</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/capture.css" />
+  <style>
+    :root { --x-accent:#1d9bf0; --x-amber:#ffd400; }
+    body { background: var(--bg); }
+    .x-top { max-width: 1280px; margin: 0 auto; padding: .9rem 1rem .4rem; display:flex; gap:.8rem; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .x-brand { font-weight:800; letter-spacing:-.02em; display:flex; gap:.5rem; align-items:center; }
+    .x-brand b { background: var(--x-accent); color:#fff; width:34px; height:34px; display:grid; place-items:center; border-radius:11px; }
+    .x-shell { max-width:1280px; margin: 0 auto; padding: .6rem 1rem 3rem; display:grid; grid-template-columns: 1.05fr .95fr; gap: .9rem; }
+    @media (max-width: 980px){ .x-shell{ grid-template-columns: 1fr; } }
+    .x-card { background: var(--surface); border:1px solid var(--border); border-radius:14px; padding: .85rem; }
+    .x-card h3 { margin:0 0 .35rem; font-size: .98rem; }
+    .x-card h4 { margin:.7rem 0 .25rem; font-size:.88rem; color: var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .x-muted{ color: var(--text-muted); font-size:.82rem; }
+    .x-row{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    .x-two{ display:grid; grid-template-columns: 1fr 1fr; gap:.5rem; } @media(max-width:600px){ .x-two{grid-template-columns:1fr} }
+    .x-three{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:.5rem; } @media(max-width:700px){ .x-three{grid-template-columns:1fr} }
+    textarea.form-input{ min-height: 120px; resize: vertical; }
+    .x-char { font-weight:700; font-variant-numeric: tabular-nums; }
+    .x-char[data-over="true"]{ color: var(--danger); }
+    .x-score-ring{ width:92px; height:92px; border-radius:50%; display:grid; place-items:center; background: conic-gradient(var(--x-accent) calc(var(--score,55)*1%), rgba(255,255,255,.12) 0); font-weight:800; }
+    .x-score-ring[data-score]{ --score: attr(data-score); }
+    .x-score-num{ font-size:1.45rem; line-height:1; } .x-score-label{ font-size:.72rem; color: var(--text-muted); }
+    .x-tips{ margin:.4rem 0 0; padding-left:1.1rem; font-size:.82rem; line-height:1.5; }
+    .x-meta{ margin-top:.4rem; font-size:.78rem; color: var(--text-muted); }
+    .x-preview { background: #000; color:#e7e9ea; border:1px solid rgba(255,255,255,.12); border-radius:16px; padding:.75rem; }
+    .x-preview-head{ display:flex; gap:.5rem; align-items:center; font-size:.82rem; color:#71767b; }
+    .x-preview-body{ white-space: pre-wrap; word-break: break-word; line-height:1.45; margin:.55rem 0; }
+    .x-preview-foot{ display:flex; gap:1rem; color:#71767b; font-size:.82rem; flex-wrap:wrap; }
+    .x-thread-info{ display:grid; gap:.6rem; margin-top:.5rem; }
+    .x-thread-part{ background: var(--card-bg); border:1px solid var(--border); border-radius:10px; padding:.5rem; }
+    .x-thread-text{ white-space: pre-wrap; word-break:break-word; font-size:.86rem; margin-top:.3rem; }
+    .x-tabs{ display:flex; gap:.3rem; flex-wrap:wrap; margin-bottom:.5rem; }
+    .x-tabs button{ border:1px solid var(--border); background: var(--card-bg); border-radius:999px; padding:.35rem .65rem; font-size:.82rem; }
+    .x-tabs button.is-active{ background: var(--x-accent); color:#fff; border-color: var(--x-accent); }
+    .x-pane{ border:1px solid var(--border); border-radius:12px; padding:.7rem; background: var(--card-bg); }
+    .x-queue{ display:grid; gap:.5rem; }
+    .x-queue-item{ display:flex; justify-content:space-between; gap:.5rem; align-items:center; border:1px solid var(--border); border-radius:10px; padding:.5rem .6rem; background: var(--surface); }
+    .x-queue-actions{ display:flex; gap:.3rem; flex-wrap:wrap; }
+    .x-status{ font-size:.82rem; min-height:1.2em; }
+    .x-status.is-error{ color: var(--danger); } .x-status.is-ok{ color: var(--success); } .x-status.is-busy{ color: var(--x-accent); }
+    .x-research{ background: linear-gradient(135deg, rgba(29,155,240,.10), rgba(255,212,0,.07)); border:1px solid var(--border); border-radius:14px; padding:.8rem; }
+    .x-research summary{ cursor:pointer; font-weight:700; }
+    .x-research ul{ margin:.35rem 0 0; padding-left:1.1rem; font-size:.84rem; line-height:1.55; }
+    .x-variant{ border:1px solid var(--border); border-radius:10px; padding:.55rem; background: var(--card-bg); }
+    .x-variant-num{ font-size:.78rem; color: var(--text-muted); } .x-variant-text{ white-space: pre-wrap; font-size:.88rem; margin:.3rem 0; }
+    canvas#x-media-canvas{ width:100%; height:auto; border-radius:12px; border:1px solid var(--border); display:block; background:#0b0b1a; }
+    .x-note{ background: rgba(255,212,0,.08); border:1px solid rgba(255,212,0,.22); border-radius:10px; padding:.55rem; font-size:.82rem; line-height:1.5; }
+    .x-kbd{ font: 600 .78rem var(--mono); background: var(--card-bg); border:1px solid var(--border); border-bottom-width:2px; border-radius:6px; padding:.15rem .35rem; }
+  </style>
+</head>
+<body>
+  <header class="x-top">
+    <a class="x-brand" href="index.html" style="text-decoration:none; color:inherit"><b>𝕏</b><span>X Studio</span><span class="x-muted">· DashOS</span></a>
+    <nav class="x-row">
+      <a href="index.html" class="modal-btn cancel" style="text-decoration:none">← Dashboard</a>
+      <a href="notebook.html" class="modal-btn cancel" style="text-decoration:none">📓 Notebook</a>
+      <a href="video-workshop.html" class="modal-btn cancel" style="text-decoration:none">🎬 Motion Lab</a>
+      <button id="x-help-open" class="modal-btn submit" type="button">How viral works</button>
+    </nav>
+  </header>
+
+  <div class="x-shell">
+    <!-- Left: Composer + virality -->
+    <main style="display:grid; gap:.9rem; align-content:start;">
+      <section class="x-card" aria-labelledby="x-compose-title">
+        <div style="display:flex; justify-content:space-between; gap:.6rem; align-items:center; flex-wrap:wrap">
+          <h3 id="x-compose-title">1 · Composer — hook, thread, dwell</h3>
+          <span class="x-muted">Hook decides 80% — you have 2 words. <span class="x-kbd">⌘/Ctrl+Enter</span> to open X</span>
+        </div>
+
+        <div class="x-two" style="margin-top:.5rem">
+          <label class="form-label">Hook archetype
+            <select id="x-hook" class="form-input"></select>
+          </label>
+          <label class="form-label">Style
+            <select id="x-style" class="form-input"></select>
+          </label>
+        </div>
+        <div class="x-two">
+          <label class="form-label">CTA (reply = +75 weight)
+            <select id="x-cta" class="form-input"></select>
+          </label>
+          <label class="form-label">Audience / niche (SimClusters)
+            <input id="x-ai-audience" class="form-input" placeholder="e.g. AI builders, indie hackers" />
+          </label>
+        </div>
+        <div class="x-row" style="margin:.3rem 0">
+          <button id="x-insert-hook" class="modal-btn cancel" type="button">Insert hook</button>
+          <button id="x-insert-cta" class="modal-btn cancel" type="button">Insert CTA</button>
+          <label style="display:flex; gap:.35rem; align-items:center; font-size:.82rem"><input id="x-thread-toggle" type="checkbox" /> Thread mode</label>
+          <label style="display:flex; gap:.35rem; align-items:center; font-size:.82rem"><input id="x-poll-toggle" type="checkbox" /> Poll / question</label>
+          <label style="display:flex; gap:.35rem; align-items:center; font-size:.82rem"><input id="x-premium" type="checkbox" /> X Premium (25k)</label>
+        </div>
+
+        <label class="form-label" for="x-text">Post text
+          <textarea id="x-text" class="form-input" maxlength="30000" placeholder="Unpopular opinion: most viral X posts aren't lucky — they're engineered for dwell + replies. Here's the 4-part formula I use (with proof):"></textarea>
+        </label>
+        <div class="x-row" style="justify-content:space-between">
+          <span id="x-char-counter" class="x-char">0 / 280</span>
+          <span class="x-row">
+            <button id="x-clear" class="modal-btn cancel" type="button">Clear</button>
+            <button id="x-copy-text" class="modal-btn cancel" type="button">Copy text</button>
+            <button id="x-copy-thread" class="modal-btn cancel" type="button">Copy as thread</button>
+            <button id="x-save-draft" class="modal-btn submit" type="button">Save draft</button>
+          </span>
+        </div>
+
+        <div id="x-thread-info" class="x-thread-info" hidden></div>
+
+        <div class="x-two" style="margin-top:.6rem">
+          <div class="x-preview" aria-label="X preview">
+            <div class="x-preview-head"><span style="width:36px;height:36px;border-radius:50%;background:#333;display:inline-block"></span><strong>You</strong><span>@you · now</span></div>
+            <div id="x-preview-text" class="x-preview-body" style="white-space:pre-wrap"></div>
+            <div class="x-preview-foot"><span>♡ Likes</span><span>↻ Reposts</span><span>💬 Replies (highest weight)</span><span>🔖 Bookmarks</span></div>
+            <p class="x-muted" style="margin:.4rem 0 0">Preview is local. X renders links as t.co (23 chars), up to 4 images or 1 video — no mix.</p>
+          </div>
+          <div id="x-virality" class="x-pane"></div>
+        </div>
+      </section>
+
+      <section class="x-card" aria-labelledby="x-ai-title">
+        <h3 id="x-ai-title">2 · AI ghostwriter (BYOK — keys never saved unless you opt in)</h3>
+        <p class="x-muted">Optional. Generates hook variants + thread. Keys sent only to chosen provider after your click. Offline hooks work without any key.</p>
+        <div class="x-three">
+          <label class="form-label">Provider
+            <select id="x-ai-provider" class="form-input"><option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="google">Gemini</option></select>
+          </label>
+          <label class="form-label">Model
+            <input id="x-ai-model" class="form-input" value="llama-3.1-8b-instant" />
+          </label>
+          <label class="form-label">API key (BYOK)
+            <input id="x-ai-key" class="form-input" type="password" autocomplete="off" placeholder="sk_… or AI Studio key — sent only on Generate" />
+          </label>
+        </div>
+        <label class="form-label">Topic / brief (or leave empty to use composer text)
+          <textarea id="x-ai-topic" class="form-input" rows="2" placeholder="e.g. How I grew from 0 → 10k followers by fixing my hooks"></textarea>
+        </label>
+        <div class="x-row">
+          <button id="x-ai-generate" class="modal-btn submit" type="button">Generate 3 variants</button>
+          <span class="x-muted">Returns JSON with text + why. You pick → loads into composer.</span>
+        </div>
+        <div id="x-ai-results" class="x-queue" hidden style="margin-top:.6rem"></div>
+      </section>
+
+      <section class="x-card" aria-labelledby="x-media-title">
+        <h3 id="x-media-title">3 · Image & video lab (X specs native)</h3>
+        <p class="x-muted">X boosts native media (standalone boost) and videos watched ≥50%. Images: JPG/PNG/WebP/GIF ≤5 MB each, up to 4 per post. Video: MP4/MOV ≤512 MB, ≤140s (4h Premium), 1280×720/720×1280/720×720, 30/60fps. No image+video mix.</p>
+        <div class="x-two">
+          <label class="form-label">Image template
+            <select id="x-img-template" class="form-input"></select>
+          </label>
+          <label class="form-label">Palette
+            <select id="x-palette" class="form-input"></select>
+          </label>
+        </div>
+        <div class="x-two">
+          <label class="form-label">Headline (≤7 words on image)
+            <input id="x-img-title" class="form-input" placeholder="The 4-part viral formula" maxlength="90" />
+          </label>
+          <label class="form-label">Subline
+            <input id="x-img-sub" class="form-input" placeholder="Dwell + reply chain + media" maxlength="140" />
+          </label>
+        </div>
+        <div class="x-three">
+          <label class="form-label">Eyebrow
+            <input id="x-img-eyebrow" class="form-input" placeholder="DASH X STUDIO" maxlength="40" />
+          </label>
+          <label class="form-label">Footer
+            <input id="x-img-footer" class="form-input" placeholder="x.com/you" maxlength="60" />
+          </label>
+          <label class="form-label">Thread badge (e.g. 1/7)
+            <input id="x-img-badge" class="form-input" placeholder="1/7" maxlength="16" />
+          </label>
+        </div>
+        <div class="x-row">
+          <button id="x-render-image" class="modal-btn submit" type="button">Render image (1600×900)</button>
+          <button id="x-download-image" class="modal-btn cancel" type="button">Download PNG</button>
+          <button id="x-copy-image" class="modal-btn cancel" type="button">Copy image</button>
+          <span id="x-media-preview-url" class="x-muted"></span>
+        </div>
+        <canvas id="x-media-canvas" width="1600" height="900" aria-label="X post image preview"></canvas>
+        <p class="x-muted">No watermark. Also export 1080×1080 / 1080×1920 by resizing canvas in DevTools — X accepts all three.</p>
+        <h4>Or upload your own (validated against X specs)</h4>
+        <div class="x-two">
+          <label class="form-label">Image (≤5 MB, JPG/PNG/WebP/GIF)
+            <input id="x-image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="form-input" />
+            <img id="x-upload-preview" hidden alt="uploaded preview" style="max-width:100%; border-radius:10px; border:1px solid var(--border); margin-top:.4rem" />
+          </label>
+          <label class="form-label">Video (≤512 MB, MP4/MOV, ≤140s)
+            <input id="x-video-file" type="file" accept="video/mp4,video/quicktime,.mp4,.mov" class="form-input" />
+            <video id="x-video-preview" hidden controls playsinline style="max-width:100%; border-radius:10px; border:1px solid var(--border); margin-top:.4rem"></video>
+            <p class="x-muted">Tip: front-load payoff in first 3s — completion &gt;50% is tracked. Pair X video with a reply CTA.</p>
+          </label>
+        </div>
+      </section>
+    </main>
+
+    <!-- Right: Publish -->
+    <aside style="display:grid; gap:.9rem; align-content:start;">
+      <section class="x-card" aria-labelledby="x-publish-title">
+        <h3 id="x-publish-title">4 · Publish — 5 ways to post</h3>
+        <p class="x-muted" style="margin:0 0 .4rem">All paths are honest about limits: Browser can only <em>open X</em> with text; API/tools need tokens + sometimes a CORS proxy. You choose.</p>
+        <div class="x-tabs" role="tablist">
+          <button data-x-tab="web" class="is-active" type="button">𝕏 Web</button>
+          <button data-x-tab="api" type="button">API v2</button>
+          <button data-x-tab="buffer" type="button">Buffer</button>
+          <button data-x-tab="typefully" type="button">Typefully / Hypefury</button>
+          <button data-x-tab="webhook" type="button">Webhook</button>
+        </div>
+
+        <div data-x-pane="web" class="x-pane">
+          <h4>X Web — fastest, no token</h4>
+          <p class="x-muted">Opens <code>x.com/intent/post</code> with your text. Attach downloaded image/video manually — intents can't carry media (X limitation). Keep link in last reply to dodge exit-suppression.</p>
+          <div class="x-row" style="margin-top:.5rem">
+            <button id="x-open-intent" class="modal-btn submit" type="button">Open X compose →</button>
+            <a href="https://x.com/compose/post" target="_blank" rel="noopener noreferrer" class="modal-btn cancel" style="text-decoration:none">x.com/compose</a>
+          </div>
+          <p class="x-muted" style="margin-top:.5rem"><strong>Bookmarklet:</strong> drag to bar → <a href="javascript:window.open('https://x.com/intent/post?text='+encodeURIComponent(getSelection().toString()||document.title),'_blank')">Post to X</a> (opens selection/title).</p>
+          <div class="x-note" style="margin-top:.6rem"><strong>Virality tip:</strong> Post, then <em>stay 30–60 min</em> and reply to every comment. Author-reply chains score <strong>+75</strong> (vs +0.5 for a like). That one act triggers Heavy Ranker.</div>
+        </div>
+
+        <div data-x-pane="api" class="x-pane" hidden>
+          <h4>X API v2 — direct posting</h4>
+          <p class="x-muted">Needs X Developer App with OAuth 2.0 User Context: scopes <code>tweet.read tweet.write users.read media.write offline.access</code>. Create at <a href="https://developer.x.com/en/portal/dashboard" target="_blank" rel="noopener">developer.x.com</a> → generate User Access Token.</p>
+          <label class="form-label">User Access Token (Bearer, BYOK — paste, never stored unless you save draft)
+            <input id="x-api-token" class="form-input" type="password" autocomplete="off" placeholder="AAAA… (keep in password manager)" />
+          </label>
+          <div class="x-row">
+            <button id="x-api-publish" class="modal-btn submit" type="button">Post now via API</button>
+            <button id="x-api-media-publish" class="modal-btn cancel" type="button">Upload media (needs proxy)</button>
+          </div>
+          <details style="margin-top:.5rem" open>
+            <summary class="x-muted">Why this often fails from the browser + fix</summary>
+            <p class="x-muted">X blocks CORS from <code>api.x.com</code> / <code>api.twitter.com</code> for browser fetches. Direct fetch will be blocked. Two fixes:</p>
+            <ol class="x-muted" style="padding-left:1.1rem">
+              <li><strong>Vercel Edge proxy (5 min):</strong> <code>vercel.json</code> → <code>/api/x-tweet → https://api.x.com/2/tweets</code> with forwarded Authorization; call <code>/api/x-tweet</code> from X Studio instead.</li>
+              <li><strong>Supabase Edge Function:</strong> same proxy + store token in <code>supabase secrets</code>, call your function URL.</li>
+            </ol>
+            <pre class="x-pane" style="white-space:pre-wrap; font-size:.78rem; overflow:auto">// curl (works from server — paste token)
+curl -X POST https://api.x.com/2/tweets \
+ -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+ -d '{"text":"Hello X!","media":{"media_ids":["..."]}}'
+
+// Media upload init (chunked: INIT → APPEND → FINALIZE)
+curl -X POST https://api.x.com/2/media/upload -H "Authorization: Bearer $TOKEN" \
+ -d "command=INIT&total_bytes=204800&media_type=image/jpeg"</pre>
+            <p class="x-muted">Media IDs expire ~24h; upload before posting. OAuth 1.0a still required for legacy <code>upload.twitter.com/1.1/media/upload.json</code> — prefer v2 <code>api.x.com/2/media/upload</code> when your app supports it.</p>
+          </details>
+        </div>
+
+        <div data-x-pane="buffer" class="x-pane" hidden>
+          <h4>Buffer — reliable scheduler</h4>
+          <p class="x-muted">Buffer queues via official X API, so no CORS issue (Buffer posts server-side). Free: 3 channels, 10 queued/channel. Create app at <a href="https://buffer.com/developers" target="_blank" rel="noopener">buffer.com/developers</a> → get <code>access_token</code> + <code>profile_ids</code> (your X channel ID from <code>GET /1/profiles.json?access_token=…</code>).</p>
+          <label class="form-label">Buffer access_token
+            <input id="x-buffer-token" class="form-input" type="password" autocomplete="off" placeholder="1/abc… (paste from Buffer)" />
+          </label>
+          <label class="form-label">X profile ID(s) — comma separated (Buffer profile_ids)
+            <input id="x-buffer-pids" class="form-input" placeholder="e.g. 65f… , from Buffer profiles.json" />
+          </label>
+          <label class="form-label">Schedule (optional — Buffer handles queue)
+            <input id="x-buffer-when" class="form-input" type="datetime-local" />
+          </label>
+          <button id="x-buffer-send" class="modal-btn submit" type="button">Queue to Buffer</button>
+          <p class="x-muted">Buffer respects 280/25k, 4 images or 1 video, no mix — validated before queue.</p>
+        </div>
+
+        <div data-x-pane="typefully" class="x-pane" hidden>
+          <h4>Typefully / Hypefury / Any X tool</h4>
+          <p class="x-muted">These tools post server-side via X API, so they bypass browser CORS. Use their native composer for scheduling, or send via webhook below.</p>
+          <ul class="x-muted" style="padding-left:1.1rem">
+            <li><strong>Typefully:</strong> app → Settings → API → generate key; <code>POST https://api.typefully.com/v1/drafts</code> with <code>{content, schedule-date}</code>. Free tier exists; paid = check <a href="https://typefully.com" target="_blank" rel="noopener">typefully.com</a>.</li>
+            <li><strong>Hypefury:</strong> similar — check <a href="https://hypefury.com" target="_blank" rel="noopener">hypefury.com</a> (restructured early 2026).</li>
+            <li><strong>Hootsuite / Social Pilot / Sprout:</strong> connect X channel there; schedule from their queue.</li>
+          </ul>
+          <p class="x-muted">No secret baked into Dash — you bring the tool token. Dash just composes + hands off.</p>
+          <div class="x-note">Pro move: Typefully's <em>thread scheduling</em> + Dash's dwell hooks = best combo. X native scheduler can't schedule threads — Typefully/Buffer can.</div>
+        </div>
+
+        <div data-x-pane="webhook" class="x-pane" hidden>
+          <h4>Generic webhook — Zapier / Make / n8n / PostEverywhere</h4>
+          <p class="x-muted">Send JSON to any URL you control. Great for Zapier (catch hook → X action) or n8n.</p>
+          <label class="form-label">Webhook URL (https://)
+            <input id="x-webhook-url" class="form-input" placeholder="https://hooks.zapier.com/hooks/catch/… or n8n webhook URL" />
+          </label>
+          <button id="x-webhook-send" class="modal-btn submit" type="button">Send webhook now</button>
+          <pre class="x-pane" style="font-size:.75rem; overflow:auto; margin-top:.5rem">POST {webhook_url}
+Content-Type: application/json
+{
+  "text": "your post",
+  "thread": ["tweet 1", "tweet 2"],
+  "images": 1,
+  "video": false,
+  "source": "dash-x-studio"
+}</pre>
+        </div>
+
+        <p id="x-status" class="x-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="x-card">
+        <h3>Drafts & queue</h3>
+        <div class="x-two" style="margin-bottom:.5rem">
+          <button id="x-export-csv" class="modal-btn cancel" type="button">Export drafts CSV</button>
+          <button id="x-export-queue" class="modal-btn cancel" type="button">Export queue JSON</button>
+        </div>
+        <h4>Drafts (local)</h4>
+        <div id="x-drafts" class="x-queue"></div>
+        <h4 style="margin-top:.8rem">Schedule (local reminder — keep tab open)</h4>
+        <p class="x-muted">X has no native <code>scheduled_at</code> — schedulers build a queue + cron. Dash does the same locally; for background delivery, push to Buffer/Typefully (they cron server-side). Local due posts reopen X compose + fire a notification.</p>
+        <div class="x-two">
+          <label class="form-label">When (local)
+            <input id="x-schedule-when" class="form-input" type="datetime-local" />
+          </label>
+          <label class="form-label">Via
+            <select id="x-schedule-via" class="form-input"><option value="web">X Web (reminder)</option><option value="buffer">Buffer (if queued above)</option><option value="api">X API</option><option value="webhook">Webhook</option></select>
+          </label>
+        </div>
+        <div class="x-row">
+          <button id="x-enqueue" class="modal-btn submit" type="button">Schedule locally</button>
+        </div>
+        <div id="x-queue" class="x-queue" style="margin-top:.6rem"></div>
+        <p class="x-muted">Tip: grant Notifications to get a ping when a scheduled post is due.</p>
+      </section>
+
+      <section class="x-card" aria-labelledby="x-ops-title">
+        <h3 id="x-ops-title">Posting playbook — when & how often</h3>
+        <ul class="x-muted" style="padding-left:1.1rem; line-height:1.6">
+          <li><strong>Half-life ~6h</strong>: relevance decays ~50% every 6h. Posting <strong>2–4×/day</strong> keeps a fresh candidate in the pool.</li>
+          <li><strong>First 30–60 min = everything</strong>: early engagement velocity decides reach. Don't post and ghost — stay to spark reply chains.</li>
+          <li><strong>Flood penalty:</strong> burst-posting within minutes gets demoted — space posts ≥30 min apart.</li>
+          <li><strong>Best windows (local):</strong> 9a, 12p, 5p — test with your SimCluster; check X Analytics weekly.</li>
+          <li><strong>Consistency > volume:</strong> daily posts in one niche beats scattered topics (SimClusters rewards topical stay-in-lane).</li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <dialog id="x-research-dialog" class="modal" aria-labelledby="x-research-title" style="max-width:min(820px, 95vw)">
+    <div class="modal-card help-guide" style="max-height: min(85vh, 900px); overflow:auto">
+      <form method="dialog"><button class="modal-btn cancel" autofocus>Close</button></form>
+      <h2 id="x-research-title">What actually drives a viral X post — Nov 2026 research</h2>
+      <p class="x-muted">Synthesized from X's open-source recommendation code (Heavy Ranker + SimClusters + Real Graph) and independent analyses. Not guru lore — traceable to files like <code>LinearScoringFunction.java</code>, <code>TweepCred</code>, and engagement-weight tables.</p>
+      <div class="x-research">
+        <details open>
+          <summary>1. The 30-min velocity + Heavy Ranker weights</summary>
+          <ul>
+            <li>X pulls ~1,500 candidates per session, scores with a ~48M-param Heavy Ranker predicting <em>reply, like, repost, dwell, profile click</em> etc.</li>
+            <li><strong>Log scaling:</strong> first engagement >> later ones (1st repost = 100%, 2nd = 58%, 4th = 32%). Nail the opener.</li>
+            <li><strong>Weights (2026 breakdown):</strong> author-reply in thread <strong>+75</strong>, reply probability +13.5, profile visit + engaged +12, conversation dwell 2m +10, link-click is <em>positive</em> (no hard link penalty in code), retweet +1.0, like +0.5. <em>Dwell 2m ≈ 22× a like; profile click ≈ 24×.</em></li>
+            <li>Posts <strong>without early signal in 30 min</strong> rarely recover — schedule when your audience is awake + pre-seed one reply.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>2. Dwell & video — the new currency</summary>
+          <ul>
+            <li><strong>Dwell thresholds:</strong> 15s on detail view and ~2 min in reply thread are logged as quality. Threads, infographics, carousels, and video lift dwell 1.6–1.8× vs text-only.</li>
+            <li>Video watched &gt;50% (and &gt;10s) gets a standalone boost; front-load value.</li>
+            <li>Design for <em>identity curiosity</em>: profile click is top signal — write hooks that make readers tap your avatar.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>3. Media & thread boosts, hashtag & caps penalties</summary>
+          <ul>
+            <li><strong>Media boost:</strong> native image/video gets a direct rank lift (separate scoring path for media). External links don't get a hard penalty anymore, but keeping value in-thread keeps dwell.</li>
+            <li><strong>Hashtags:</strong> semantic embeddings replaced keyword matching (2025). 0–2 is optimal; &gt;3 triggers damping. Don't farm tags.</li>
+            <li><strong>Caps / all-caps:</strong> shouting penalty. Write sentence case; use bold in images instead.</li>
+            <li><strong>Slop score:</strong> low-effort AI spam detection — originality + edit beats copy-paste.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>4. SimClusters & Real Graph — the network game</summary>
+          <ul>
+            <li>X maps users into ~145k overlapping SimClusters by follow + engagement graph (not hashtags). Out-of-network reach goes to <em>your cluster</em> first — stay topical.</li>
+            <li>Real Graph scores <em>interaction depth</em> (mutual replies &gt; solo likes). <strong>Reply → author-replies-back</strong> is the loop. Don't schedule and ghost.</li>
+            <li>Verified / reputable accounts get a baseline lift (TweepCred) — not magic, but helps in search + suggestion.</li>
+          </ul>
+        </details>
+        <details>
+          <summary>5. Creative system that wins now</summary>
+          <ul>
+            <li><strong>Hook (stop) + substance (dwell) + reply-bait (conversation) + visual (boost) + consistency (cluster).</strong></li>
+            <li>Formats to rotate: text+image, thread, native video, poll. Avoid consecutive same-author flooding — diversify.</li>
+            <li>Teams/communities earn ~1.9× impressions vs solo (mutual engagement in 30-min window). Build a reply pod with consent — don't fake it.</li>
+            <li>Negative signals hurt long term: <em>Not interested, mute, block, report</em> + fast-scroll all demote future reach.</li>
+          </ul>
+        </details>
+      </div>
+      <p class="x-muted" style="margin-top:.7rem">Sources: X open-source algorithm (github.com/twitter/the-algorithm), Buffer/Typefully/Hypefury docs, Sprout/Hootsuite specs, postory.io viral breakdown Oct 2026, TianPan reverse-engineer Sep 2025, adlibrary &amp; paperschedule deep-dives. Verify quotas before campaigns.</p>
+      <p class="x-muted">X specs at time of build: 280 chars (25k Premium), 4 images ≤5 MB each (JPG/PNG/WebP/GIF) or 1 video (MP4/MOV, 512 MB, max 140s standard / 4h Premium, 1280×720 / 720×1280 / 720×720, 30/60fps). Each URL counts ~23 chars (t.co).</p>
+    </div>
+  </dialog>
+
+  <script src="assets/x-studio.js"></script>
+  <script>
+    const ta = document.getElementById('x-text');
+    const preview = document.getElementById('x-preview-text');
+    if (ta && preview) {
+      const sync = () => preview.textContent = ta.value || 'Your post will appear here — write a hook above.';
+      ta.addEventListener('input', sync); sync();
+    }
+    document.getElementById('x-help-open')?.addEventListener('click', ()=> document.getElementById('x-research-dialog').showModal());
+    // ask notification perm
+    if ('Notification' in window && Notification.permission === 'default') {
+      window.addEventListener('click', function once(){
+        window.removeEventListener('click', once);
+        Notification.requestPermission().catch(()=>{});
+      });
+    }
+    // paint score ring css var from data-score
+    new MutationObserver(()=> {
+      const el = document.querySelector('.x-score-ring');
+      if (el) el.style.setProperty('--score', el.getAttribute('data-score')||'55');
+    }).observe(document.body, { subtree:true, childList:true, attributes:true, attributeFilter:['data-score'] });
+  </script>
+</body>
+</html>

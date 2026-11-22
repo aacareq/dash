@@ -8,13 +8,14 @@
 // Bump CACHE_VERSION whenever a precached asset changes; old caches are swept
 // on activate, and the page prompts before taking over a running tab.
 
-const CACHE_VERSION = "dash-scratch-v25";
+const CACHE_VERSION = "dash-scratch-v26";
 const PRECACHE = [
   "./",
   "./index.html",
   "./video-workshop.html",
   "./scratchpad.html",
   "./notebook.html",
+  "./x-studio.html",
   "./manifest.webmanifest",
   "./assets/styles.css",
   "./assets/markdown.js",
@@ -35,6 +36,7 @@ const PRECACHE = [
   "./assets/pwa-install.js",
   "./assets/dashboard-pwa.js",
   "./assets/video-studio.js",
+  "./assets/x-studio.js",
   "./assets/notebook.js",
   "./assets/notebook-outline.js",
   "./assets/notebook-tasks.js",

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0914" />
+  <meta name="description" content="Social Motion Studio — easiest, cheapest, fastest way to make scroll-stopping motion graphics for TikTok, Reels, Shorts & X. Free Pollinations images, BYOK LLM, browser Canvas export." />
+  <title>Social Motion Studio · DashOS</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    :root{ --motion-accent:#a855f7; --motion-amber:#f59e0b; }
+    body{ background: var(--bg); }
+    .motion-top{ max-width:1320px; margin:0 auto; padding:.9rem 1rem .5rem; display:flex; gap:.8rem; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .motion-brand{ font-weight:900; letter-spacing:-.03em; display:flex; gap:.55rem; align-items:center; }
+    .motion-brand b{ background: linear-gradient(135deg,#a855f7,#ec4899); color:#fff; width:36px; height:36px; display:grid; place-items:center; border-radius:11px; font-size:1.1rem; }
+    .motion-shell{ max-width:1320px; margin:0 auto; padding:.6rem 1rem 3rem; display:grid; gap:.9rem; }
+    .motion-hero{ background: linear-gradient(135deg, rgba(168,85,247,.12), rgba(236,72,153,.08), rgba(251,146,60,.07)); border:1px solid var(--border); border-radius:16px; padding:1rem 1.1rem; display:grid; grid-template-columns: 1.2fr .8fr; gap:1rem; align-items:center; }
+    @media(max-width:900px){ .motion-hero{ grid-template-columns:1fr; } }
+    .motion-hero h1{ margin:0 0 .35rem; font-size: clamp(1.6rem,3vw,2.1rem); letter-spacing:-.03em; line-height:1.05; }
+    .motion-hero ul{ margin:.4rem 0 0; padding-left:1.1rem; font-size:.88rem; line-height:1.6; }
+    .motion-hero .motion-compare{ background: var(--surface); border:1px solid var(--border); border-radius:12px; padding:.75rem; font-size:.82rem; line-height:1.6; }
+    .motion-compare table{ width:100%; border-collapse:collapse; font-size:.78rem; }
+    .motion-compare th{ text-align:left; color: var(--text-muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; padding:.3rem .4rem; border-bottom:1px solid var(--border); }
+    .motion-compare td{ padding:.35rem .4rem; border-bottom:1px solid var(--border); }
+    .motion-grid{ display:grid; grid-template-columns: 360px minmax(0,1fr) 360px; gap:.9rem; align-items:start; }
+    @media(max-width:1100px){ .motion-grid{ grid-template-columns:1fr; } }
+    .motion-card{ background: var(--surface); border:1px solid var(--border); border-radius:14px; padding:.85rem; }
+    .motion-card h3{ margin:0 0 .4rem; font-size:.96rem; }
+    .motion-card h4{ margin:.7rem 0 .3rem; font-size:.82rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.04em; }
+    .motion-muted{ color:var(--text-muted); font-size:.82rem; }
+    .motion-row{ display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+    .motion-two{ display:grid; grid-template-columns:1fr 1fr; gap:.5rem; } @media(max-width:600px){ .motion-two{ grid-template-columns:1fr; } }
+    .motion-status{ font-size:.82rem; min-height:1.2em; padding:.35rem .5rem; border-radius:8px; background: var(--card-bg); border:1px solid var(--border); }
+    .motion-status.is-error{ color:var(--danger); border-color:rgba(220,38,38,.3); background:rgba(220,38,38,.08); } .motion-status.is-ok{ color:var(--success); } .motion-status.is-busy{ color:var(--motion-accent); }
+    textarea.form-input{ min-height: 96px; resize:vertical; }
+    canvas#motion-canvas{ width:100%; height:auto; border-radius:12px; border:1px solid var(--border); background:#0a0a14; display:block; }
+    .motion-scene-row{ display:flex; gap:.4rem; align-items:center; padding:.45rem; border:1px solid var(--border); border-radius:10px; background:var(--card-bg); }
+    .motion-scene-row.is-active{ border-color:var(--motion-accent); background:rgba(168,85,247,.08); }
+    .motion-scene-btn{ flex:1; display:flex; gap:.5rem; align-items:center; background:none; border:0; text-align:left; cursor:pointer; min-width:0; }
+    .motion-scene-badge{ background: var(--card-bg); border:1px solid var(--border); border-radius:999px; padding:.15rem .5rem; font-weight:800; font-size:.72rem; white-space:nowrap; }
+    .motion-scene-caption{ font-size:.82rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .motion-scene-actions{ display:flex; gap:.3rem; align-items:center; flex-wrap:wrap; }
+    .motion-mini{ font-size:.72rem; padding:.25rem .45rem; border:1px solid var(--border); background:var(--surface); border-radius:8px; cursor:pointer; }
+    .motion-img-state{ font-size:.70rem; color:var(--text-muted); }
+    .motion-preview-wrap{ position:sticky; top:.6rem; }
+    .motion-progress{ width:100%; height:6px; accent-color: var(--motion-accent); }
+    .motion-note{ background:rgba(251,146,60,.08); border:1px solid rgba(251,146,60,.22); border-radius:10px; padding:.55rem; font-size:.82rem; line-height:1.5; }
+    .motion-kbd{ font:600 .74rem var(--mono); background:var(--card-bg); border:1px solid var(--border); border-bottom-width:2px; border-radius:6px; padding:.12rem .35rem; }
+    #motion-thumb{ width:100%; border-radius:8px; border:1px solid var(--border); background:#0a0a14; }
+  </style>
+</head>
+<body>
+  <header class="motion-top">
+    <a class="motion-brand" href="index.html" style="text-decoration:none;color:inherit"><b>✦</b><span>Social Motion Studio</span><span class="motion-muted">· DashOS</span></a>
+    <nav class="motion-row">
+      <a href="index.html" class="modal-btn cancel" style="text-decoration:none">← Dashboard</a>
+      <a href="x-studio.html" class="modal-btn cancel" style="text-decoration:none">𝕏 X Studio</a>
+      <a href="video-workshop.html" class="modal-btn cancel" style="text-decoration:none">Motion Lab (legacy)</a>
+      <button type="button" class="modal-btn submit" onclick="document.getElementById('motion-help').showModal()">How $0 can be best</button>
+    </nav>
+  </header>
+
+  <div class="motion-shell">
+    <section class="motion-hero" aria-labelledby="motion-hero-title">
+      <div>
+        <h1 id="motion-hero-title">Make scroll-stopping motion in 30 seconds — for $0</h1>
+        <p class="motion-muted" style="margin:0">The easiest, cheapest, fastest path isn't a heavy AI video model. It's: <strong>viral script (LLM)</strong> + <strong>free images (Pollinations, no key)</strong> + <strong>browser motion (Canvas)</strong> = 9:16 / 1:1 / 16:9 with captions, exported instantly.</p>
+        <ul>
+          <li><strong>Easiest:</strong> Type idea → pick style → export. Templates handle hook, captions, CTA. No timeline to learn.</li>
+          <li><strong>Cheapest:</strong> $0 — procedural + Pollinations (free, no key) + Groq/Gemini free tier via BYOK. No credits, no queue.</li>
+          <li><strong>Fastest:</strong> Script 2s (local) or 5s (LLM), images 2–3s each via CDN, preview instant, video recorded in real-time (15s video = 15s).</li>
+        </ul>
+        <p class="motion-muted">Why not diffusion video? Slow (1–3 min), expensive ($0.10-1/clip), inconsistent faces/text. Canvas kinetic type + Ken Burns on a good still beats it 9/10 on social — and you control every word.</p>
+      </div>
+      <div class="motion-compare" aria-label="Comparison table">
+        <strong style="font-size:.86rem">Why this beats old routes</strong>
+        <table>
+          <thead><tr><th>Route</th><th>Cost</th><th>Speed</th><th>Reliability</th></tr></thead>
+          <tbody>
+            <tr><td><strong>This: Motion Studio</strong></td><td>$0</td><td>30 sec</td><td>Always ✅</td></tr>
+            <tr><td>HF Spaces ZeroGPU</td><td>Free but 2-5 min/day</td><td>Queue 1–5 min</td><td>Sleeps ❌</td></tr>
+            <tr><td>PixVerse free</td><td>60+30/day credits</td><td>30–60s</td><td>Credits run out</td></tr>
+            <tr><td>Colab / Kaggle GPU</td><td>$0 but setup</td><td>5–10 min setup</td><td>Not guaranteed</td></tr>
+          </tbody>
+        </table>
+        <p class="motion-muted" style="margin:.5rem 0 0">Old tools stay in Video Creation cluster. This is the new default.</p>
+      </div>
+    </section>
+
+    <div class="motion-grid">
+      <!-- Left: Idea -->
+      <section class="motion-card" aria-labelledby="motion-idea-title">
+        <h3 id="motion-idea-title">1 · Idea → Script</h3>
+        <p class="motion-muted">Type a topic. Local = instant, no key. AI = BYOK Groq/Gemini/OpenRouter/HF for viral rewrite.</p>
+        <label class="form-label">Your idea / topic
+          <textarea id="motion-idea" class="form-input" maxlength="500" placeholder="e.g. 3 morning habits that 10x my focus (no coffee)">3 morning habits that 10x my focus — without more coffee or willpower</textarea>
+        </label>
+        <div class="motion-two">
+          <label class="form-label">Preset (viral format)
+            <select id="motion-preset" class="form-input">
+              <option value="hooklist">🔥 Hook + 3 Facts</option>
+              <option value="beforeafter">⚖️ Before → After</option>
+              <option value="mythfact">💥 Myth vs Fact</option>
+              <option value="quote">💬 Big Quote</option>
+              <option value="tutorial">📋 3-Step Tutorial</option>
+              <option value="hottake">⚡️ Hot Take + CTA</option>
+            </select>
+          </label>
+          <label class="form-label">Format
+            <select id="motion-format" class="form-input">
+              <option value="9:16">9:16 Vertical — TikTok/Reels/Shorts</option>
+              <option value="4:5">4:5 Portrait — Instagram Feed</option>
+              <option value="1:1">1:1 Square — Feed</option>
+              <option value="16:9">16:9 Landscape — X / YouTube</option>
+            </select>
+          </label>
+        </div>
+        <div class="motion-two">
+          <label class="form-label">Palette
+            <select id="motion-palette" class="form-input">
+              <option value="electric">Electric (purple/pink)</option>
+              <option value="ocean">Ocean (teal)</option>
+              <option value="ember">Ember (orange)</option>
+              <option value="rose">Rose (red/pink)</option>
+              <option value="forest">Forest (green)</option>
+              <option value="monochrome">Monochrome</option>
+            </select>
+          </label>
+          <label class="form-label">Caption style
+            <select id="motion-caption-style" class="form-input">
+              <option value="hormozi">Hormozi — highlight pop</option>
+              <option value="karaoke">Karaoke — word glow</option>
+              <option value="minimal">Minimal — pill</option>
+              <option value="big">BIG HOOK — huge</option>
+            </select>
+          </label>
+        </div>
+        <div class="motion-two">
+          <label class="form-label">Motion
+            <select id="motion-motion" class="form-input">
+              <option value="slow">Slow — calm</option>
+              <option value="push">Push — punch in</option>
+              <option value="sweep">Sweep — lateral</option>
+            </select>
+          </label>
+          <label class="form-label">Handle
+            <input id="motion-handle" class="form-input" value="@you" placeholder="@you" />
+          </label>
+        </div>
+        <div class="motion-row" style="margin-top:.5rem">
+          <button id="motion-generate-local" class="modal-btn submit" type="button">✦ Generate locally (no key)</button>
+          <button id="motion-variations" class="modal-btn cancel" type="button">Shuffle variation</button>
+        </div>
+        <details style="margin-top:.6rem">
+          <summary class="motion-muted">BYOK AI rewrite (Groq / Gemini / OpenRouter / HF) — optional</summary>
+          <div class="motion-two" style="margin-top:.5rem">
+            <label class="form-label">Provider
+              <select id="motion-provider" class="form-input">
+                <option value="groq">Groq (free)</option>
+                <option value="google">Gemini (free tier)</option>
+                <option value="openrouter">OpenRouter (:free)</option>
+                <option value="huggingface">HF Inference (free)</option>
+              </select>
+            </label>
+            <label class="form-label">Model
+              <input id="motion-model" class="form-input" value="llama-3.1-8b-instant" />
+            </label>
+          </div>
+          <label class="form-label">API key (BYOK — sent only to provider on click)
+            <input id="motion-key" class="form-input" type="password" autocomplete="off" placeholder="sk_… / AI Studio key" />
+          </label>
+          <button id="motion-generate-ai" class="modal-btn submit" type="button" style="margin-top:.4rem">✦ Rewrite with AI</button>
+          <p class="motion-muted">Local works without any key. AI needs your free-tier key; we never store it server-side.</p>
+        </details>
+        <div id="motion-scenes" style="display:grid; gap:.5rem; margin-top:.8rem"></div>
+        <div class="motion-note" style="margin-top:.6rem"><strong>Hook = 80%:</strong> first 2 words decide. We put huge hook text + karaoke highlight so viewers stop scrolling.</div>
+      </section>
+
+      <!-- Center: Preview -->
+      <section class="motion-card motion-preview-wrap" aria-labelledby="motion-preview-title">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap">
+          <h3 id="motion-preview-title">2 · Preview & Export</h3>
+          <span id="motion-spec" class="motion-muted">1080 × 1920 · 9:16 · 30 fps</span>
+        </div>
+        <canvas id="motion-canvas" width="1080" height="1920" aria-label="Social motion preview"></canvas>
+        <div class="motion-row" style="margin-top:.6rem">
+          <button id="motion-play" class="modal-btn submit" type="button">▶ Play</button>
+          <button id="motion-stop" class="modal-btn cancel" type="button" disabled>■ Stop</button>
+          <span id="motion-time" class="motion-muted">00:00 / 00:00</span>
+          <progress id="motion-progress" class="motion-progress" max="1" value="0"></progress>
+        </div>
+        <div class="motion-row">
+          <button id="motion-gen-images" class="modal-btn submit" type="button">🖼️ Generate images (free, no key)</button>
+          <button id="motion-clear-images" class="modal-btn cancel" type="button">Clear images</button>
+        </div>
+        <p class="motion-muted">Images via Pollinations (free CDN, no account). Falls back to gradient if offline — still exports cleanly. No upload, no queue.</p>
+        <div class="motion-row">
+          <button id="motion-record" class="modal-btn submit" type="button">● Record video (15s)</button>
+          <button id="motion-stop-rec" class="modal-btn cancel" type="button" hidden>■ Stop</button>
+          <button id="motion-export-png" class="modal-btn cancel" type="button">PNG</button>
+          <button id="motion-copy-script" class="modal-btn cancel" type="button">Copy script</button>
+        </div>
+        <video id="motion-result" hidden controls playsinline style="width:100%; border-radius:10px; border:1px solid var(--border); margin-top:.5rem"></video>
+        <a id="motion-download" hidden class="modal-btn submit" style="text-decoration:none; margin-top:.4rem; display:inline-block"></a>
+        <p class="motion-muted">Record = Canvas.captureStream + MediaRecorder (WebM, MP4 if browser supports). Add music/TTS in TikTok/Reels editor or local editor — keeps it $0.</p>
+        <canvas id="motion-thumb" hidden></canvas>
+        <div style="margin-top:.7rem">
+          <h4>Share next</h4>
+          <div class="motion-row">
+            <a href="x-studio.html" class="modal-btn cancel" style="text-decoration:none">→ Post via X Studio</a>
+            <a href="notebook.html" class="modal-btn cancel" style="text-decoration:none">→ Save to Notebook</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Publish -->
+      <section class="motion-card" aria-labelledby="motion-publish-title">
+        <h3 id="motion-publish-title">3 · Post — get views</h3>
+        <p class="motion-muted">Best practice: hook + captions + 9:16 + trending sound = 3× retention.</p>
+        <h4>Post specs (we auto-export correctly)</h4>
+        <ul class="motion-muted" style="padding-left:1.1rem; line-height:1.6">
+          <li><strong>TikTok / Reels / Shorts:</strong> 9:16, 1080×1920, 5–15s, captions burnt-in, hook in 2s</li>
+          <li><strong>Instagram Feed:</strong> 4:5 or 1:1, 1080px wide, safe margins — we add them</li>
+          <li><strong>X / YouTube:</strong> 16:9, 1280×720, progress bar + handle watermark</li>
+          <li>No watermark by default — add handle for branding.</li>
+        </ul>
+        <h4>Fastest workflow</h4>
+        <ol class="motion-muted" style="padding-left:1.1rem; line-height:1.7">
+          <li>Generate script (2s) → images (6s) → record (15s) → <strong>30 sec total</strong></li>
+          <li>Post natively: TikTok app → upload → add trending sound → post. Same file works for Reels/Shorts.</li>
+          <li>For X: open X Studio → attach video → viral caption — we pre-copied script.</li>
+          <li>Batch 5 variations: shuffle palette → re-record → schedule across week.</li>
+        </ol>
+        <div class="motion-note"><strong>Pro tip:</strong> 85% watch muted — captions are non-negotiable. Hormozi style (yellow highlight) lifts retention 2×. We render it for you.</div>
+        <h4>BYOK upgrades (optional, still free tier)</h4>
+        <ul class="motion-muted" style="padding-left:1.1rem; line-height:1.6">
+          <li><strong>LLM:</strong> Groq 8k tokens/sec, Gemini 1.5 Flash free, OpenRouter :free — all rewrite hooks better than local.</li>
+          <li><strong>Images:</strong> Pollinations free; swap to HF SDXL or Cloudflare if you bring key.</li>
+          <li><strong>TTS:</strong> Web Speech API free; ElevenLabs BYOK for voice clone.</li>
+          <li>All keys BYOK, never stored server-side, sent only on your click.</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="motion-card" style="margin-top:.9rem">
+      <h3>Need more control?</h3>
+      <p class="motion-muted">For pixel-level edits, open the legacy Motion Lab — procedural + local-image + frame pack for Shotcut/Kdenlive. This Studio is for 30-sec wins.</p>
+      <div class="motion-row">
+        <a href="video-workshop.html" class="modal-btn cancel" style="text-decoration:none">Open Motion Lab (legacy)</a>
+        <a href="index.html#video" class="modal-btn cancel" style="text-decoration:none">Video Creation hub</a>
+      </div>
+    </div>
+
+    <p id="motion-status" class="motion-status" role="status" aria-live="polite" style="margin-top:.9rem">Ready.</p>
+
+    <dialog id="motion-edit-dialog" class="modal" aria-labelledby="motion-edit-title">
+      <div class="modal-card" style="max-width:min(560px,95vw)">
+        <h3>Edit scene</h3>
+        <label class="form-label">Title (badge) <input id="motion-edit-title" class="form-input" maxlength="32" /></label>
+        <label class="form-label">Caption (on-screen) <textarea id="motion-edit-caption" class="form-input" rows="2" maxlength="140"></textarea></label>
+        <label class="form-label">Image prompt <textarea id="motion-edit-prompt" class="form-input" rows="2" maxlength="280"></textarea></label>
+        <div class="motion-row" style="margin-top:.6rem"><button id="motion-edit-save" class="modal-btn submit" type="button">Save</button><form method="dialog"><button class="modal-btn cancel">Cancel</button></form></div>
+      </div>
+    </dialog>
+    <dialog id="motion-help" class="modal" aria-labelledby="motion-help-title">
+      <div class="modal-card help-guide" style="max-height:min(85vh,900px); overflow:auto; max-width:min(820px,95vw)">
+        <form method="dialog"><button class="modal-btn cancel" autofocus>Close</button></form>
+        <h2 id="motion-help-title">Why $0 + Canvas beats $ credits — for social</h2>
+        <div class="motion-note" style="border-left:4px solid #a855f7">
+          <strong>Claim:</strong> For TikTok/Reels/Shorts/X, the most scroll-stopping videos are not diffusion video. They're <strong>bold text + good image + motion + captions</strong> — all doable in browser for $0 in 30 seconds. We built for that.
+          <br><strong>When diffusion helps:</strong> photoreal b-roll, product hero. Use Pollinations/SDXL for stills, then animate them here — still $0 and faster.
+        </div>
+        <h3>Evidence</h3>
+        <ul class="motion-muted" style="padding-left:1.1rem">
+          <li>HF ZeroGPU = 5 min/day, 2 min unauthenticated; Spaces sleep/queue — not reliable for daily posting.</li>
+          <li>PixVerse Basic = 60 +30/day credits; credits run out, model/quality varies.</li>
+          <li>Colab free GPU = not guaranteed, 12h limit, setup 5–10 min.</li>
+          <li>Pollinations + Canvas = no quota, no queue, instant, works offline after page load.</li>
+        </ul>
+        <h3>What we do</h3>
+        <ul class="motion-muted" style="padding-left:1.1rem">
+          <li>LLM script: local instant or BYOK Groq/Gemini/OpenRouter/HF — hook + 3 facts + CTA, 18 words max per caption, 9:16 aware.</li>
+          <li>Images: Pollinations free CDN (no key) or your HF key; each scene gets prompt auto-built from caption + preset/palette.</li>
+          <li>Motion: Ken Burns + karaoke highlight + progress bar + badge, all Canvas — 30 fps capture via MediaRecorder → WebM (MP4 if browser).</li>
+          <li>Export: download video or PNG pack, copy script for X Studio, schedule via Buffer/Typefully.</li>
+        </ul>
+        <p class="motion-muted">Sources: Pollinations docs, HF Inference, Groq Cloud, Gemini API pricing, app-level benchmarks Nov 2026.</p>
+      </div>
+    </dialog>
+  </div>
+
+  <script src="assets/motion-studio.js"></script>
+</body>
+</html>

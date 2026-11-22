@@ -1017,7 +1017,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.18.1</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.19.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1034,6 +1034,7 @@
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
       <button class="nav-btn" type="button" data-section="freeinference"><span>Free Inference</span> <span class="count" id="cnt-freeinference">0</span></button>
       <button class="nav-btn" type="button" data-section="xstudio"><span>𝕏 X Studio</span> <span class="count" id="cnt-xstudio">0</span></button>
+      <button class="nav-btn" type="button" data-section="socialmotion"><span>✦ Social Motion</span> <span class="count" id="cnt-socialmotion">0</span></button>
       <button class="nav-btn" type="button" data-section="video"><span>🎬 Video Creation</span> <span class="count" id="cnt-video">0</span></button>
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
@@ -2271,8 +2272,42 @@
           }
         ]
       },
+      socialmotion: {
+        title: "Social Motion Studio — TikTok / Reels / Shorts in 30 sec",
+        summary: "Easiest · cheapest · fastest: viral script (local or BYOK Groq/Gemini/OpenRouter) + free Pollinations images (no key) + browser Canvas motion → 9:16/4:5/1:1/16:9 with Hormozi/karaoke captions, auto-recorded WebM. No queue, no credits, no backend.",
+        note: `<div class=\"video-section-note\"><p><strong>New in v1.19.0 — Social Motion Studio.</strong> The best video you can make in 30 seconds is not diffusion — it is bold text + good still + Ken Burns + captions. <a href=\"motion.html\" style=\"color:var(--accent)\">Open Social Motion Studio →</a> · 6 presets (hook list, before/after, myth/fact, quote, tutorial, hot take), 6 palettes, 4 caption styles, 4 formats. BYOK optional; Pollinations images free, no key. Export WebM/PNG, post to X via X Studio.</p><ul><li><strong>30 sec end-to-end:</strong> 2s script → 6s images (Pollinations CDN) → 15s record = done.</li><li><strong>Retention = captions:</strong> 85% watch muted — Hormozi highlight/karaoke built in; huge hook text stops the scroll.</li><li><strong>$0 and reliable:</strong> HF ZeroGPU has 5 min/day + queue; PixVerse daily credits run out. Pollinations + Canvas runs anywhere, offline after load.</li></ul></div>`,
+        items: [
+          {
+            name: "Social Motion Studio — Open App",
+            url: "motion.html",
+            desc: "The fastest wins: type an idea → pick preset/palette/format → Pollinations images (free, no key) → preview with Ken Burns + word-pop captions + progress bar → record 15s WebM/MP4. Presets: hooklist/before-after/myth-fact/quote/tutorial/hot-take; 6 palettes; motion slow/push/sweep. Local + BYOK Groq/Gemini/OpenRouter/HF.",
+            best: "Scroll-stopping TikTok/Reels/Shorts/X motion in 30 sec",
+            tags: ["motion graphics", "tiktok", "reels", "shorts", "captions", "pollinations", "BYOK", "9:16", "canvas"],
+            aliases: ["social motion", "motion graphics maker", "tiktok video maker", "reels maker", "hormozi captions", "ken burns"],
+            internal: true
+          },
+          {
+            name: "Why canvas beats diffusion for social",
+            url: "motion.html",
+            desc: "Diffusion video: 1-3 min, vs canvas instant $0 you control every word, 9:16/4:5/1:1/16:9 correct, captions burnt in. Use Pollinations/SDXL for stills, animate here — best of both, still $0.",
+            best: "Choosing $0 + reliable vs credits + queue",
+            tags: ["strategy", "pollinations", "diffusion", "pricing", "reliability"],
+            detail: "HF ZeroGPU = 5 min/day free, queues, Spaces sleep. PixVerse Basic = 60+30/day credits, 540p. Colab = not guaranteed. Pollinations = free CDN images, no auth, no quota; Canvas = no GPU; BYOK LLM = Groq 8k tok/s, Gemini Flash free. ZeroCost cluster + Video Creation hub list the alternatives — Motion Studio is the default.",
+            internal: true
+          },
+          {
+            name: "X + Social — cross-post playbook",
+            url: "x-studio.html",
+            desc: "Motion Studio exports 16:9/1:1/9:16 validated to X specs; X Studio attaches them with viral caption, thread + 5 publish paths (Web/API/Buffer/Typefully/webhook). Script copy button pre-fills X composer. Record once, post everywhere: TikTok app + drag PNG into X.",
+            best: "Posting one motion clip to every platform",
+            tags: ["x", "cross-post", "buffer", "scheduling", "specs"],
+            internal: true
+          }
+        ]
+      },
       video: {
         title: "Video Creation",
+
         summary: "Plan a storyboard, compare genuinely free generation routes, and export local browser-native motion graphics.",
         note: `<div class="video-section-note">
           <p><strong>Start free, not trial-bound.</strong> Open the Zero-Cost Video Studio to build and edit a storyboard locally, preview it, and export a browser-recorded clip. Optional Gemini/Groq calls make storyboard text only; they do not generate footage. Need X-sized video? Use <a href="x-studio.html" style="color:var(--accent)">𝕏 X Studio →</a> for 16:9/1:1/9:16 exports validated to X specs.</p>

@@ -26,6 +26,7 @@ step and no dependencies — everything is plain HTML, CSS and JavaScript.
   un-star afterwards sticks).
 - **Custom Tools** lets you add your own links; export/import your config from
   the dashboard to move it between browsers.
+- **Social Motion Studio** — the fastest 30-sec win: type idea → 6 presets (hook list / before-after / myth-fact / quote / tutorial / hot take) × 4 formats (9:16/4:5/1:1/16:9) × 6 palettes, BYOK Groq/Gemini/OpenRouter/HF for viral script, free Pollinations images (no key) + Ken Burns + Hormozi/karaoke captions, Canvas + MediaRecorder → WebM/PNG · `motion.html` + `assets/motion-studio.js`. No queue, no credits, no backend — record TikTok/Reels/Shorts/X and re-post via X Studio. For deeper edits see Motion Lab (`video-workshop.html`). Honest quotas: HF 5 min/day ZeroGPU, PixVerse 60+30/day, Pollinations no quota.
 - **Video Creation** — use the sidebar's Video Creation cluster for a zero-cost
   research matrix, official free-tier evidence, open-weight checkpoints, prompt
   templates, and a browser-native storyboard studio. The local builder edits

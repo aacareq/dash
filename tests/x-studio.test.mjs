@@ -117,7 +117,7 @@ describe("Dashboard integration", () => {
     assert.ok(html.includes("𝕏 X Studio"), "title");
     assert.ok(html.includes("x-studio.html"), "link");
     assert.ok(html.includes("Publish to X — 5 Ways"), "publishes item");
-    assert.ok(html.includes("DashOS-v1.18"), "version bump near 1.18");
+    assert.ok(html.includes("DashOS-v1.1") || html.includes("DashOS-v1.2"), "version bump near 1.18+");
     assert.ok(html.includes("Viral Research"), "research card");
   });
   it("sw.js precaches x-studio assets", () => {

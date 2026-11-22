@@ -413,12 +413,16 @@
 
   // DOM init (standalone x-studio.html + optional dashboard embed)
   function initXStudio(doc) {
+    try {
     const d = doc || document;
-    if (!d.getElementById("x-composer") || d.documentElement?.dataset?.xStudioInit === "true") return;
+    if (d.documentElement?.dataset?.xStudioInit === "true") return;
+    // Guard: page must have composer — use stable ids that actually exist in x-studio.html
+    const hasComposer = d.getElementById("x-text") && d.getElementById("x-hook") && d.getElementById("x-virality");
+    if (!hasComposer) return;
     d.documentElement.dataset.xStudioInit = "true";
     const $ = id => d.getElementById(id);
     const $$ = sel => [...d.querySelectorAll(sel)];
-    const composer = $("x-composer"), threadToggle = $("x-thread-toggle"), queueRoot = $("x-queue"), draftRoot = $("x-drafts");
+    const composer = $("x-text"), queueRoot = $("x-queue"), draftRoot = $("x-drafts");
     const statusEl = $("x-status"), mediaCanvas = $("x-media-canvas"), mediaPreview = $("x-media-preview-url");
     if (!composer) return;
     const state = {
@@ -433,7 +437,10 @@
       const s = scorePost({ text: getText(), hasMedia: state.hasMedia || !!state.images.length, hasVideo: !!state.videoFile, threadLength: state.thread ? splitIntoThread(getText()).length : 1, hasPoll: state.hasPoll, accountPremium: state.premium });
       const el = $("x-virality"); if (!el) return;
       el.innerHTML = `<div class="x-score-ring" data-score="${s.score}"><span class="x-score-num">${s.score}</span><span class="x-score-label">${s.label}</span></div><ul class="x-tips">${s.tips.map(t=> `<li>${escapeHtml(t)}</li>`).join("")}</ul><div class="x-meta">Chars: ${s.meta.len}/${s.meta.limit} · Tags #${s.meta.tags} · Links ${s.meta.links} · Thread x${s.meta.threadLength}${s.meta.hasVideo?" · video":""}${s.meta.hasMedia?" · image":""}</div>`;
+      const ring = el.querySelector(".x-score-ring");
+      if (ring) ring.style.setProperty("--score", String(s.score));
       const counter = $("x-char-counter"); if (counter) { counter.textContent = `${s.meta.len} / ${s.meta.limit}`; counter.dataset.over = String(s.meta.len > s.meta.limit); counter.dataset.premium = String(state.premium); }
+      const previewEl = $("x-preview-text"); if (previewEl) previewEl.textContent = getText() || "Your post will appear here — write a hook above.";
       const threadInfo = $("x-thread-info"); if (threadInfo) {
         if (state.thread) {
           const parts = splitIntoThread(getText(), s.meta.limit);
@@ -644,6 +651,9 @@
     d.addEventListener("keydown", e=>{
       if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="enter") { $("x-open-intent")?.click(); }
     });
+    } catch (err) {
+      try { console.error("[XStudio] init failed", err); const el = doc.getElementById("x-status") || doc.getElementById("x-virality"); if (el) el.textContent = "Init error: " + (err.message || err); } catch {}
+    }
   }
 
   function escapeHtml(s) {

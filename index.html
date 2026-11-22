@@ -1017,7 +1017,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.17.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.18.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1033,6 +1033,7 @@
       <button class="nav-btn" type="button" data-section="bookmarklets"><span>Bookmarklets</span> <span class="count" id="cnt-bookmarklets">0</span></button>
       <button class="nav-btn" type="button" data-section="inference"><span>Inference</span> <span class="count" id="cnt-inference">0</span></button>
       <button class="nav-btn" type="button" data-section="freeinference"><span>Free Inference</span> <span class="count" id="cnt-freeinference">0</span></button>
+      <button class="nav-btn" type="button" data-section="xstudio"><span>𝕏 X Studio</span> <span class="count" id="cnt-xstudio">0</span></button>
       <button class="nav-btn" type="button" data-section="video"><span>🎬 Video Creation</span> <span class="count" id="cnt-video">0</span></button>
       <button class="nav-btn" type="button" data-section="codingagents"><span>Coding Agents</span> <span class="count" id="cnt-codingagents">0</span></button>
       <button class="nav-btn" type="button" data-section="zerocost"><span>Zero-Cost APIs</span> <span class="count" id="cnt-zerocost">0</span></button>
@@ -2220,11 +2221,61 @@
           { name: "Cerebras Inference trial", url: "https://cloud.cerebras.ai/", desc: "New accounts can try hosted inference with $5 in one-time credits.", best: "Short high-speed API evaluation", tags: ["API", "trial", "payment method"], group: "Credit-limited compute & trials", detail: "A verified payment method is required; credits expire after 30 days. Access stops when credits expire or run out unless you buy more. This is not a recurring free tier.", source: "https://inference-docs.cerebras.ai/support/rate-limits" }
         ]
       },
+      xstudio: {
+        title: "𝕏 X Studio — Viral Posts with Images & Video",
+        summary: "Engineered for X's Heavy Ranker: hooks, dwell, reply chains (+75), media boosts, and SimCluster consistency — compose and publish via Web, API, Buffer, Typefully/Hypefury or webhook.",
+        note: `<div class="video-section-note"><p><strong>New in v1.18.0 — 𝕏 X Studio.</strong> A full post lab: viral hooks + virality score, thread builder, image/video lab (1600×900, 1080², 9:16), BYOK ghostwriter (Groq / OpenRouter / Gemini), and 5 publish paths. Every rule traces to X's open algorithm — not guesswork. <a href="x-studio.html" style="color:var(--accent)">Open X Studio →</a> · <a href="#x-research" style="color:var(--accent)">Why posts go viral</a></p><ul><li><strong>Hook = 80%:</strong> 70–180 chars, personal angle, one idea/sentence; dwell 15s+ and profile clicks are 22–24× a like.</li><li><strong>Reply chain = top signal:</strong> reply → author-replies-back scores +75 (vs +0.5 for a like). Stay 30–60 min after posting.</li><li><strong>Media + thread = dwell:</strong> native image/video &amp; threads lift dwell 1.6–1.8×. 0–2 hashtags; avoid all-caps &amp; burst posting.</li></ul></div>`,
+        items: [
+          {
+            name: "𝕏 X Studio — Open App",
+            url: "x-studio.html",
+            desc: "Craft viral X posts: hook library (12 archetypes), live virality score, thread splitter, dwell-aware preview, BYOK AI ghostwriter, and media lab that exports 1600×900 / 1080² / 720×1280 PNGs and validates 5 MB images / 512 MB MP4/MOV ≤140s against X specs.",
+            best: "Writing high-dwell posts with images & video",
+            tags: ["x", "twitter", "viral", "hooks", "threads", "images", "video", "BYOK", "media"],
+            aliases: ["x studio", "viral tweets", "x posts with images", "x video posts", "twitter studio"],
+            internal: true
+          },
+          {
+            name: "Publish to X — 5 Ways",
+            url: "x-studio.html",
+            desc: "One composer, five publish paths: (1) X Web — intent/compose + bookmarklet, no token, attach media manually; (2) X API v2 — POST /2/tweets + /2/media/upload with OAuth2 user token + curl + Vercel/Supabase CORS proxy guide; (3) Buffer — queue via access_token + profile_ids + scheduled_at; (4) Typefully/Hypefury — thread scheduling via their APIs; (5) Webhook — Zapier/Make/n8n/PostEverywhere catch hook.",
+            best: "Choosing your posting workflow",
+            tags: ["x api", "buffer", "typefully", "hypefury", "webhook", "publishing"],
+            detail: "X API note: browser fetch to api.x.com is CORS-blocked; Dash explains the Vercel Edge proxy (vercel.json route → api.x.com) and Supabase Edge Function fix, plus media INIT/APPEND/FINALIZE. Buffer/Typefully post server-side so no CORS. X Web intent can't carry media — download PNG from Dash and drag into X compose.",
+            internal: true
+          },
+          {
+            name: "Viral Research — Heavy Ranker Deep-Dive",
+            url: "x-studio.html",
+            desc: "What the open X algorithm actually rewards: Heavy Ranker (~1,500 candidates → ~48M-param scorer), log-scaled early engagement, weights — author reply +75, dwell 2m 22×, profile click 24×, 30-min velocity window, half-life ~6h, media/thread boosts, hashtag 0–2, caps/slop penalties, SimClusters (~145k) + Real Graph reciprocity, team 1.9× lift. Sources linked.",
+            best: "Understanding why posts go viral",
+            tags: ["algorithm", "heavy ranker", "simclusters", "research", "virality"],
+            detail: "Every claim cites the public algorithm code and independent Sep 2025–May 2026 analyses (paperschedule, adlibrary, tianpan, postory). Media boost is file-for-file in the repo; link clicks are positive (no hard link penalty). Keep burst posts ≥30 min apart to avoid flood demotion. Rotate formats (text+image, thread, video, poll) for diversity.",
+            internal: true
+          },
+          {
+            name: "X Specs & Playbook",
+            url: "x-studio.html",
+            desc: "Specs: 280 chars (25k Premium), 4 images ≤5 MB (JPG/PNG/WebP/GIF) or 1 video (MP4/MOV ≤512 MB, ≤140s/4h Premium), 1 GIF ≤15 MB, links t.co 23 chars, no image+video mix. Playbook: 2–4 posts/day at 9a/12p/5p local, reply in first 30–60 min, topical consistency for SimClusters, rotate poll/thread/video, track via X Analytics + Buffer analytics.",
+            best: "Staying within X specs",
+            tags: ["specs", "limits", "playbook", "scheduling", "best time"],
+            internal: true
+          },
+          {
+            name: "X Studio — Quick Post (Bookmarklet)",
+            url: "javascript:window.open('https://x.com/intent/post?text='+encodeURIComponent(getSelection().toString()||document.title),'_blank')",
+            desc: "One-click: opens X compose with selected text or page title. Pair with X Studio's image download — compose text in Dash, click bookmarklet, drag image into X.",
+            best: "Posting from any page",
+            tags: ["bookmarklet", "quick post", "x web"],
+            bookmarklet: true
+          }
+        ]
+      },
       video: {
         title: "Video Creation",
         summary: "Plan a storyboard, compare genuinely free generation routes, and export local browser-native motion graphics.",
         note: `<div class="video-section-note">
-          <p><strong>Start free, not trial-bound.</strong> Open the Zero-Cost Video Studio to build and edit a storyboard locally, preview it, and export a browser-recorded clip. Optional Gemini/Groq calls make storyboard text only; they do not generate footage.</p>
+          <p><strong>Start free, not trial-bound.</strong> Open the Zero-Cost Video Studio to build and edit a storyboard locally, preview it, and export a browser-recorded clip. Optional Gemini/Groq calls make storyboard text only; they do not generate footage. Need X-sized video? Use <a href="x-studio.html" style="color:var(--accent)">𝕏 X Studio →</a> for 16:9/1:1/9:16 exports validated to X specs.</p>
           <ul>
             <li>Limits and access details were checked November 20, 2026; free allowances, models, and queues can change. Follow the official source links before relying on a quota.</li>
             <li>PixVerse Basic has a daily credit allowance; free cloud GPUs are time-limited and may queue. The local canvas path needs no account, GPU, key, or build step.</li>

@@ -33,6 +33,16 @@
       "name": "New note",
       "short_name": "New note",
       "url": "./scratchpad.html?new=1"
+    },
+    {
+      "name": "Notebook",
+      "short_name": "Notebook",
+      "url": "./notebook.html"
+    },
+    {
+      "name": "Notebook — new note",
+      "short_name": "New notebook note",
+      "url": "./notebook.html?new=1"
     }
   ]
 }

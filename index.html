@@ -1017,7 +1017,7 @@
   <canvas id="seasonal-canvas" aria-hidden="true"></canvas>
   <aside id="sidebar">
     <div class="brand-wrapper">
-      <div class="brand">🚀 <span>DashOS-v1.16.0</span></div>
+      <div class="brand">🚀 <span>DashOS-v1.17.0</span></div>
       <button class="mobile-nav-toggle" id="btn-toggle-sidebar" type="button" aria-label="Toggle navigation menu">☰</button>
     </div>
     <div class="brand-garland" id="brand-garland" aria-hidden="true"></div>
@@ -1027,6 +1027,7 @@
       <button class="nav-btn active" type="button" data-section="all" aria-current="page"><span>All Clusters</span></button>
       <button class="nav-btn" type="button" data-section="favorites"><span>★ Favorites</span> <span class="count" id="cnt-favorites">0</span></button>
       <button class="nav-btn" type="button" data-section="daily"><span>Daily Core</span> <span class="count" id="cnt-daily">0</span></button>
+      <button class="nav-btn" type="button" data-section="notebook"><span>📓 Notebook</span> <span class="count" id="cnt-notebook">0</span></button>
       <button class="nav-btn" type="button" data-section="workingon"><span>Working On</span> <span class="count" id="cnt-workingon">0</span></button>
       <button class="nav-btn" type="button" data-section="personalagents"><span>Personal AI Agents</span> <span class="count" id="cnt-personalagents">0</span></button>
       <button class="nav-btn" type="button" data-section="bookmarklets"><span>Bookmarklets</span> <span class="count" id="cnt-bookmarklets">0</span></button>
@@ -2316,6 +2317,54 @@
           { name: "Neon", url: "https://neon.tech", desc: "Use a serverless Postgres database that scales with application activity.", best: "Serverless Postgres", tags: ["database", "Postgres", "serverless"], group: "Databases & backends" },
           { name: "PlanetScale", url: "https://planetscale.com", desc: "Use a managed MySQL-compatible database platform.", best: "Managed MySQL", tags: ["database", "MySQL", "managed"], group: "Databases & backends" },
           { name: "MongoDB Atlas", url: "https://www.mongodb.com/atlas", desc: "Use a managed cloud document database.", best: "Document data models", tags: ["database", "NoSQL", "managed"], group: "Databases & backends" }
+        ]
+      },
+      notebook: {
+        title: "📓 Notebook",
+        summary: "Fast, flexible notes with outline focus, inline tasks, and BYOK AI — autosaves locally and commits to your own GitHub repo with transparent, conflict-safe sync.",
+        note: '<div class="video-section-note"><p><strong>New in v1.17.0 — the Notebook.</strong> A general-purpose note app that borrows the best from Scratchpad + Notes: day/time notes, directories, rename, markdown toolbar, prompt library, and GitHub sync — now simpler and more transparent. See <a href="notebook.html" style="color:var(--accent)">Open Notebook →</a> (<a href="notebook.html?new=1" style="color:var(--accent)">New note</a>). Features: collapsible outline with focus mode, progressive disclosure for nested bullets &amp; toggle blocks, inline task aggregation, and a BYOK assistant that expands any section.</p></div>',
+        items: [
+          {
+            name: "Notebook — Open",
+            url: "notebook.html",
+            desc: "Fast, flexible note-taking with day/time notes, directories, rename, markdown toolbar, outline focus, inline tasks, and BYOK AI expansion. Autosaves locally and syncs to GitHub with clear, step-by-step save explanations.",
+            best: "Everyday notes, project docs, and task lists",
+            tags: ["notes", "notebook", "markdown", "tasks", "outline", "BYOK", "github"],
+            aliases: ["notebook", "notes app", "outline", "tasks", "BYOK notes"],
+            internal: true
+          },
+          {
+            name: "Notebook — New Note",
+            url: "notebook.html?new=1",
+            desc: "Start a fresh timed note (notes-YYYY-MM-DD-HHMM.md) with an automatic outline. Every new note gets a title, creation timestamp, and Plain Note / Task / Inspiration / Reference / Prompt Seed sections.",
+            best: "Capturing a new idea quickly",
+            tags: ["notes", "new note", "outline", "quick capture"],
+            internal: true
+          },
+          {
+            name: "Notebook — Today's Note",
+            url: "notebook.html#today",
+            desc: "Reuses the same daily file (notes-YYYY-MM-DD.md) all day long — keep appending without creating clutter. Today's folder (notes/YYYY-MM-DD) groups related files.",
+            best: "Daily journaling and standups",
+            tags: ["notes", "daily", "today", "journal"],
+            internal: true
+          },
+          {
+            name: "Notebook — GitHub Sync Guide",
+            url: "notebook.html",
+            desc: "Saving explained: 1) Instant local IndexedDB, 2) GitHub commit after 3s pause (queued if offline), 3) Never silently overwrite — conflicts show Pull vs Overwrite. Live save log shows every step.",
+            best: "Understanding where your notes go",
+            tags: ["github", "sync", "offline", "transparency"],
+            internal: true
+          },
+          {
+            name: "Notebook — Outline & Focus",
+            url: "notebook.html",
+            desc: "Progressive disclosure: collapsible nested bullets, toggle (details) blocks, and focus mode that zooms into one heading's section without visual clutter.",
+            best: "Managing massive project docs",
+            tags: ["outline", "focus", "progressive disclosure", "collapsible"],
+            internal: true
+          }
         ]
       },
       workingon: {

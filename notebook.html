@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Notebook — fast, flexible notes with outline, tasks, and BYOK AI. Autosaves locally and to your GitHub repo." />
+  <meta name="theme-color" content="#0b0914" />
+  <title>Notebook — Dash</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/capture.css" />
+  <style>
+    /* Notebook layout: 3-pane shell with responsive collapse */
+    .nb-shell { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: 280px minmax(0,1fr) 320px; gap: 0.9rem; align-items: start; }
+    .nb-main { min-width: 0; display: flex; flex-direction: column; gap: 0.65rem; }
+    .nb-pane { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 0.75rem; }
+    .nb-pane h2, .nb-pane h3 { margin: 0 0 0.45rem; font-size: 0.92rem; }
+    .nb-pane-title { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+    .nb-outline { max-height: min(58vh, 520px); overflow-y: auto; }
+    .nb-outline-item { display: flex; align-items: center; gap: 0.3rem; padding: 0.25rem 0.35rem; border-radius: 8px; cursor: pointer; font-size: 0.82rem; }
+    .nb-outline-item:hover { background: var(--card-bg); }
+    .nb-outline-item.is-active { background: var(--tag-bg); color: var(--text); font-weight: 700; }
+    .nb-outline-item button { flex: 0 0 auto; }
+    .nb-focus-banner { display:flex; align-items:center; gap:0.5rem; padding:0.45rem 0.65rem; background: var(--tag-bg); border:1px solid var(--border); border-radius: 10px; font-size:0.82rem; }
+    .nb-focus-banner[hidden]{display:none;}
+    .nb-task-row { display:flex; align-items:flex-start; gap:0.4rem; padding:0.35rem 0; border-bottom:1px solid var(--border); }
+    .nb-task-row:last-child{border-bottom:0;}
+    .nb-task-group { font-size:0.72rem; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color:var(--text-muted); margin:0.5rem 0 0.1rem; }
+    .nb-task-text { flex:1 1 auto; font-size:0.82rem; word-break:break-word; }
+    .nb-task-text.is-done{ text-decoration: line-through; color: var(--text-muted); }
+    .nb-task-meta { font-size:0.72rem; color:var(--text-muted); }
+    .nb-save-log { font-family: var(--mono); font-size:0.72rem; line-height:1.5; max-height: 160px; overflow-y:auto; background: var(--card-bg); border:1px solid var(--border); border-radius: 10px; padding:0.6rem; white-space:pre-wrap; }
+    .nb-transparency { background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(52,211,153,0.06)); border:1px solid var(--border); border-radius: 14px; padding:0.8rem; }
+    .nb-transparency ol{ margin:0.2rem 0 0; padding-left:1.1rem; font-size:0.84rem; line-height:1.6; }
+    .nb-transparency li strong{ color: var(--text); }
+    .nb-toggle{ border:1px solid var(--border); background: var(--card-bg); border-radius:6px; width:1.45rem; height:1.3rem; line-height:1; font-size:0.78rem; }
+    .nb-soft{ color: var(--text-muted); font-size:0.8rem; }
+    .nb-toolbar-extra{ display:flex; gap:0.3rem; flex-wrap:wrap; }
+    .nb-progress{ height:8px; background: var(--card-bg); border-radius:99px; overflow:hidden; border:1px solid var(--border); }
+    .nb-progress span{ display:block; height:100%; background: var(--accent); transition: width .3s; }
+    /* preview collapsible enhancements */
+    .md-preview li.is-collapsed > ul, .md-preview li.is-collapsed > ol{ display:none; }
+    .md-preview details{ background: var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:0.4rem 0.6rem; margin:0.4rem 0; }
+    .md-preview details summary{ cursor:pointer; font-weight:700; }
+    .nb-assistant-box{ display:flex; flex-direction:column; gap:0.5rem; }
+    .nb-assistant-box textarea, .nb-assistant-box select, .nb-assistant-box input{ width:100%; }
+    @media (max-width: 1100px){ .nb-shell{ grid-template-columns: 260px minmax(0,1fr); } .nb-shell > .nb-side-right{ grid-column: 1 / -1; display:grid; grid-template-columns:1fr 1fr; gap:0.9rem; } }
+    @media (max-width: 760px){ .nb-shell{ grid-template-columns: 1fr; } .nb-shell > .nb-side-right{ grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">📓 <a href="index.html">Dash</a> <span style="color:var(--text-muted);font-weight:600;">/ Notebook</span></div>
+    <span class="spacer"></span>
+    <span id="outbox-count" class="hidden" role="status" aria-live="polite"></span>
+    <button type="button" class="modal-btn cancel" id="nb-sync-now" title="Send queued commits">Sync now</button>
+    <button type="button" class="modal-btn hidden" id="install-app">Install app</button>
+    <a class="header-link" href="index.html">Dashboard</a>
+  </header>
+
+  <main class="shell" style="max-width:1280px;">
+    <div>
+      <h1>Notebook</h1>
+      <p class="subtitle">Fast, flexible notes. Every keystroke saves on this device. GitHub sync is optional, transparent, and never overwrites silently.</p>
+      <p id="ios-hint" class="hidden">On iPhone/iPad: Share → Add to Home Screen to install.</p>
+    </div>
+
+    <!-- Storage clarity with explanation -->
+    <section class="storage-clarity-bar" aria-label="Storage and sync status">
+      <div class="storage-pill is-local"><span class="status-dot is-local-ok" id="nb-local-dot"></span><span>💾 <strong>This device</strong>: <span id="nb-local-summary">Autosaves locally</span></span></div>
+      <div class="storage-pill is-repo" id="nb-repo-pill"><span class="status-dot" id="nb-repo-dot"></span><span>☁️ <strong>GitHub repo</strong>: <span id="nb-repo-summary">Local only</span></span></div>
+      <button type="button" class="autosave-pill" id="nb-autosave-toggle" aria-pressed="true">⚡ Repo auto-save: ON</button>
+    </section>
+
+    <section class="nb-transparency">
+      <h3 style="margin:0 0 0.35rem; font-size:0.95rem;">How saving works — in plain language</h3>
+      <ol>
+        <li><strong>Instant local save:</strong> Every pause in typing saves to this browser's IndexedDB. Works offline. No network needed. You'll see <code>💾 Local: Saved</code> and a timestamp.</li>
+        <li><strong>GitHub commit (when connected):</strong> 3 seconds after you stop typing, the app commits <code>repo / file path</code> via the GitHub Contents API using a short-lived installation token. If you're offline, it queues and retries via <em>Sync now</em>. Look for <code>☁️ Synced</code> with time, or <em>Queued offline</em>.</li>
+        <li><strong>Never silently overwrite:</strong> Before saving, the app checks the file's SHA on GitHub. If someone else changed it, you'll get <em>Conflict: Pull latest or Overwrite anyway</em> — your text stays untouched until you choose.</li>
+      </ol>
+      <details style="margin-top:0.5rem;"><summary>See live save log</summary><div id="nb-save-log" class="nb-save-log" aria-live="polite">Notebook ready. Local autosave active.
+</div></details>
+    </section>
+
+    <!-- Quick actions -->
+    <section class="workspace-bar" aria-label="Note actions">
+      <button type="button" class="ws-btn ws-today" id="nb-today">📅 Today's note</button>
+      <button type="button" class="ws-btn ws-new" id="nb-new-timed">✨ New timed note</button>
+      <button type="button" class="ws-btn ws-folder" id="nb-today-folder">📁 Today's folder</button>
+      <button type="button" class="ws-btn ws-files" id="nb-files-toggle" aria-expanded="false" aria-controls="nb-files-panel">🗂 Files &amp; folders <span class="ws-count" id="nb-files-count">1</span></button>
+      <button type="button" class="ws-btn ws-rename" id="nb-rename-file-open">✏️ Rename file</button>
+      <button type="button" class="ws-btn ws-rename" id="nb-rename-dir-open">📁 Rename folder</button>
+      <span class="note-current" id="nb-current" title="Active file"></span>
+    </section>
+
+    <section class="ws-panel" id="nb-files-panel" hidden aria-label="Files and directories manager">
+      <div class="ws-panel-head"><div><h4 class="ws-panel-title">🗂 Workspace Files &amp; Directories</h4><p class="ws-panel-sub">Create notes/files/folders for today, browse, and rename — all synced to GitHub when connected.</p></div><button type="button" class="modal-btn cancel" id="nb-files-close">Done</button></div>
+      <datalist id="nb-dirs-list"></datalist>
+      <div class="ws-grid">
+        <div class="ws-card ws-card-browse" id="nb-explorer">
+          <div class="ws-card-title"><span>📂 Notes &amp; Folders</span><button type="button" class="ws-chip-btn" id="nb-refresh">🔄 Refresh</button></div>
+          <input type="search" id="nb-filter" class="form-input" placeholder="Filter notes or folders…" autocomplete="off" />
+          <div class="ws-list" id="nb-list" role="list"></div>
+        </div>
+        <div class="ws-card ws-card-create">
+          <h5 class="ws-card-title">➕ Create for Today &amp; New</h5>
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Quick presets</p>
+            <div class="ws-today-presets">
+              <button type="button" class="ws-chip-btn" id="nb-preset-today">📅 Today's note</button>
+              <button type="button" class="ws-chip-btn" id="nb-preset-today-folder">📁 Today's folder</button>
+              <button type="button" class="ws-chip-btn" id="nb-preset-today-in-folder">📝 Note in today's folder</button>
+            </div>
+          </div>
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Create a named file</p>
+            <div class="path-row"><input type="text" id="nb-file-dir" class="form-input" list="nb-dirs-list" placeholder="Folder (optional, e.g. notes/2026-11-09)" autocomplete="off" spellcheck="false" /><button type="button" class="ws-chip-btn" id="nb-fill-today-dir">📅 Today</button></div>
+            <div class="path-row"><input type="text" id="nb-file-name" class="form-input" placeholder="File name (e.g. standup)" autocomplete="off" spellcheck="false" /><select id="nb-file-ext" class="form-input" style="flex:0 0 auto;width:auto;"><option value="md">.md</option><option value="txt">.txt</option><option value="json">.json</option><option value="csv">.csv</option><option value="html">.html</option><option value="">none</option></select></div>
+            <div class="ws-path-preview" id="nb-file-preview">Enter a file name to preview path</div>
+            <div class="ws-btn-row"><button type="button" class="modal-btn submit" id="nb-create-blank">📄 Create file with outline</button><button type="button" class="modal-btn cancel" id="nb-create-from-current">💾 Save current text to new file</button></div>
+          </div>
+          <div class="ws-subblock">
+            <p class="ws-mini-label">Create a directory</p>
+            <div class="path-row"><input type="text" id="nb-new-dir" class="form-input" placeholder="Folder path (e.g. notes/2026-11-09)" autocomplete="off" spellcheck="false" /><button type="button" class="ws-chip-btn" id="nb-fill-today-folder">📅 Today</button></div>
+            <div class="ws-path-preview" id="nb-dir-preview">Today's folder: notes/…</div>
+            <button type="button" class="modal-btn cancel" id="nb-create-dir">📁 Create directory</button>
+          </div>
+        </div>
+        <div class="ws-card ws-card-rename" id="nb-rename-card">
+          <h5 class="ws-card-title">✏️ Rename</h5>
+          <div class="ws-subblock"><p class="ws-mini-label">Rename active file</p><div class="ws-path-preview">Current: <strong id="nb-rename-file-current">—</strong></div><input type="text" id="nb-rename-file-input" class="form-input" placeholder="New path (e.g. projects/roadmap.md)" autocomplete="off" spellcheck="false" /><div class="ws-path-preview" id="nb-rename-file-preview">Enter new path to preview</div><button type="button" class="modal-btn submit" id="nb-rename-file-btn">✏️ Rename active file</button></div>
+          <div class="ws-subblock"><p class="ws-mini-label">Rename a directory</p><input type="text" id="nb-rename-dir-from" class="form-input" list="nb-dirs-list" placeholder="Current folder" autocomplete="off" spellcheck="false" /><input type="text" id="nb-rename-dir-to" class="form-input" placeholder="New folder" autocomplete="off" spellcheck="false" /><div class="ws-path-preview" id="nb-rename-dir-preview">Choose folder and new name</div><button type="button" class="modal-btn cancel" id="nb-rename-dir-btn">📁 Rename directory</button></div>
+        </div>
+      </div>
+      <p class="status-msg" id="nb-ws-status" role="status"></p>
+    </section>
+
+    <div class="nb-shell">
+      <!-- Left: Outline + progressively disclosed outline -->
+      <aside class="nb-pane">
+        <div class="nb-pane-title"><h3>Outline</h3><span class="nb-soft" id="nb-outline-count"></span></div>
+        <div id="nb-focus-banner" class="nb-focus-banner" hidden><span>🔍 Focus: <strong id="nb-focus-title"></strong></span><button type="button" class="modal-btn cancel" id="nb-exit-focus">Exit focus</button></div>
+        <div id="nb-outline" class="nb-outline" role="list"></div>
+        <p class="nb-soft">Click a heading to jump. <em>Focus</em> zooms to one section (hides the rest). Bullets with nested items are collapsible in Preview.</p>
+        <details style="margin-top:0.5rem;"><summary>Toggle lists help</summary><p class="nb-soft">Use the toolbar's <strong>Toggle</strong> button to insert a collapsible <code>&lt;details&gt;</code> block. In preview it renders as a disclosure you can open/close. Nested bullets automatically get ▸/▾ toggles in preview.</p></details>
+      </aside>
+
+      <!-- Center: Editor -->
+      <section class="nb-main">
+        <div class="md-toolbar" role="toolbar" aria-label="Markdown formatting">
+          <div class="md-toolbar-group" role="group" aria-label="Text styling">
+            <button type="button" class="md-btn" data-md="bold" title="Bold — Ctrl/⌘+B"><strong>B</strong></button>
+            <button type="button" class="md-btn" data-md="italic" title="Italic — Ctrl/⌘+I"><em>I</em></button>
+            <button type="button" class="md-btn" data-md="strike" title="Strikethrough"><span class="md-strike">S</span></button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Headings">
+            <button type="button" class="md-btn" data-md="h1">H1</button><button type="button" class="md-btn" data-md="h2">H2</button><button type="button" class="md-btn" data-md="h3">H3</button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Lists">
+            <button type="button" class="md-btn" data-md="ul">• List</button><button type="button" class="md-btn" data-md="ol">1. List</button><button type="button" class="md-btn" data-md="task">☑ Task</button>
+            <button type="button" class="md-btn" data-md="toggle" title="Insert collapsible toggle block">▸ Toggle</button>
+          </div>
+          <div class="md-toolbar-group" role="group" aria-label="Insert">
+            <button type="button" class="md-btn" data-md="quote">❝ Quote</button><button type="button" class="md-btn" data-md="hr">― Divider</button><button type="button" class="md-btn" data-md="link">🔗 Link</button><button type="button" class="md-btn" data-md="table">▦ Table</button>
+            <span class="emoji-anchor"><button type="button" class="md-btn" id="nb-emoji-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="nb-emoji-picker">😊 Emoji</button><div class="emoji-popover" id="nb-emoji-picker" role="dialog" aria-label="Emoji picker" hidden><input type="search" id="nb-emoji-search" class="form-input emoji-search" placeholder="Search emoji…" autocomplete="off" /><div class="emoji-scroll" id="nb-emoji-list"></div><p class="emoji-hint">Click to insert. Esc closes.</p></div></span>
+          </div>
+          <div class="md-toolbar-spacer"></div>
+          <div class="md-toolbar-group" role="group" aria-label="View"><button type="button" class="md-btn md-toggle" id="nb-preview-toggle" aria-pressed="false">👁 Preview</button></div>
+        </div>
+
+        <div class="scratch-filebar" id="nb-filebar">
+          <span class="scratch-filebar-icon">📄</span><span class="scratch-filebar-repo" id="nb-filebar-repo">Local only</span><span class="scratch-filebar-sep" id="nb-filebar-sep" hidden>/</span><span class="scratch-filebar-file" id="nb-filebar-file">—</span>
+          <button type="button" class="scratch-filebar-inline-btn" id="nb-filebar-rename">✏️ Rename</button><span class="scratch-local-pill" id="nb-local-state">💾 Local: Saved</span><span class="scratch-filebar-state" id="nb-filebar-state" role="status">Saved locally</span><span class="scratch-clock" id="nb-clock">—</span>
+        </div>
+
+        <div class="scratch-editor" id="nb-editor">
+          <textarea id="nb-text" class="form-input scratch-textarea" rows="18" placeholder="Jot anything here… it autosaves. Use the toolbar or type markdown. Try 'Today's note' for a daily file." aria-label="Notebook notes"></textarea>
+          <div class="md-preview" id="nb-preview" hidden></div>
+        </div>
+
+        <details class="scratch-capture" id="nb-capture"></details>
+        <details class="scratch-capture" id="nb-prompt"></details>
+
+        <p class="status-msg" id="nb-status"></p>
+
+        <div class="scratch-actions">
+          <button type="button" class="modal-btn submit" id="nb-quick-save" hidden>⬆ Save to repo</button>
+          <button type="button" class="modal-btn cancel" id="nb-quick-pull" hidden>⬇ Pull latest</button>
+          <button type="button" class="modal-btn submit scratch-gh-launch" id="nb-gh-open"><span>⚙</span> GitHub sync <span class="gh-sync-badge" id="nb-gh-launch"></span></button>
+          <div class="scratch-menu-wrap"><button type="button" class="modal-btn cancel" id="nb-menu-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="nb-menu">⋯ More</button><div class="scratch-menu" id="nb-menu" role="menu" hidden><button type="button" role="menuitem" id="nb-copy">📋 Copy all</button><button type="button" role="menuitem" id="nb-export-txt">⬇ Export .txt</button><button type="button" role="menuitem" id="nb-export-md">⬇ Export .md</button><button type="button" role="menuitem" id="nb-save-file">💾 Save to file…</button><button type="button" role="menuitem" id="nb-open-file">📂 Open file…</button><button type="button" role="menuitem" id="nb-clear" class="is-danger">🗑 Clear</button></div></div>
+          <input type="file" id="nb-file-input" accept=".md,.txt,.json,.csv,text/markdown,text/plain,application/json,text/csv" class="hidden" />
+        </div>
+        <p class="scratch-tip"><strong>▦ Table</strong> inserts header+separator+row. <strong>▸ Toggle</strong> inserts a collapsible details block. Nested bullets become collapsible in Preview.</p>
+      </section>
+
+      <!-- Right: Tasks + Assistant -->
+      <aside class="nb-side-right" style="display:flex; flex-direction:column; gap:0.9rem;">
+        <section class="nb-pane">
+          <div class="nb-pane-title"><h3>✅ Tasks</h3><span class="nb-soft" id="nb-task-summary"></span></div>
+          <div class="nb-progress" aria-hidden="true"><span id="nb-task-progress" style="width:0%"></span></div>
+          <div id="nb-tasks" style="margin-top:0.5rem; max-height: 280px; overflow-y:auto;"></div>
+          <div class="nb-toolbar-extra" style="margin-top:0.5rem;">
+            <input type="text" id="nb-new-task" class="form-input" placeholder="New task…" style="flex:1 1 120px;" />
+            <button type="button" class="modal-btn submit" id="nb-add-task">Add</button>
+            <button type="button" class="modal-btn cancel" id="nb-copy-tasks">Copy list</button>
+          </div>
+          <p class="nb-soft">Inline aggregation: tasks are parsed from your note ( <code>- [ ]</code> ). Toggle in the panel to update the note. Grouped by nearest heading.</p>
+        </section>
+
+        <section class="nb-pane">
+          <div class="nb-pane-title"><h3>✦ AI Assistant</h3><span class="nb-soft">BYOK</span></div>
+          <p class="nb-soft">Expand any outline section with your own API key. Nothing is sent until you click Send. Keys can be stored in Harness Hub.</p>
+          <div class="nb-assistant-box">
+            <label>Section to expand<select id="nb-ai-section" class="form-input"></select></label>
+            <label>Extra instruction<textarea id="nb-ai-instruction" class="form-input" rows="2" placeholder="E.g. Add examples for a junior audience, keep it under 200 words…"></textarea></label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
+              <label>Provider<select id="nb-ai-provider" class="form-input"><option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="google">Gemini</option></select></label>
+              <label>Model<input id="nb-ai-model" class="form-input" placeholder="auto" /></label>
+            </div>
+            <label>API key<input id="nb-ai-key" type="password" class="form-input" placeholder="Or leave empty to use Harness Hub saved key" autocomplete="off" /></label>
+            <div style="display:flex; gap:0.4rem;"><button type="button" class="modal-btn submit" id="nb-ai-preview">Preview request</button><button type="button" class="modal-btn submit" id="nb-ai-send" disabled>✦ Expand section</button></div>
+            <p class="status-msg" id="nb-ai-status" role="status"></p>
+            <pre id="nb-ai-context" class="nb-save-log" hidden></pre>
+            <div class="nb-toolbar-extra"><a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="modal-btn cancel" style="font-size:0.76rem; text-decoration:none;">Groq keys ↗</a><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="modal-btn cancel" style="font-size:0.76rem; text-decoration:none;">Gemini keys ↗</a><a href="https://openrouter.ai/keys" target="_blank" rel="noopener" class="modal-btn cancel" style="font-size:0.76rem; text-decoration:none;">OpenRouter keys ↗</a></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- GitHub sheet -->
+    <dialog class="sheet-modal" id="nb-gh-panel" aria-labelledby="nb-gh-title">
+      <div class="sheet-card">
+        <header class="sheet-head"><h2 class="sheet-title" id="nb-gh-title">⚙ GitHub sync</h2><button type="button" class="modal-btn cancel" id="nb-gh-close">Close</button></header>
+        <div class="gh-sync-body">
+          <div class="nb-transparency" style="font-size:0.84rem;">
+            <strong>What you're looking at:</strong> The same one-click GitHub App flow the Scratchpad uses — no token to copy. Creating the app registers a private app owned by you. Installing it chooses the repo. Afterwards the app mints 1-hour tokens itself.
+            <div class="modal-actions" style="margin-top:0.4rem;"><span class="gh-sync-badge" id="nb-gh-account"></span></div>
+          </div>
+          <section class="gh-section"><h3 class="gh-section-title">1. GitHub Connection</h3><p class="modal-hint" id="nb-gh-hint">One click registers a private GitHub App owned by you, then you pick the repo it may write to.</p><div class="modal-actions"><button type="button" class="modal-btn submit" id="nb-gh-setup">Set up GitHub saving</button><button type="button" class="modal-btn submit" id="nb-gh-install" hidden>Install on a repository</button><button type="button" class="modal-btn cancel" id="nb-gh-check" hidden>Re-check connection</button><button type="button" class="modal-btn cancel" id="nb-gh-forget" hidden>Disconnect</button><button type="button" class="modal-btn cancel" id="nb-gh-export" hidden>Download connection file</button></div><p class="status-msg" id="nb-gh-status"></p><p class="modal-hint gh-keep" id="nb-gh-keep" hidden><strong>Keep a copy.</strong> The private key lives only in this browser at this address. Save the connection file so another device can reconnect without creating a new app.</p></section>
+          <div id="nb-gh-target" hidden>
+            <section class="gh-section is-repo-sec"><h3 class="gh-section-title">2. Repository &amp; Auto-Save</h3><div class="gh-sync-details"><label class="form-label">Repository<select id="nb-gh-repo" class="form-input"><option>Loading…</option></select></label><label class="form-label">Branch (optional)<input type="text" id="nb-gh-branch" class="form-input" placeholder="default branch" autocomplete="off" spellcheck="false" /></label></div><div class="modal-actions"><button type="button" class="modal-btn cancel" id="nb-gh-scratch" title="Create private repo 'notebook' or switch to it">Use notebook repo</button></div><div class="gh-sync-repo-help" id="nb-gh-repo-help" hidden></div><label class="checkbox-row"><input type="checkbox" id="nb-gh-autosave" /> Autosave to GitHub a few seconds after I stop typing (offline edits queue)</label></section>
+            <section class="gh-section is-files-sec" style="margin-top:.75rem;"><h3 class="gh-section-title">3. Active Target &amp; What Happens When You Save</h3><label class="form-label">Active file path<span class="path-row"><input type="text" id="nb-gh-path" class="form-input" placeholder="notes-YYYY-MM-DD-HHMM.md" autocomplete="off" spellcheck="false" /><button type="button" class="modal-btn cancel" id="nb-gh-new-file">New dated file</button></span></label><p class="nb-soft">Saving checks the remote SHA first. If unchanged, it commits directly and updates the SHA. If changed elsewhere, it pauses — Pull latest or Overwrite anyway. Queued commits retry on reconnect.</p><div class="modal-actions"><button type="button" class="modal-btn submit" id="nb-gh-save">Save now</button><button type="button" class="modal-btn cancel" id="nb-gh-pull">Pull latest</button><button type="button" class="modal-btn submit" id="nb-gh-overwrite" hidden>Overwrite anyway</button></div><p class="status-msg" id="nb-gh-file-status"></p>
+            <div class="gh-create"><div class="gh-create-row"><label class="form-label" style="flex:1;">Create new file<span class="path-row"><input type="text" id="nb-gh-new-path" class="form-input" placeholder="notes/2026-11-09.md" autocomplete="off" spellcheck="false" /><select id="nb-gh-new-type" class="form-input"><option value="md">.md</option><option value="txt">.txt</option><option value="json">.json</option><option value="csv">.csv</option><option value="html">.html</option><option value="">none</option></select><button type="button" class="modal-btn submit" id="nb-gh-create-file">Create file</button></span></label></div><div class="gh-create-row"><label class="form-label" style="flex:1;">Create new folder<span class="path-row"><input type="text" id="nb-gh-new-folder" class="form-input" placeholder="notes/2026-11-09" autocomplete="off" spellcheck="false" /><button type="button" class="modal-btn cancel" id="nb-gh-create-folder">Create folder</button></span></label></div></div></section>
+          </div>
+          <details class="gh-sync-advanced" id="nb-gh-restore"><summary>Already have the app? Reconnect</summary><p class="modal-hint">Each browser/address has its own storage. Restore the app you already made instead of creating another.</p><ol class="gh-restore-steps"><li>Choose your saved <code>dash-github-connection-*.json</code> below — it fills the fields.</li><li>Or find App ID in GitHub → Settings → Developer settings → GitHub Apps, then Generate a private key (.pem).</li><li>Click <strong>Reconnect with this app</strong>.</li></ol><div class="token-row"><label class="form-label" style="flex:1;">Connection file<input type="file" id="nb-gh-restore-file" class="form-input" accept=".json,.pem" /></label></div><div class="token-row"><label class="form-label" style="flex:1;">App ID<input type="text" id="nb-gh-restore-app-id" class="form-input" placeholder="123456" /></label></div><div class="token-row"><label class="form-label" style="flex:1;">Private key (.pem)<textarea id="nb-gh-restore-pem" class="form-input" rows="3" placeholder="-----BEGIN RSA PRIVATE KEY-----"></textarea></label></div><div class="modal-actions"><button type="button" class="modal-btn submit" id="nb-gh-restore-go">Reconnect with this app</button></div><p class="status-msg" id="nb-gh-restore-status"></p></details>
+          <details class="gh-sync-advanced"><summary>Advanced: personal access token</summary><p class="modal-hint">Only if you prefer not to register an app. Needs Contents: Read and write.</p><div class="token-row"><label class="form-label" style="flex:1;">Token<input type="password" id="nb-gh-token" class="form-input" placeholder="github_pat_… or ghp_…" autocomplete="off" /></label><button type="button" class="modal-btn submit" id="nb-gh-token-save">Use token</button><button type="button" class="modal-btn cancel" id="nb-gh-token-clear" hidden>Remove token</button></div></details>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="sw-update-toast" class="hidden" role="alert"><span>A new version of Notebook is ready.</span><button type="button" class="modal-btn submit" id="sw-reload">Reload</button></div>
+  </main>
+  <script type="module" src="assets/notebook.js"></script>
+</body>
+</html>

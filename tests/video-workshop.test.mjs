@@ -199,5 +199,5 @@ test('research copy distinguishes local inference from quota-based services and 
   assert.equal(document.querySelectorAll('script[src]').length, 0);
   const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
   assert.match(sw, /"\.\/video-workshop\.html"/);
-  assert.match(sw, /dash-scratch-v24/);
+  assert.match(sw, /dash-scratch-v25/);
 });

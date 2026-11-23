@@ -54,3 +54,6 @@ Most recent substantive merged updates on main, as of November 22, 2026:
 
 [#66](https://github.com/aacareq/dash/pull/66) was a checkpoint sync, not a
 separate feature update.
+
+For the adversarial review, improved evaluation rubric, and three-minute value
+plan, see [Three-minute value evaluation](three-minute-value-evaluation.md).

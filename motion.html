@@ -93,7 +93,7 @@
       <!-- Left: Idea -->
       <section class="motion-card" aria-labelledby="motion-idea-title">
         <h3 id="motion-idea-title">1 · Idea → Script</h3>
-        <p class="motion-muted">Type a topic. Local = instant, no key. AI = BYOK Groq/Gemini/OpenRouter/HF for viral rewrite.</p>
+        <p class="motion-muted">For a useful first draft, enter 2–8 lines of your own copy (one per scene), then generate locally. A single topic produces a generic template that needs editing. Review all claims before export.</p>
         <label class="form-label">Your idea / topic
           <textarea id="motion-idea" class="form-input" maxlength="500" placeholder="e.g. 3 morning habits that 10x my focus (no coffee)">3 morning habits that 10x my focus — without more coffee or willpower</textarea>
         </label>
@@ -146,7 +146,7 @@
             </select>
           </label>
           <label class="form-label">Handle
-            <input id="motion-handle" class="form-input" value="@you" placeholder="@you" />
+            <input id="motion-handle" class="form-input" value="" placeholder="Optional handle" />
           </label>
         </div>
         <div class="motion-row" style="margin-top:.5rem">
@@ -197,7 +197,7 @@
         </div>
         <p class="motion-muted">Images via Pollinations (free CDN, no account). Falls back to gradient if offline — still exports cleanly. No upload, no queue.</p>
         <div class="motion-row">
-          <button id="motion-record" class="modal-btn submit" type="button">● Record video (15s)</button>
+          <button id="motion-record" class="modal-btn submit" type="button">● Record video</button>
           <button id="motion-stop-rec" class="modal-btn cancel" type="button" hidden>■ Stop</button>
           <button id="motion-export-png" class="modal-btn cancel" type="button">PNG</button>
           <button id="motion-copy-script" class="modal-btn cancel" type="button">Copy script</button>
@@ -284,7 +284,7 @@
           <li>LLM script: local instant or BYOK Groq/Gemini/OpenRouter/HF — hook + 3 facts + CTA, 18 words max per caption, 9:16 aware.</li>
           <li>Images: Pollinations free CDN (no key) or your HF key; each scene gets prompt auto-built from caption + preset/palette.</li>
           <li>Motion: Ken Burns + karaoke highlight + progress bar + badge, all Canvas — 30 fps capture via MediaRecorder → WebM (MP4 if browser).</li>
-          <li>Export: download video or PNG pack, copy script for X Studio, schedule via Buffer/Typefully.</li>
+          <li>Export: download video or the current frame as PNG, and copy the script for X Studio. Publishing and scheduling happen separately.</li>
         </ul>
         <p class="motion-muted">Sources: Pollinations docs, HF Inference, Groq Cloud, Gemini API pricing, app-level benchmarks Nov 2026.</p>
       </div>

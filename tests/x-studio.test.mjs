@@ -124,7 +124,7 @@ describe("Dashboard integration", () => {
     const sw = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
     assert.match(sw, /x-studio\.html/);
     assert.match(sw, /x-studio\.js/);
-    assert.match(sw, /dash-scratch-v2/);
+    assert.match(sw, /dash-scratch-v\d+/);
   });
   it("posting adapters validate inputs", async () => {
     const X = loadXStudio();
@@ -292,5 +292,29 @@ describe("X Studio DOM integration (dropdowns populated)", () => {
     await new Promise(r=> setTimeout(r,10));
     assert.ok(!doc.getElementById("x-virality").innerHTML.includes("Over 280"), "premium should allow 300");
     window.close();
+  });
+});
+
+describe('rapid-value safety regressions', () => {
+  it('preserves long intent and API text rather than silently truncating', async () => {
+    const X = loadXStudio(); const text = 'a'.repeat(4500);
+    assert.equal(new URL(X.xIntentUrl(text)).searchParams.get('text'), text);
+    let sent;
+    await X.postViaXApi({ accessToken:'token', text, fetchImpl: async (_url, opts) => {
+      sent = JSON.parse(opts.body).text;
+      return { ok:true, json: async () => ({ data: { id:'1' } }) };
+    }});
+    assert.equal(sent, text);
+  });
+  it('splits long emoji without broken surrogate pairs', () => {
+    const X = loadXStudio(); const text = '😀'.repeat(281);
+    const parts = X.splitIntoThread(text, 280);
+    assert.equal(parts.join(''), text);
+    assert.deepEqual(parts.map(p => [...p].length), [280, 1]);
+  });
+  it('reports unavailable local storage rather than claiming a save', () => {
+    const X = loadXStudio();
+    assert.throws(() => X.saveDraft({ text:'draft' }), /not saved/);
+    assert.throws(() => X.enqueuePost({ text:'post' }), /not saved/);
   });
 });

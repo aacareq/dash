@@ -170,3 +170,11 @@ describe('Motion Studio constants', () => {
     window.close();
   });
 });
+
+test('local multiline script preserves supplied value without inventing a CTA', () => {
+  const M = loadMotion();
+  const text = 'Try a 10 minute planning block\nWrite tomorrow’s first action\nReview the result on Friday';
+  const result = M.buildLocalSocial(text, 'hooklist');
+  assert.deepEqual(result.scenes.map(s => s.caption), text.split('\n'));
+  assert.doesNotMatch(M.buildLocalSocial('focus', 'hooklist').scenes.at(-1).caption, /DM|checklist/i);
+});

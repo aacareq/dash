@@ -85,6 +85,13 @@
   ];
 
   function buildLocalSocial(brief, preset = "hooklist") {
+    // Multiple lines are user-supplied captions, not facts invented by a template.
+    const supplied = String(brief ?? "").split(/\n+/).map(line => clean(line, 140)).filter(Boolean);
+    if (supplied.length >= 2 && supplied.length <= 8) {
+      return normalizeSocial({ title: supplied[0], preset, scenes: supplied.map((caption, i) => ({
+        title: i === 0 ? "HOOK" : `SCENE ${i + 1}`, caption, prompt: caption
+      })) });
+    }
     const raw = clean(brief, 120);
     if (!raw) throw new Error("Add an idea / topic first");
     const topic = raw;
@@ -137,7 +144,7 @@
         { title: "1", caption: bodyLines[0], prompt: `Illustration for: ${bodyLines[0]} — ${topic}` },
         { title: "2", caption: bodyLines[1], prompt: `Illustration for: ${bodyLines[1]} — ${topic}` },
         { title: "3", caption: bodyLines[2], prompt: `Illustration for: ${bodyLines[2]} — ${topic}` },
-        { title: "CTA", caption: `Follow for daily ${shortTopic}. Comment \"MORE\" and I'll DM the checklist.`, prompt: `CTA card for ${topic}, clean, button` }
+        { title: "CTA", caption: `What would you add about ${shortTopic}?`, prompt: `CTA card for ${topic}, clean, button` }
       ]
     });
   }
@@ -553,7 +560,7 @@
         state.social = local;
         state.currentScene = 0;
         state.images = {};
-        renderScenes(); drawPreview(0.5); setStatus(`Local script ready — ${local.scenes.length} scenes. Generate images or record now. No key needed.`, "ok");
+        renderScenes(); drawPreview(0.5); setStatus(`Local draft ready — ${local.scenes.length} scenes. Review and edit all claims before recording.`, "ok");
       };
 
       $("motion-generate-local")?.addEventListener("click", () => buildSocial(true));
@@ -648,7 +655,7 @@
       };
       $("motion-record")?.addEventListener("click", async () => {
         if (!state.social) { setStatus("Build a script first", "error"); return; }
-        if (typeof canvas.captureStream !== "function" || typeof window.MediaRecorder !== "function") { setStatus("Canvas recording not supported — use PNG pack + editor (Shotcut/Kdenlive)", "error"); return; }
+        if (typeof canvas.captureStream !== "function" || typeof window.MediaRecorder !== "function") { setStatus("Canvas recording not supported — export the current scene as PNG and use an editor", "error"); return; }
         const dur = totalMs() / 1000;
         recChunks = [];
         const stream = canvas.captureStream(30);
@@ -660,11 +667,11 @@
         recorder.onstop = () => {
           stream.getTracks().forEach(t=>t.stop()); recStream = null;
           const blob = new Blob(recChunks, { type: recorder.mimeType || mime || "video/webm" });
-          if (!blob.size) { setStatus("No video data — try PNG pack", "error"); return; }
+          if (!blob.size) { setStatus("No video data — try exporting the current scene as PNG", "error"); return; }
           if (recUrl) URL.revokeObjectURL(recUrl); recUrl = URL.createObjectURL(blob);
           const v = $("motion-result"); if (v) { v.src = recUrl; v.hidden = false; }
           const a = $("motion-download"); if (a) { const ext = blob.type.includes("mp4") ? "mp4" : "webm"; a.href = recUrl; a.download = `social-motion-${new Date().toISOString().slice(0,10)}.${ext}`; a.textContent = `Download ${ext.toUpperCase()} (${Math.round(blob.size/1024)} KB)`; a.hidden = false; }
-          setStatus(`Recorded ${dur.toFixed(1)}s → ${blob.type.includes("mp4")?"MP4":"WebM"} ready. Share to TikTok/Reels/X directly.`, "ok");
+          setStatus(`Recording ready as ${blob.type.includes("mp4")?"MP4":"WebM"}. Check playback, captions and platform compatibility before sharing.`, "ok");
           $("motion-record").disabled = false; $("motion-stop-rec").hidden = true;
         };
         recorder.onerror = () => setStatus("Recorder error", "error");

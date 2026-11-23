@@ -94,6 +94,18 @@
       <section class="motion-card" aria-labelledby="motion-idea-title">
         <h3 id="motion-idea-title">1 · Idea → Script</h3>
         <p class="motion-muted">For a useful first draft, enter 2–8 lines of your own copy (one per scene), then generate locally. A single topic produces a generic template that needs editing. Review all claims before export.</p>
+        <div class="motion-note" data-social-templates="motion" data-target="motion-idea" style="margin:.7rem 0; padding:.7rem; border:1px solid var(--border); border-radius:10px">
+          <strong>Quick-start templates</strong>
+          <p class="motion-muted">Choose a format and add your own concrete insight. No key needed. Try the example, then make it yours.</p>
+          <label class="form-label">Template <select class="form-input" data-template></select></label>
+          <label class="form-label">Topic <input class="form-input" data-topic maxlength="80" placeholder="e.g. planning a focused work session" /></label>
+          <label class="form-label">Your concrete point <input class="form-input" data-point maxlength="120" placeholder="e.g. Write the next action before opening your inbox." /></label>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.5rem">
+            <button type="button" class="modal-btn cancel" data-example>Try an example</button>
+            <button type="button" class="modal-btn submit" data-use-template>Load into editor</button>
+          </div>
+          <p class="motion-muted" data-template-status role="status" aria-live="polite"></p>
+        </div>
         <label class="form-label">Your idea / topic
           <textarea id="motion-idea" class="form-input" maxlength="500" placeholder="e.g. 3 morning habits that 10x my focus (no coffee)">3 morning habits that 10x my focus — without more coffee or willpower</textarea>
         </label>
@@ -291,6 +303,7 @@
     </dialog>
   </div>
 
+  <script src="assets/social-templates.js"></script>
   <script src="assets/motion-studio.js"></script>
 </body>
 </html>

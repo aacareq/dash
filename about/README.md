@@ -57,3 +57,9 @@ separate feature update.
 
 For the adversarial review, improved evaluation rubric, and three-minute value
 plan, see [Three-minute value evaluation](three-minute-value-evaluation.md).
+
+Both X Studio and Social Motion Studio include four no-key quick-start
+templates and a worked example. Enter a topic and a concrete point, load the
+draft, then edit and verify it before sharing. Motion templates load scene lines;
+use **Generate locally** to preview them. Optional AI rewrites use the supplied
+writing guidance, but outputs are not automatically fact-checked.

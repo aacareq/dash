@@ -188,12 +188,14 @@
     if (fmt) extra.push(`Format: ${fmt} — keep safe margins, vertical hook first`);
     if (pal) extra.push(`Palette hint: ${pal}`);
     return [
-      "You are a viral short-video scriptwriter. Output JSON ONLY.",
+      "Act as a direct-response social strategist creating a short-form script. Output JSON only.",
       `Preset: ${p.label} (${key}) — tailor structure to it.`,
       `Topic: ${JSON.stringify(clean(brief, 400))}`,
       ...(extra.length ? extra : []),
       "Return JSON: {\"title\":\"short title 5-8 words\",\"preset\":\"hooklist|beforeafter|mythfact|quote|tutorial|hottake\",\"scenes\":[{\"title\":\"SCENE LABEL 1-2 words\",\"caption\":\"1 sentence hook or fact, <=18 words, punchy\",\"prompt\":\"image prompt: vivid, short, no text, social-friendly\"}]}",
-      "Rules: 4-5 scenes, first caption = scroll-stopping hook (pattern interrupt), last = CTA (follow/comment/save), no hashtags, no all-caps sentences, keep captions 8-18 words.",
+      "Use 4–5 scenes. Open with a concrete hook under 140 characters; make the payoff specific and actionable. Use short, skimmable sentences of roughly 8–14 words; close with a useful takeaway or specific open question.",
+      "Avoid delve, game-changer, unlock, unleash, tapestry, testament, in today's fast-paced world, let's dive in, and here's why. No engagement bait or hashtag spam; at most two functional emoji. No introductory filler.",
+      "Use only facts supplied in the brief. Never invent statistics, personal experiences, examples, sources, outcomes or promises. If details are missing, stay general or use clearly marked placeholders. Silently check hook specificity, remove fluff, and use a practitioner voice.",
       "Do not add markdown, fences, or extra keys."
     ].join("\n");
   }
@@ -428,7 +430,7 @@
     ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 
     // Bottom: handle + CTA
-    const handle = opts.handle || "@you";
+    const handle = opts.handle || "";
     ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = `700 ${Math.max(12, W*0.028)}px system-ui,sans-serif`;
     ctx.fillText(handle, W*0.04, H*0.93);
     ctx.fillStyle = "rgba(255,255,255,0.55)"; ctx.font = `500 ${Math.max(10, W*0.022)}px system-ui,sans-serif`;
@@ -472,7 +474,7 @@
         palette: "electric",
         captionStyle: "hormozi",
         motion: "slow",
-        handle: "@you",
+        handle: "",
         images: {}, // sceneIdx -> Image
         imageUrls: {}, // sceneIdx -> objectURL
         currentScene: 0,
@@ -555,7 +557,7 @@
         state.palette = $("motion-palette")?.value || "electric";
         state.captionStyle = $("motion-caption-style")?.value || "hormozi";
         state.motion = $("motion-motion")?.value || "slow";
-        state.handle = $("motion-handle")?.value || "@you";
+        state.handle = $("motion-handle")?.value || "";
         const local = buildLocalSocial(brief, state.preset);
         state.social = local;
         state.currentScene = 0;
@@ -569,7 +571,7 @@
       $("motion-palette")?.addEventListener("change", e => { state.palette = e.target.value; drawPreview(0.5); });
       $("motion-caption-style")?.addEventListener("change", e => { state.captionStyle = e.target.value; drawPreview(0.5); });
       $("motion-motion")?.addEventListener("change", e => { state.motion = e.target.value; drawPreview(0.5); });
-      $("motion-handle")?.addEventListener("input", e => { state.handle = e.target.value || "@you"; drawPreview(0.5); });
+      $("motion-handle")?.addEventListener("input", e => { state.handle = e.target.value || ""; drawPreview(0.5); });
 
       // BYOK generate
       $("motion-generate-ai")?.addEventListener("click", async () => {

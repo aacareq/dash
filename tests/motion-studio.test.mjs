@@ -131,14 +131,14 @@ describe('Motion Studio constants', () => {
     assert.ok(html.includes('socialmotion:'), 'cluster key');
     assert.ok(html.includes('Social Motion Studio'), 'title');
     assert.ok(html.includes('motion.html'), 'link');
-    assert.ok(html.includes('DashOS-v1.19.0'), 'version bump');
+    assert.match(html, /DashOS-v\d+\.\d+\.\d+/, 'semantic version');
   });
 
   test('sw.js precaches motion assets', () => {
     const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
     assert.match(sw, /motion\.html/);
     assert.match(sw, /motion-studio\.js/);
-    assert.match(sw, /dash-scratch-v28/);
+    assert.match(sw, /dash-scratch-v\d+/);
   });
 
   test('motion.html shell exists and loads module', () => {

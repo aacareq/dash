@@ -8,6 +8,8 @@ particle layer for a bit of delight.
 
 **Live dashboard:** https://aacareq.github.io/dash/
 
+For a concise feature overview and recent changes, see [About Dash](about/README.md).
+
 ## Use it
 
 Open the live link above, or open `index.html` locally in a browser. No build

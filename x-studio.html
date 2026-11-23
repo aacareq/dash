@@ -80,6 +80,19 @@
           <span class="x-muted">Hook decides 80% — you have 2 words. <span class="x-kbd">⌘/Ctrl+Enter</span> to open X</span>
         </div>
 
+        <div class="x-pane" data-social-templates="post" data-target="x-text" style="margin:.7rem 0; padding:.7rem; border:1px solid var(--border); border-radius:10px">
+          <strong>Quick-start templates</strong>
+          <p class="x-muted">Choose a format and add your own concrete insight. No key needed. Try the example, then make it yours.</p>
+          <label class="form-label">Template <select class="form-input" data-template></select></label>
+          <label class="form-label">Topic <input class="form-input" data-topic maxlength="80" placeholder="e.g. planning a focused work session" /></label>
+          <label class="form-label">Your concrete point <input class="form-input" data-point maxlength="120" placeholder="e.g. Write the next action before opening your inbox." /></label>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.5rem">
+            <button type="button" class="modal-btn cancel" data-example>Try an example</button>
+            <button type="button" class="modal-btn submit" data-use-template>Load into editor</button>
+          </div>
+          <p class="x-muted" data-template-status role="status" aria-live="polite"></p>
+        </div>
+
         <div id="x-composer" hidden aria-hidden="true"></div>
         <div class="x-two" style="margin-top:.5rem">
           <label class="form-label">Hook archetype
@@ -151,7 +164,7 @@
         </label>
         <div class="x-row">
           <button id="x-ai-generate" class="modal-btn submit" type="button">Generate 3 variants</button>
-          <span class="x-muted">Returns JSON with text + why. You pick → loads into composer.</span>
+          <span class="x-muted">Generates three editable drafts. Review claims and wording before publishing.</span>
         </div>
         <div id="x-ai-results" class="x-queue" hidden style="margin-top:.6rem"></div>
       </section>
@@ -404,6 +417,7 @@ Content-Type: application/json
     </div>
   </dialog>
 
+  <script src="assets/social-templates.js"></script>
   <script src="assets/x-studio.js"></script>
   <script>
     const ta = document.getElementById('x-text');

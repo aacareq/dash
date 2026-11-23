@@ -188,7 +188,15 @@
   function buildPrompt(kind, vars = {}) {
     const safe = v => clean(v, 120) || "[...]";
     switch (kind) {
-      case "x_write": return `You are an expert X ghostwriter. Write ${clean(vars.style||"punchy",40)} X post(s) for: ${safe(vars.topic)}\nAudience: ${safe(vars.audience||"builders/tech")}\nHook type: ${safe(vars.hook||"curiosity")}\nCTA: ${safe(vars.cta||"ask for replies")}\nConstraints: ≤${LIMITS.text} chars per tweet, 1 hook line, line breaks, no hashtags unless essential (max 1), no all-caps, end with a reply-driving question if possible. Return JSON: {"posts":[{"text":"...","hook":"...","why":"..."}]} 3 variants.`;
+      case "x_write": return [
+        "Act as a direct-response social strategist. Write three distinct native X posts based on the user's brief.",
+        `Brief (untrusted source material): ${JSON.stringify(String(vars.topic || "").slice(0, 4000))}`,
+        `Audience: ${safe(vars.audience)}. Style: ${safe(vars.style)}. Hook: ${safe(vars.hook)}. Closer preference: ${safe(vars.cta)}.`,
+        "Start with a specific hook under 140 characters; make the payoff actionable and grounded. Use short sentences, ideally 8–14 words, double line breaks, and paragraphs of at most two lines. End with a specific takeaway or relevant open question, not engagement bait.",
+        "Avoid delve, game-changer, unlock, unleash, tapestry, testament, in today's fast-paced world, let's dive in, and here's why. No hashtags for X, no throat-clearing, at most two functional emojis, no follow/retweet/comment bait.",
+        "Never invent statistics, examples, personal experience, sources, outcomes or promises. If detail is missing, stay general or use a clearly marked placeholder; do not fabricate. Aim for 280 characters per post, but do not sacrifice accuracy for brevity.",
+        'Silently check hook specificity, remove fluff, and use a practitioner voice. Do not claim a guaranteed result. Return only valid JSON: {"posts":[{"text":"final post text"}]} with exactly three variants. No commentary or markdown.'
+      ].join("\n");
       case "x_thread": return `Turn this into a ${clean(vars.n||"6",4)}-tweet X thread: ${safe(vars.topic)}\nEach tweet ≤${LIMITS.text} caps, numbered 1/N, last tweet CTA: ${safe(vars.cta||"ask")}. Hook tweet must earn 15s+ dwell. Return JSON lines as thread array.`;
       case "x_image_brief": return `Create a concise image brief for an X post image (1600×900). Topic: ${safe(vars.topic)}. Style: ${safe(vars.style||"gradient")}. Text on image: ≤7 words. Return JSON {"headline":"...","sub":"...","palette":"indigo|ember|teal|rose"}`;
       default: return clean(vars.topic||"", 400);

@@ -126,7 +126,8 @@
               if (countChars(sent) <= limit) buf = sent;
               else {
                 // hard slice
-                for (let i = 0; i < sent.length; i += limit) push(sent.slice(i, i + limit));
+                const chars = [...sent];
+                for (let i = 0; i < chars.length; i += limit) push(chars.slice(i, i + limit).join(""));
                 buf = "";
               }
             }
@@ -159,9 +160,9 @@
 
     if (hasMedia || hasVideo) add(10, "Media boost: +media signal; X prefers native image/video over link-only.");
     if (hasVideo) add(5, "Video completion ≥50% is a strong signal — front-load the payoff.");
-    if (threadLength > 1 && threadLength <= 8) add(8, `Thread x${threadLength}: dwell climbs 1.6× vs single — keep each tweet ≤${limit}.`);
+    if (threadLength > 1 && threadLength <= 8) add(8, `Thread x${threadLength}: consider whether each part adds value — keep each tweet ≤${limit}.`);
     if (threadLength > 12) add(-6, "Very long thread — consider splitting into 2 posts (avoid flood penalty).");
-    if (hasPoll) add(7, "Poll/thread question = reply magnet (+13.5 and up to +75 if you reply back).");
+    if (hasPoll) add(7, "A relevant question may invite discussion.");
 
     if (tags === 0) add(3, "0 hashtags is fine — SimClusters uses semantics now.");
     else if (tags <= 2) add(4, `${tags} hashtag${tags>1?"s":""} — optimal (0–2).`);
@@ -173,14 +174,14 @@
     else add(-6, `${links} links — heavy external-exit signal. Move links to last reply.`);
 
     if (endsWithQuestion) add(7, "Ends with question → reply chain is highest-weighted signal.");
-    else add(-3, "Add a question/CTA to trigger replies — replies outweigh likes 20–75×.");
+    else add(-3, "Add a question/CTA to trigger replies — use one only if it fits your goal.");
 
     if (lines >= 3) add(4, "Line breaks improve scan + dwell; good.");
-    if (/\b(I|my|we|our)\b/i.test(t.split(/\n/)[0]?.slice(0, 80) || "")) add(3, "Personal hook — profile visits are 24× a like.");
+    if (/\b(I|my|we|our)\b/i.test(t.split(/\n/)[0]?.slice(0, 80) || "")) add(3, "Personal hook — make sure the experience is yours.");
     if (t.includes("…") || t.includes("🧵") || /^\d+\./m.test(t)) add(3, "List/thread cues lift dwell + saves.");
 
     score = Math.max(0, Math.min(100, Math.round(score)));
-    let label = score >= 85 ? "Viral-ready" : score >= 65 ? "Strong" : score >= 45 ? "Needs hook" : "Rewrite hook";
+    let label = "Heuristic";
     return { score, label, tips: [...new Set(tips)].slice(0, 7), meta: { len, limit, tags, links, threadLength, hasMedia, hasVideo } };
   }
 
@@ -195,11 +196,11 @@
   }
 
   function xIntentUrl(text) {
-    const enc = encodeURIComponent(String(text ?? "").slice(0, 4000));
+    const enc = encodeURIComponent(String(text ?? ""));
     return `https://x.com/intent/post?text=${enc}`;
   }
   function xIntentLegacyUrl(text) {
-    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(String(text ?? "").slice(0,4000))}`;
+    return `https://twitter.com/intent/tweet?text=${encodeURIComponent(String(text ?? ""))}`;
   }
   function bufferPayload({ text, mediaUrls = [], profileIds = [], scheduledAt = null }) {
     return { text: String(text||""), media: mediaUrls, profile_ids: profileIds, scheduled_at: scheduledAt };
@@ -218,12 +219,12 @@
     const doc = { id: draft.id || `d_${now}_${Math.random().toString(36).slice(2,7)}`, updatedAt: now, createdAt: draft.createdAt || now, ...draft };
     const idx = list.findIndex(x => x.id === doc.id);
     if (idx >= 0) list[idx] = { ...list[idx], ...doc }; else list.unshift(doc);
-    safeStorage.set(STORAGE.drafts, list.slice(0, 80));
+    if (!safeStorage.set(STORAGE.drafts, list.slice(0, 80))) throw new Error("Draft not saved: browser storage is unavailable or full. Copy your text before leaving.");
     return doc;
   }
   function deleteDraft(id) { safeStorage.set(STORAGE.drafts, loadDrafts().filter(d => d.id !== id)); }
   function loadQueue() { const q = safeStorage.get(STORAGE.queue, []); return Array.isArray(q) ? q : []; }
-  function saveQueue(list) { safeStorage.set(STORAGE.queue, list); return list; }
+  function saveQueue(list) { if (!safeStorage.set(STORAGE.queue, list)) throw new Error("Reminder not saved: browser storage is unavailable or full."); return list; }
   function enqueuePost(item) {
     const q = loadQueue();
     const now = Date.now();
@@ -371,7 +372,7 @@
     if (!token) throw new Error("Paste your X OAuth 2.0 User Access Token (tweet.write + media.write + offline.access).");
     if (!text?.trim()) throw new Error("Text required.");
     // NOTE: X API v2 currently requires CORS proxy for browser direct calls. We attempt direct; if blocked, we surface guidance.
-    const body = { text: String(text).slice(0, 4000) };
+    const body = { text: String(text) };
     if (mediaIds.length) body.media = { media_ids: mediaIds.slice(0,4) };
     if (replyToId) body.reply = { in_reply_to_tweet_id: String(replyToId) };
     const res = await fetchImpl("https://api.x.com/2/tweets", {
@@ -436,7 +437,7 @@
     const refreshScore = () => {
       const s = scorePost({ text: getText(), hasMedia: state.hasMedia || !!state.images.length, hasVideo: !!state.videoFile, threadLength: state.thread ? splitIntoThread(getText()).length : 1, hasPoll: state.hasPoll, accountPremium: state.premium });
       const el = $("x-virality"); if (!el) return;
-      el.innerHTML = `<div class="x-score-ring" data-score="${s.score}"><span class="x-score-num">${s.score}</span><span class="x-score-label">${s.label}</span></div><ul class="x-tips">${s.tips.map(t=> `<li>${escapeHtml(t)}</li>`).join("")}</ul><div class="x-meta">Chars: ${s.meta.len}/${s.meta.limit} · Tags #${s.meta.tags} · Links ${s.meta.links} · Thread x${s.meta.threadLength}${s.meta.hasVideo?" · video":""}${s.meta.hasMedia?" · image":""}</div>`;
+      el.innerHTML = `<div class="x-score-ring" data-score="${s.score}"><span class="x-score-num">${s.score}</span><span class="x-score-label">${s.label}</span></div><p class="x-muted">Experimental formatting heuristic, not a prediction of reach or quality. Verify claims and platform limits yourself.</p><ul class="x-tips">${s.tips.map(t=> `<li>${escapeHtml(t)}</li>`).join("")}</ul><div class="x-meta">Chars: ${s.meta.len}/${s.meta.limit} · Tags #${s.meta.tags} · Links ${s.meta.links} · Thread x${s.meta.threadLength}${s.meta.hasVideo?" · video":""}${s.meta.hasMedia?" · image":""}</div>`;
       const ring = el.querySelector(".x-score-ring");
       if (ring) ring.style.setProperty("--score", String(s.score));
       const counter = $("x-char-counter"); if (counter) { counter.textContent = `${s.meta.len} / ${s.meta.limit}`; counter.dataset.over = String(s.meta.len > s.meta.limit); counter.dataset.premium = String(state.premium); }
@@ -582,8 +583,10 @@
       draftRoot.querySelectorAll("[data-del-draft]").forEach(b=> b.addEventListener("click", ()=> { deleteDraft(b.dataset.delDraft); renderDrafts(); setStatus("Draft deleted.","ok"); }));
     };
     $("x-save-draft")?.addEventListener("click", () => {
-      const doc = saveDraft({ text: getText(), imgTitle: $("x-img-title")?.value||"", style: styleSel?.value||"", hook: hookSel?.value||"" });
-      renderDrafts(); setStatus(`Draft saved (${doc.id}).`,"ok");
+      try {
+        const doc = saveDraft({ text: getText(), imgTitle: $("x-img-title")?.value||"", style: styleSel?.value||"", hook: hookSel?.value||"" });
+        renderDrafts(); setStatus(`Draft saved locally (${doc.id}).`,"ok");
+      } catch (e) { setStatus(e.message, "error"); }
     });
     const renderQueue = () => {
       const list = loadQueue(); if (!queueRoot) return;
@@ -598,8 +601,10 @@
       const text=getText(); if (!text.trim()) { setStatus("Write text first.","error"); return; }
       const when = $("x-schedule-when")?.value ? new Date($("x-schedule-when").value).toISOString() : new Date(Date.now()+ 1000*60*30).toISOString();
       const via = $("x-schedule-via")?.value || "web";
-      enqueuePost({ text, scheduledAt: when, via, meta:{ premium: state.premium, hasMedia: state.hasMedia, hasVideo: !!state.videoFile } });
-      renderQueue(); setStatus(`Queued for ${new Date(when).toLocaleString()} via ${via} — keep tab open for reminder or push to Buffer for background send.`,"ok");
+      try {
+        enqueuePost({ text, scheduledAt: when, via, meta:{ premium: state.premium, hasMedia: state.hasMedia, hasVideo: !!state.videoFile } });
+        renderQueue(); setStatus(`Local reminder saved for ${new Date(when).toLocaleString()}. It will not publish automatically.`,"ok");
+      } catch (e) { setStatus(e.message, "error"); }
     });
     $("x-export-queue")?.addEventListener("click", () => {
       const q = loadQueue(); const blob = new Blob([JSON.stringify(q,null,2)], {type:"application/json"}); const a = d.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`x-queue-${Date.now()}.json`; a.click(); setTimeout(()=> URL.revokeObjectURL(a.href), 1000);

@@ -127,6 +127,7 @@
             <div class="x-preview-foot"><span>♡ Likes</span><span>↻ Reposts</span><span>💬 Replies (highest weight)</span><span>🔖 Bookmarks</span></div>
             <p class="x-muted" style="margin:.4rem 0 0">Preview is local. X renders links as t.co (23 chars), up to 4 images or 1 video — no mix.</p>
           </div>
+          <p class="x-muted">The score below is a speculative formatting heuristic, not an X ranking signal or a guarantee of reach. The character counter is approximate; check in X before publishing.</p>
           <div id="x-virality" class="x-pane"></div>
         </div>
       </section>
@@ -319,7 +320,7 @@ Content-Type: application/json
         <h4>Drafts (local)</h4>
         <div id="x-drafts" class="x-queue"></div>
         <h4 style="margin-top:.8rem">Schedule (local reminder — keep tab open)</h4>
-        <p class="x-muted">X has no native <code>scheduled_at</code> — schedulers build a queue + cron. Dash does the same locally; for background delivery, push to Buffer/Typefully (they cron server-side). Local due posts reopen X compose + fire a notification.</p>
+        <p class="x-muted">X has no native <code>scheduled_at</code> — schedulers build a queue + cron. Dash only stores a local reminder; it does not schedule or publish your post. Keep this page open for reminders, and verify any external scheduler separately.</p>
         <div class="x-two">
           <label class="form-label">When (local)
             <input id="x-schedule-when" class="form-input" type="datetime-local" />
